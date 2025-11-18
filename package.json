@@ -1,0 +1,14 @@
+{
+  "name": "auctiva",
+  "version": "1.0.0",
+  "description": "Online Auction",
+  "main": "index.js",
+  "license": "ISC",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
+    "start": "npm run start --prefix server"
+  }
+}
