@@ -1,7 +1,12 @@
+import ThemeToggle from "../components/ThemeToggle";
+
 const HomePage = () => {
   return (
     <div>
-      Home Page
+      <ThemeToggle />
+      <div>
+        Hello World
+      </div>
     </div>
   );
 };
