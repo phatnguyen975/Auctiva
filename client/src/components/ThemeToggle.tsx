@@ -14,8 +14,8 @@ const ThemeToggle = () => {
 
   return (
     <button
-    className="max-sm:hidden p-2 rounded-full transition-colors duration-300"
-    onClick={() => dispatch(toggleTheme())}
+      className="max-sm:hidden p-2 rounded-full cursor-pointer transition-colors duration-300"
+      onClick={() => dispatch(toggleTheme())}
     >
       {theme == "dark" ? (
         <Sun className="h-6 w-6 text-yellow-300" />

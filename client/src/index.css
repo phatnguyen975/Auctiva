@@ -80,27 +80,6 @@
     --success: 160 84% 39%; /* #10B981 - Emerald Green */
     --warning: 38 92% 50%; /* #F59E0B - Amber */
   }
-
-  /* Cursor pointer for all clickable elements */
-  button,
-  a,
-  [role="button"],
-  [type="button"],
-  [type="submit"],
-  select,
-  .cursor-pointer {
-    cursor: pointer;
-  }
-
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="number"],
-  input[type="search"],
-  textarea,
-  .cursor-text {
-    cursor: text;
-  }
 }
 
 html {
@@ -116,48 +95,13 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+input[type=password]::-ms-reveal,
+input[type=password]::-ms-clear {
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.5);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.7);
-}
-
-/* Utility classes for status colors */
-@layer utilities {
-  .text-success {
-    color: hsl(var(--success));
-  }
-
-  .text-warning {
-    color: hsl(var(--warning));
-  }
-
-  .bg-success {
-    background-color: hsl(var(--success));
-  }
-
-  .bg-warning {
-    background-color: hsl(var(--warning));
-  }
-
-  .border-success {
-    border-color: hsl(var(--success));
-  }
-
-  .border-warning {
-    border-color: hsl(var(--warning));
-  }
+input[type=password]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
 }
