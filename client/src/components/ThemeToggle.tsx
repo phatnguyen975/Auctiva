@@ -1,42 +1,21 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Moon, Sun } from "lucide-react";
+import type { AppDispatch, RootState } from "../store/store";
+import { toggleTheme } from "../store/slices/themeSlice";
 
 const ThemeToggle = () => {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const theme = useSelector((state: RootState) => state.theme.mode);
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-
-    const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
-    setTheme(initialTheme);
-
-    if (initialTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-
-    localStorage.setItem("theme", newTheme);
-  };
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  }, [theme]);
 
   return (
     <button
-      onClick={toggleTheme}
-      className="max-sm:hidden p-2 rounded-full transition-colors duration-300"
+    className="max-sm:hidden p-2 rounded-full transition-colors duration-300"
+    onClick={() => dispatch(toggleTheme())}
     >
       {theme == "dark" ? (
         <Sun className="h-6 w-6 text-yellow-300" />
