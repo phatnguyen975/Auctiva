@@ -14,13 +14,13 @@ const ThemeToggle = () => {
 
   return (
     <button
-      className="max-sm:hidden p-2 rounded-full cursor-pointer transition-colors duration-300"
+      className="p-2 rounded-full cursor-pointer transition-colors duration-300"
       onClick={() => dispatch(toggleTheme())}
     >
       {theme == "dark" ? (
-        <Sun className="h-6 w-6 text-yellow-300" />
+        <Sun className="size-5 text-yellow-500 fill-yellow-500" />
       ) : (
-        <Moon className="h-6 w-6 text-blue-900" />
+        <Moon className="size-5 text-blue-800 fill-blue-800" />
       )}
     </button>
   );
