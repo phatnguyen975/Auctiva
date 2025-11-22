@@ -82,7 +82,7 @@ const AuthBrandSide = () => {
   const location = useLocation();
 
   const isLoginRoute = location.pathname.startsWith("/login");
-  const isRegisterRoute = location.pathname.startsWith("/register");
+  const isRegisterRoute = location.pathname.startsWith("/register") || location.pathname.startsWith("/verify-email");
 
   const info = isLoginRoute
     ? brandInfos.loginInfo

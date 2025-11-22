@@ -17,9 +17,8 @@ const RegisterPage = () => {
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    alert(formData.email + " " + formData.password);
-    navigate("/");
-    toast.success("Logged in successfully");
+    navigate("/verify-email");
+    toast.success("Account created successfully");
   };
 
   return (
@@ -40,7 +39,7 @@ const RegisterPage = () => {
           <p className="text-gray-500">Fill in the details to get started</p>
         </div>
 
-        {/* Login Form */}
+        {/* Register Form */}
         <form className="flex flex-col gap-4" onSubmit={handleLogin}>
           {/* Full Name */}
           <div>
@@ -112,14 +111,22 @@ const RegisterPage = () => {
               }
               required
             />
-            {formData.password && <PasswordStrengthMeter password={formData.password} />}
+            {formData.password && (
+              <PasswordStrengthMeter password={formData.password} />
+            )}
           </div>
 
           {/* Terms Checkbox */}
           <div className="flex gap-2 items-center">
-            <input id="terms" type="checkbox" className="cursor-pointer accent-gray-600" required />
+            <input
+              id="terms"
+              type="checkbox"
+              className="cursor-pointer accent-gray-600"
+              required
+            />
             <label htmlFor="terms" className="text-sm cursor-pointer">
-              I agree to the <span className="hover:underline">Terms of Service</span>
+              I agree to the{" "}
+              <span className="hover:underline">Terms of Service</span>
             </label>
           </div>
 
