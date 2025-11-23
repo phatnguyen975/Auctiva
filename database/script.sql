@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS public.products (
     step_price          NUMERIC NOT NULL CHECK (step_price > 0),
     buy_now_price       NUMERIC CHECK (buy_now_price > start_price),
     current_price       NUMERIC,
-    start_date          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    post_date           TIMESTAMPTZ NOT NULL DEFAULT now(),
     end_date            TIMESTAMPTZ NOT NULL,
     is_auto_extend      BOOLEAN NOT NULL DEFAULT TRUE,
     is_instant_purchase BOOLEAN NOT NULL DEFAULT FALSE,

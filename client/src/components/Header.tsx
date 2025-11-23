@@ -90,7 +90,7 @@ const Header = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
-                      navigate("/products");
+                      navigate(`/products?keyword=${searchQuery}`);
                     }
                   }}
                 />
@@ -165,7 +165,7 @@ const Header = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  navigate("/products");
+                  navigate(`/products?keyword=${searchQuery}`);
                 }
               }}
             />
@@ -225,6 +225,12 @@ const Header = () => {
                               <li
                                 key={item}
                                 className="hover:text-gray-800 cursor-pointer"
+                                onClick={() => {
+                                  navigate(
+                                    `/products?category=${item.toLowerCase()}`
+                                  );
+                                  setCategorySidebarOpen(false);
+                                }}
                               >
                                 {item}
                               </li>

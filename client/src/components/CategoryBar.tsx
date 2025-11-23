@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { dummyCategories } from "../../assets/assets";
+import { dummyCategories } from "../assets/assets";
 
 const CategoryBar = () => {
   const [categoryOpen, setCategoryOpen] = useState<string | null>(null);
@@ -9,7 +9,7 @@ const CategoryBar = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="w-full p-2 hidden md:flex items-center justify-center border-b border-gray-400 transition-colors duration-300">
+    <div className="w-full p-2 hidden md:flex items-center justify-center border-b border-gray-300 transition-colors duration-300">
       <div className="flex items-center justify-center gap-2 lg:gap-8">
         {dummyCategories.map((category) => (
           <div
@@ -29,7 +29,7 @@ const CategoryBar = () => {
                     : "border-transparent"
                 }
                 `}
-              onClick={() => navigate(`/products/${category.slug}`)}
+              onClick={() => navigate(`/categories/${category.slug}`)}
             >
               {category.name}
               <ChevronDown
@@ -69,11 +69,11 @@ const CategoryBar = () => {
                           {subcategory.name.toUpperCase()}
                         </p>
                       </div>
-                      {subcategory.items.map((item, index) => (
+                      {subcategory.items.map((item) => (
                         <button
                           key={item}
                           onClick={() =>
-                            navigate(`/products/${category.slug}/${index}`)
+                            navigate(`/products?category=${item.toLowerCase()}`)
                           }
                           className="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded-sm cursor-pointer transition-colors"
                         >
