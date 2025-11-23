@@ -1,8 +1,13 @@
+import CategoryBar from "../../components/home/CategoryBar";
+
 const HomePage = () => {
   return (
-    <div>
-      Home Page
-    </div>
+    <>
+      <CategoryBar />
+      <div>
+        Home Page
+      </div>
+    </>
   );
 };
 

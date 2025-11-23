@@ -50,7 +50,7 @@ const ProfileMenu = () => {
             />
             <div>
               <p className="font-semibold max-w-[150px] truncate">Phat Nguyen</p>
-              <p className="text-gray-400 text-sm max-w-[150px] truncate">phatnguyen9725@gmail.com</p>
+              <p className="text-gray-600 text-sm max-w-[150px] truncate">phatnguyen9725@gmail.com</p>
             </div>
           </div>
 

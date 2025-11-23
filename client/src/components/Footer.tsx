@@ -13,50 +13,51 @@ const Footer = () => {
   const navigate = useNavigate();
 
   return (
-    <footer className="bg-card border-t border-gray-200 shadow-sm mt-auto transition-colors duration-300">
-      {/* Main Footer Content */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <footer className="bg-white shadow-sm mt-auto transition-colors duration-300">
+      {/* Main Footer */}
+      <div className="container mx-auto px-4 py-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Column 1: Brand */}
           <div className="space-y-4">
+            {/* Logo */}
             <button
-              onClick={() => navigate("/")}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+              onClick={() => navigate("/")}
             >
               <div className="bg-black rounded-lg p-2">
-                <Gavel className="h-5 w-5 text-white" />
+                <Gavel className="size-5 md:size-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-primary">Auctiva</span>
+              <span className="text-xl md:text-2xl font-bold">Auctiva</span>
             </button>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-gray-700 max-w-[250px]">
               Your trusted online auction platform. Discover unique items, bid
               smart, and win big.
             </p>
-            {/* Social Media Icons */}
-            <div className="flex gap-3">
+            {/* Social Media */}
+            <div className="flex gap-2 md:gap-3">
               <a
                 href="#"
-                className="w-9 h-9 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+                className="size-9 rounded-full hover:bg-gray-800 hover:text-white flex items-center justify-center transition-colors"
               >
-                <Facebook className="h-4 w-4" />
+                <Facebook className="size-4" />
               </a>
               <a
                 href="#"
-                className="w-9 h-9 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+                className="size-9 rounded-full hover:bg-gray-800 hover:text-white flex items-center justify-center transition-colors"
               >
-                <Twitter className="h-4 w-4" />
+                <Twitter className="size-4" />
               </a>
               <a
                 href="#"
-                className="w-9 h-9 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+                className="size-9 rounded-full hover:bg-gray-800 hover:text-white flex items-center justify-center transition-colors"
               >
-                <Instagram className="h-4 w-4" />
+                <Instagram className="size-4" />
               </a>
               <a
                 href="#"
-                className="w-9 h-9 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground flex items-center justify-center transition-colors"
+                className="size-9 rounded-full hover:bg-gray-800 hover:text-white flex items-center justify-center transition-colors"
               >
-                <Linkedin className="h-4 w-4" />
+                <Linkedin className="size-4" />
               </a>
             </div>
           </div>
@@ -68,7 +69,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Careers
                 </a>
@@ -76,7 +77,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Terms & Conditions
                 </a>
@@ -84,7 +85,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Privacy Policy
                 </a>
@@ -92,7 +93,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Blog
                 </a>
@@ -100,7 +101,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Press & Media
                 </a>
@@ -115,7 +116,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Help Center
                 </a>
@@ -123,7 +124,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   How to Bid
                 </a>
@@ -131,7 +132,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   How to Sell
                 </a>
@@ -139,7 +140,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Returns & Refunds
                 </a>
@@ -147,7 +148,7 @@ const Footer = () => {
               <li>
                 <a
                   href="#"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors"
                 >
                   Send Feedback
                 </a>
@@ -158,35 +159,34 @@ const Footer = () => {
           {/* Column 4: Newsletter */}
           <div>
             <h3 className="font-semibold mb-4">Newsletter</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-gray-700 mb-4">
               Subscribe to get special offers, free giveaways, and updates.
             </p>
             <div className="flex gap-2">
-              <Input
-                icon={Mail}
-                type="email"
-                placeholder="Your email"
-                className="flex-1"
-              />
-              <button>Subscribe</button>
+              <Input icon={Mail} type="email" placeholder="Your email" />
+              <button className="text-xs md:text-sm px-2 py-1 font-semibold bg-black hover:opacity-80 text-white rounded-lg cursor-pointer">
+                Subscribe
+              </button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t">
+      <div className="border-t border-gray-400">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-            <p>© 2025 Auctiva. All rights reserved.</p>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-700">
+            <p>
+              &copy; {new Date().getFullYear()} Auctiva. All rights reserved.
+            </p>
             <div className="flex gap-6">
-              <a href="#" className="hover:text-primary transition-colors">
+              <a href="#" className="hover:text-gray-900 transition-colors">
                 Terms of Service
               </a>
-              <a href="#" className="hover:text-primary transition-colors">
+              <a href="#" className="hover:text-gray-900 transition-colors">
                 Privacy
               </a>
-              <a href="#" className="hover:text-primary transition-colors">
+              <a href="#" className="hover:text-gray-900 transition-colors">
                 Cookies
               </a>
             </div>

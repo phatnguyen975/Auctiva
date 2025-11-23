@@ -24,8 +24,8 @@ const App = () => {
         {/* Public Routes */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
-          <Route path="/products" element={<ProductListPage />} />
-          <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route path="/products/:slug" element={<ProductListPage />} />
+          <Route path="/products/:slug/:id" element={<ProductDetailPage />} />
         </Route>
 
         {/* Auth Routes */}
