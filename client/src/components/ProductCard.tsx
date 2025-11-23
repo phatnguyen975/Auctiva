@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Heart, Hammer, Calendar } from "lucide-react";
 import { formatPostDate } from "../utils/dateUtils";
 import CountdownTimer from "./CountdownTimer";
+import maskName from "../utils/maskName";
 
 interface ProductCardProps {
   id: string;
@@ -35,47 +36,51 @@ export function ProductCard({
   // List View Layout
   if (viewMode === "list") {
     return (
-      <div className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+      <div className="sm:h-[260px] lg:h-[230px] bg-white overflow-hidden border border-gray-300 rounded-lg hover:shadow-md transition-shadow cursor-pointer group">
         <div
-          className="flex gap-6 p-4"
+          className="w-full h-full flex flex-col sm:flex-row gap-6 p-4"
           onClick={() => navigate(`/products/${id}`)}
         >
           {/* Left: Product Image */}
-          <div className="relative shrink-0 w-48 h-48">
-            <div className="w-full h-full bg-muted relative overflow-hidden rounded-lg">
-              <img
-                src={image}
-                alt={title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-              {isNew && (
-                <div className="absolute top-2 left-2 bg-primary px-2 py-1 text-primary-foreground font-semibold">
-                  NEW
-                </div>
-              )}
-            </div>
+          <div className="aspect-square relative overflow-hidden rounded-lg">
+            <img
+              src={image}
+              alt={title}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+            {isNew && (
+              <div className="absolute top-2 left-2 bg-black px-3 py-1 text-white rounded-lg font-semibold">
+                NEW
+              </div>
+            )}
+            <button
+              className="sm:hidden absolute text-gray-800 top-2 right-2 p-2 bg-gray-100 hover:bg-white rounded-lg cursor-pointer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Heart className="size-5" />
+            </button>
           </div>
 
           {/* Right: Product Information */}
-          <div className="flex-1 flex flex-col justify-between min-w-0">
-            {/* Top Section: Title & Watchlist */}
-            <div>
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <h3 className="text-xl font-semibold line-clamp-2 flex-1">
+          <div className="flex-1 flex flex-col justify-between">
+            <div className="flex flex-col justify-between gap-5 lg:gap-4 max-sm:mb-3">
+              {/* Title & Watchlist */}
+              <div className="flex items-start justify-between gap-4">
+                <h3 className="line-clamp-2 text-xl lg:text-2xl font-semibold flex-1">
                   {title}
                 </h3>
                 <button
-                  className="shrink-0 hover:bg-muted"
+                  className="max-sm:hidden text-gray-800 top-2 right-2 p-2 hover:bg-gray-200 rounded-lg cursor-pointer"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Heart className="h-5 w-5" />
+                  <Heart className="size-5" />
                 </button>
               </div>
 
               {/* Pricing Section */}
-              <div className="flex items-center gap-8 mb-4">
+              <div className="flex items-center gap-8 lg:gap-16">
                 <div>
-                  <span className="text-sm font-medium text-muted-foreground block mb-1">
+                  <span className="text-sm lg:text-md font-medium text-muted-foreground block mb-1">
                     Current Bid
                   </span>
                   <span className="text-3xl font-bold text-primary">
@@ -84,7 +89,7 @@ export function ProductCard({
                 </div>
                 {buyNowPrice && (
                   <div>
-                    <span className="text-sm font-medium text-muted-foreground block mb-1">
+                    <span className="text-sm lg:text-md font-medium text-muted-foreground block mb-1">
                       Buy Now
                     </span>
                     <span className="text-2xl font-semibold">
@@ -94,32 +99,28 @@ export function ProductCard({
                 )}
               </div>
 
-              {/* Bidding Info */}
-              <div className="flex items-center gap-6 text-sm text-muted-foreground mb-4">
-                <div className="flex items-center gap-1.5">
+              {/* Bidding Information */}
+              <div className="flex items-center gap-8 lg:gap-16 text-md text-gray-800">
+                <div className="flex items-center gap-1">
                   <Hammer className="size-4" />
                   <span className="font-medium">{totalBids} bids</span>
                 </div>
-                <div>
-                  <span>
-                    Top Bidder:{" "}
-                    <span className="font-medium text-foreground">
-                      {topBidder}
-                    </span>
+                <div className="flex gap-1">
+                  Top:
+                  <span className="font-medium">
+                    {maskName(topBidder)}
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Section: Timer & Posted Date */}
-            <div className="flex items-center justify-between gap-4 pt-4 border-t">
-              <div className="flex-1">
-                <CountdownTimer endDate={endDate} />
-              </div>
+            {/* End Date & Post Date */}
+            <div className="flex items-center justify-between gap-4 pt-3 border-t">
+              <CountdownTimer endDate={endDate} viewMode={viewMode} />
               {endDate && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground whitespace-nowrap">
+                <div className="flex items-center gap-1 text-sm whitespace-nowrap">
                   <Calendar className="size-4" />
-                  <span>Posted {formatPostDate(postDate)}</span>
+                  <span>{formatPostDate(postDate)}</span>
                 </div>
               )}
             </div>
@@ -131,9 +132,9 @@ export function ProductCard({
 
   // Grid View Layout (default)
   return (
-    <div className="lg:h-[380px] overflow-hidden hover:shadow-md border border-gray-300 rounded-lg transition-shadow cursor-pointer group">
+    <div className="bg-white h-[620px] md:h-[520px] lg:h-[350px] overflow-hidden hover:shadow-md border border-gray-300 rounded-lg transition-shadow cursor-pointer group">
       <div
-        className="relative h-full flex flex-col"
+        className="relative w-full h-full flex flex-col"
         onClick={() => navigate(`/products/${id}`)}
       >
         {/* Product Image */}
@@ -149,7 +150,7 @@ export function ProductCard({
             </div>
           )}
           <button
-            className="absolute text-gray-800 top-2 right-2 p-2 bg-white/80 hover:bg-white rounded-lg cursor-pointer"
+            className="absolute text-gray-800 top-2 right-2 p-2 bg-gray-100 hover:bg-white rounded-lg cursor-pointer"
             onClick={(e) => e.stopPropagation()}
           >
             <Heart className="size-4" />
@@ -157,27 +158,29 @@ export function ProductCard({
         </div>
 
         {/* Product Information */}
-        <div className="h-full p-6 lg:p-3 flex flex-col justify-between gap-3">
+        <div className="h-full p-9 md:p-6 lg:p-3 flex flex-col justify-between gap-3">
           {/* Title */}
-          <h3 className="line-clamp-2 font-semibold">{title}</h3>
+          <h3 className="line-clamp-2 font-semibold text-2xl md:text-xl lg:text-lg">
+            {title}
+          </h3>
 
           {/* Pricing */}
           <div className="flex items-center">
             <div className="w-full flex justify-between gap-3">
               <div className="items-start">
-                <span className="text-sm font-medium block mb-1">
+                <span className="text-lg md:text-md lg:text-sm font-medium block mb-1">
                   Current Bid
                 </span>
-                <span className="text-2xl font-bold block">
+                <span className="text-4xl md:text-3xl lg:text-2xl font-bold block">
                   ${currentBid.toLocaleString()}
                 </span>
               </div>
               {buyNowPrice && (
                 <div className="items-end">
-                  <span className="text-sm font-medium block mb-1">
+                  <span className="text-lg md:text-md lg:text-sm font-medium block mb-1">
                     Buy Now
                   </span>
-                  <span className="text-lg font-semibold block">
+                  <span className="text-2xl md:text-xl lg:text-lg font-semibold block">
                     ${buyNowPrice.toLocaleString()}
                   </span>
                 </div>
@@ -186,22 +189,20 @@ export function ProductCard({
           </div>
 
           {/* Bidding Information */}
-          <div className="flex items-center justify-between text-sm text-gray-800">
+          <div className="flex items-center justify-between text-lg lg:text-xs text-gray-800">
             <div className="flex items-center gap-1">
-              <Hammer className="size-4" />
+              <Hammer className="size-5 lg:size-3" />
               <span>{totalBids} bids</span>
             </div>
-            <span className="truncate">Top: {topBidder}</span>
+            <span className="truncate">Top: {maskName(topBidder)}</span>
           </div>
 
           {/* Countdown and Posted Date */}
-          <div className="flex items-center justify-between pt-3 border-t">
-            <div className="flex-1">
-              <CountdownTimer endDate={endDate} />
-            </div>
+          <div className="flex items-center justify-between pt-7 md:pt-5 lg:pt-3 border-t">
+            <CountdownTimer endDate={endDate} />
             {endDate && (
-              <div className="flex items-center gap-1 text-xs text-gray-800 whitespace-nowrap">
-                <Calendar className="size-3" />
+              <div className="flex items-center gap-1 text-lg lg:text-xs text-gray-800 whitespace-nowrap">
+                <Calendar className="size-5 lg:size-3" />
                 <span>{formatPostDate(postDate)}</span>
               </div>
             )}

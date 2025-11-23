@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  ArrowRight,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -131,19 +132,25 @@ const HomePage = () => {
         <section>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="bg-destructive/10 p-3 rounded-lg">
-                <Clock className="size-6 text-destructive" />
+              <div className="bg-red-500/10 p-3 rounded-lg">
+                <Clock className="size-7 text-red-500" />
               </div>
               <div>
                 <h2 className="text-3xl font-bold">Ending Soon</h2>
-                <p className="text-muted-foreground">
+                <p className="text-gray-700">
                   Don't miss out on these hot deals
                 </p>
               </div>
             </div>
-            <button onClick={() => navigate("/products")}>View All</button>
+            <button
+              className="flex gap-1 items-center justify-center px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-200 group transition-all duration-300"
+              onClick={() => navigate("/products")}
+            >
+              View All
+              <ArrowRight className="size-4 group-hover:translate-x-0.5" />
+            </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
             {dummyEndingSoonProducts.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
@@ -154,19 +161,25 @@ const HomePage = () => {
         <section>
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-3 rounded-lg">
-                <TrendingUp className="size-6 text-primary" />
+              <div className="bg-green-500/10 p-3 rounded-lg">
+                <TrendingUp className="size-7 text-green-500" />
               </div>
               <div>
                 <h2 className="text-3xl font-bold">Most Popular</h2>
-                <p className="text-muted-foreground">
+                <p className="text-gray-700">
                   Highest bidding activity right now
                 </p>
               </div>
             </div>
-            <button onClick={() => navigate("/products")}>View All</button>
+            <button
+              className="flex gap-1 items-center justify-center px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-200 group transition-all duration-300"
+              onClick={() => navigate("/products")}
+            >
+              View All
+              <ArrowRight className="size-4 group-hover:translate-x-0.5" />
+            </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
             {dummyMostBidsProducts.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}
@@ -178,18 +191,24 @@ const HomePage = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="bg-amber-500/10 p-3 rounded-lg">
-                <DollarSign className="size-6 text-amber-500" />
+                <DollarSign className="size-7 text-amber-500" />
               </div>
               <div>
                 <h2 className="text-3xl font-bold">Premium Items</h2>
-                <p className="text-muted-foreground">
+                <p className="text-gray-700">
                   Highest value auctions available
                 </p>
               </div>
             </div>
-            <button onClick={() => navigate("/products")}>View All</button>
+            <button
+              className="flex gap-1 items-center justify-center px-3 py-2 rounded-lg cursor-pointer hover:bg-gray-200 group transition-all duration-300"
+              onClick={() => navigate("/products")}
+            >
+              View All
+              <ArrowRight className="size-4 group-hover:translate-x-0.5" />
+            </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
             {dummyHighestPriceProducts.map((product) => (
               <ProductCard key={product.id} {...product} />
             ))}

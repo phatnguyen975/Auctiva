@@ -6,7 +6,15 @@ import {
   isPast,
 } from "date-fns";
 
-const CountdownTimer = ({ endDate }: { endDate: Date }) => {
+interface CountdownTimerProps {
+  endDate: Date;
+  viewMode?: string;
+}
+
+const CountdownTimer = ({
+  endDate,
+  viewMode = "grid",
+}: CountdownTimerProps) => {
   let displayText: string;
   let urgent = false;
 
@@ -26,11 +34,11 @@ const CountdownTimer = ({ endDate }: { endDate: Date }) => {
 
   return (
     <div
-      className={`flex gap-1 text-xs items-center text-gray-800 ${
-        urgent && "text-red-500"
-      }`}
+      className={`flex gap-1 items-center text-gray-800 ${
+        viewMode === "grid" ? "text-lg lg:text-xs" : "text-sm"
+      } ${urgent && "text-red-500"}`}
     >
-      <Clock className="size-3" />
+      <Clock className={`${viewMode === "grid" ? "size-5 lg:size-3" : "size-4"}`} />
       {displayText}
     </div>
   );
