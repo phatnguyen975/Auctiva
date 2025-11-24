@@ -1,6 +1,5 @@
 import {
   Bell,
-  ChevronDown,
   ChevronRight,
   Gavel,
   Heart,
@@ -91,6 +90,7 @@ const Header = () => {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       navigate(`/products?keyword=${searchQuery}`);
+                      setSearchQuery("");
                     }
                   }}
                 />
@@ -166,6 +166,7 @@ const Header = () => {
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   navigate(`/products?keyword=${searchQuery}`);
+                  setSearchQuery("");
                 }
               }}
             />
@@ -206,11 +207,11 @@ const Header = () => {
                       onClick={() => toggleCategory(category.name)}
                     >
                       <span className="font-semibold">{category.name}</span>
-                      {isOpen ? (
-                        <ChevronDown className="size-4 transition-transform" />
-                      ) : (
-                        <ChevronRight className="size-4 transition-transform" />
-                      )}
+                      <ChevronRight
+                        className={`size-4 ${
+                          isOpen && "rotate-90 transition-transform"
+                        }`}
+                      />
                     </button>
 
                     {/* Subcategories */}
@@ -223,7 +224,9 @@ const Header = () => {
                           <button
                             className="w-full py-2 text-sm text-left cursor-pointer"
                             onClick={() => {
-                              navigate(`/products?category=${subcategory.slug}`);
+                              navigate(
+                                `/products?category=${subcategory.slug}`
+                              );
                               setCategorySidebarOpen(false);
                             }}
                           >
