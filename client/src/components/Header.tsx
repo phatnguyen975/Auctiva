@@ -11,9 +11,9 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "./ui/Input";
-import ThemeToggle from "./ThemeToggle";
+import ThemeToggle from "./ui/ThemeToggle";
 import ProfileMenu from "./ProfileMenu";
-import { dummyCategories } from "../assets/assets";
+import { dummyAllCategories } from "../assets/assets";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -197,7 +197,7 @@ const Header = () => {
 
             {/* Categories */}
             <div className="flex flex-col p-2">
-              {dummyCategories.map((category) => {
+              {dummyAllCategories.map((category) => {
                 const isOpen = expandedCategories.includes(category.name);
                 return (
                   <div key={category.name} className="border-b border-gray-300">
@@ -216,26 +216,19 @@ const Header = () => {
                     {/* Subcategories */}
                     {isOpen &&
                       category.subcategories.map((subcategory) => (
-                        <div key={subcategory.name} className="pl-6 py-1">
-                          <p className="text-sm font-semibold">
-                            {subcategory.name.toUpperCase()}
-                          </p>
-                          <ul className="text-sm text-gray-500 list-none pl-4 space-y-1">
-                            {subcategory.items.map((item) => (
-                              <li
-                                key={item}
-                                className="hover:text-gray-800 cursor-pointer"
-                                onClick={() => {
-                                  navigate(
-                                    `/products?category=${item.toLowerCase()}`
-                                  );
-                                  setCategorySidebarOpen(false);
-                                }}
-                              >
-                                {item}
-                              </li>
-                            ))}
-                          </ul>
+                        <div
+                          key={subcategory.name}
+                          className="w-full px-3 hover:bg-gray-200"
+                        >
+                          <button
+                            className="w-full py-2 text-sm text-left cursor-pointer"
+                            onClick={() => {
+                              navigate(`/products?category=${subcategory.slug}`);
+                              setCategorySidebarOpen(false);
+                            }}
+                          >
+                            {subcategory.name}
+                          </button>
                         </div>
                       ))}
                   </div>

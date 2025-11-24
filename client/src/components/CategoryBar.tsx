@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { dummyCategories } from "../assets/assets";
+import { dummyAllCategories } from "../assets/assets";
 
 const CategoryBar = () => {
   const [categoryOpen, setCategoryOpen] = useState<string | null>(null);
@@ -11,7 +11,7 @@ const CategoryBar = () => {
   return (
     <div className="w-full p-2 hidden md:flex items-center justify-center border-b border-gray-300 transition-colors duration-300">
       <div className="flex items-center justify-center gap-2 lg:gap-8">
-        {dummyCategories.map((category) => (
+        {dummyAllCategories.map((category) => (
           <div
             key={category.name}
             className="relative"
@@ -29,7 +29,7 @@ const CategoryBar = () => {
                     : "border-transparent"
                 }
                 `}
-              onClick={() => navigate(`/categories/${category.slug}`)}
+              onClick={() => navigate(`/products?category=${category.slug}`)}
             >
               {category.name}
               <ChevronDown
@@ -42,7 +42,7 @@ const CategoryBar = () => {
             {/* Sub Categories */}
             {categoryOpen === category.name && (
               <div
-                className="fixed top-0 w-60 bg-white border border-gray-300 rounded-b-lg shadow-sm z-50 max-h-[400px] overflow-y-auto"
+                className="fixed top-0 min-w-[150px] bg-white border border-gray-300 rounded-b-lg shadow-sm z-50 max-h-[300px] overflow-y-auto"
                 style={{
                   top: "var(--dropdown-top)",
                   left: "var(--dropdown-left)",
@@ -61,28 +61,21 @@ const CategoryBar = () => {
                   }
                 }}
               >
-                <div className="p-2">
-                  {category.subcategories.map((subcategory) => (
-                    <div key={subcategory.name}>
-                      <div className="p-2">
-                        <p className="text-xs font-semibold tracking-wide">
-                          {subcategory.name.toUpperCase()}
-                        </p>
-                      </div>
-                      {subcategory.items.map((item) => (
-                        <button
-                          key={item}
-                          onClick={() =>
-                            navigate(`/products?category=${item.toLowerCase()}`)
-                          }
-                          className="w-full text-left px-2 py-1 text-sm hover:bg-gray-200 rounded-sm cursor-pointer transition-colors"
-                        >
-                          {item}
-                        </button>
-                      ))}
-                    </div>
-                  ))}
-                </div>
+                {category.subcategories.map((subcategory) => (
+                  <div
+                    key={subcategory.name}
+                    className="w-full px-3 hover:bg-gray-200"
+                  >
+                    <button
+                      className="w-full py-2 text-sm text-left cursor-pointer"
+                      onClick={() =>
+                        navigate(`/products?category=${subcategory.slug}`)
+                      }
+                    >
+                      {subcategory.name}
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </div>

@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Moon, Sun } from "lucide-react";
-import type { AppDispatch, RootState } from "../store/store";
-import { toggleTheme } from "../store/slices/themeSlice";
+import type { AppDispatch, RootState } from "../../store/store";
+import { toggleTheme } from "../../store/slices/themeSlice";
 
 const ThemeToggle = () => {
   const theme = useSelector((state: RootState) => state.theme.mode);

@@ -14,7 +14,7 @@ import {
   dummyHighestPriceProducts,
   dummyMostBidsProducts,
 } from "../../assets/assets";
-import { ProductCard } from "../../components/ProductCard";
+import { ProductCard } from "../../components/product/ProductCard";
 
 const banners = [
   {
@@ -127,7 +127,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 space-y-12 pb-12">
+      <div className="container mx-auto px-4 space-y-12 mb-12">
         {/* Ending Soon Section */}
         <section>
           <div className="flex items-center justify-between mb-6">

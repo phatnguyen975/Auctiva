@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Heart, Hammer, Calendar } from "lucide-react";
-import { formatPostDate } from "../utils/dateUtils";
+import { formatPostDate } from "../../utils/dateUtils";
 import CountdownTimer from "./CountdownTimer";
-import maskName from "../utils/maskName";
+import maskName from "../../utils/maskName";
 
 interface ProductCardProps {
   id: string;
@@ -36,7 +36,7 @@ export function ProductCard({
   // List View Layout
   if (viewMode === "list") {
     return (
-      <div className="sm:h-[260px] lg:h-[230px] bg-white overflow-hidden border border-gray-300 rounded-lg hover:shadow-md transition-shadow cursor-pointer group">
+      <div className="sm:h-[270px] lg:h-[250px] bg-white overflow-hidden border border-gray-300 rounded-lg hover:shadow-md transition-shadow cursor-pointer group">
         <div
           className="w-full h-full flex flex-col sm:flex-row gap-6 p-4"
           onClick={() => navigate(`/products/${id}`)}

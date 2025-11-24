@@ -5,7 +5,6 @@ import NotFoundPage from "./pages/NotFoundPage";
 import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/public/HomePage";
 import ProductListPage from "./pages/public/ProductListPage";
-import CategoryOverviewPage from "./pages/public/CategoryOverviewPage";
 import ProductDetailPage from "./pages/public/ProductDetailPage";
 
 import AuthLayout from "./layouts/AuthLayout";
@@ -26,7 +25,6 @@ const App = () => {
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductListPage />} />
-          <Route path="/categories/:slug" element={<CategoryOverviewPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
         </Route>
 

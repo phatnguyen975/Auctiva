@@ -4,26 +4,26 @@ export const assets = {
   avatar,
 };
 
-export const dummyCategories = [
+export const dummyAllCategories = [
   {
     name: "Electronics",
     slug: "electronics",
     subcategories: [
       {
-        name: "Mobile Phones & Tablets",
-        items: ["Smartphones", "Tablets", "Accessories", "Smart Watches"],
+        name: "Smartphones",
+        slug: "smartphones",
       },
       {
-        name: "Computers & Laptops",
-        items: ["Laptops", "Desktops", "Components", "Peripherals"],
+        name: "Laptops",
+        slug: "laptops",
       },
       {
-        name: "Audio & Video",
-        items: ["Headphones", "Speakers", "Cameras", "Microphones"],
+        name: "Headphones",
+        slug: "headphones",
       },
       {
-        name: "Gaming",
-        items: ["Consoles", "Games", "Accessories", "PC Gaming"],
+        name: "PC Gaming",
+        slug: "pc-gaming",
       },
     ],
   },
@@ -32,16 +32,16 @@ export const dummyCategories = [
     slug: "sports",
     subcategories: [
       {
-        name: "Team Sports",
-        items: ["Football", "Basketball", "Baseball", "Soccer"],
+        name: "Football",
+        slug: "football",
       },
       {
-        name: "Outdoor Recreation",
-        items: ["Camping", "Hiking", "Cycling", "Fishing"],
+        name: "Hiking",
+        slug: "hiking",
       },
       {
-        name: "Fitness Equipment",
-        items: ["Cardio", "Weights", "Yoga", "Home Gym"],
+        name: "Cardio",
+        slug: "cardio",
       },
     ],
   },
@@ -50,38 +50,16 @@ export const dummyCategories = [
     slug: "fashion",
     subcategories: [
       {
-        name: "Men's Fashion",
-        items: ["Clothing", "Shoes", "Accessories", "Watches"],
+        name: "Clothing",
+        slug: "clothing",
       },
       {
-        name: "Women's Fashion",
-        items: ["Dresses", "Shoes", "Handbags", "Jewelry"],
+        name: "Jewelry",
+        slug: "jewelry",
       },
       {
-        name: "Kids & Baby",
-        items: ["Boys", "Girls", "Baby Clothing", "Toys"],
-      },
-    ],
-  },
-  {
-    name: "Home & Garden",
-    slug: "home-garden",
-    subcategories: [
-      {
-        name: "Furniture",
-        items: ["Living Room", "Bedroom", "Office", "Outdoor"],
-      },
-      {
-        name: "Home Decor",
-        items: ["Wall Art", "Lighting", "Rugs", "Curtains"],
-      },
-      {
-        name: "Kitchen & Dining",
-        items: ["Cookware", "Appliances", "Dinnerware", "Storage"],
-      },
-      {
-        name: "Garden & Outdoor",
-        items: ["Plants", "Tools", "Patio", "Grills"],
+        name: "Toys",
+        slug: "toys",
       },
     ],
   },
@@ -91,28 +69,15 @@ export const dummyCategories = [
     subcategories: [
       {
         name: "Skincare",
-        items: ["Face Care", "Body Care", "Sun Protection", "Anti-Aging"],
+        slug: "skincare",
       },
       {
         name: "Makeup",
-        items: ["Face Makeup", "Eye Makeup", "Lip Products", "Nail Care"],
+        slug: "makeup",
       },
       {
         name: "Hair Care",
-        items: [
-          "Shampoo & Conditioner",
-          "Styling Products",
-          "Hair Tools",
-          "Hair Color",
-        ],
-      },
-      {
-        name: "Fragrance",
-        items: ["Perfume", "Cologne", "Body Spray", "Gift Sets"],
-      },
-      {
-        name: "Health & Wellness",
-        items: ["Vitamins", "Supplements", "Fitness", "Personal Care"],
+        slug: "hair-care",
       },
     ],
   },
@@ -122,15 +87,15 @@ export const dummyCategories = [
     subcategories: [
       {
         name: "Action Figures",
-        items: ["Superheroes", "Movie Characters", "Vintage", "Modern"],
+        slug: "action-figures",
       },
       {
         name: "Building Toys",
-        items: ["LEGO", "Model Kits", "Construction Sets", "Puzzles"],
+        slug: "building-toys",
       },
       {
         name: "Hobbies",
-        items: ["RC Vehicles", "Drones", "Crafts", "Board Games"],
+        slug: "hobbies",
       },
     ],
   },
