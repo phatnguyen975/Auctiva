@@ -8,9 +8,14 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { verifyEmailSchema } from "../../utils/validation";
 
 const VerifyEmailPage = () => {
+  const [errors, setErrors] = useState<string[]>([]);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
+  const [email, setEmail] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const inputRefs = useRef<HTMLInputElement[]>([]);
 
@@ -29,7 +34,7 @@ const VerifyEmailPage = () => {
       const lastFilledIndex = newCode.findLastIndex((digit) => digit !== "");
       const focusIndex = lastFilledIndex < 5 ? lastFilledIndex + 1 : 5;
       inputRefs.current[focusIndex]?.focus();
-    } else if (/^\d*$/.test(value)) {
+    } else {
       newCode[index] = value;
       setCode(newCode);
 
@@ -40,23 +45,64 @@ const VerifyEmailPage = () => {
     }
   };
 
-  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (index: number, e: KeyboardEvent) => {
     if (e.key === "Backspace" && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  const handleVerifyCode = async (e?: FormEvent<HTMLFormElement>) => {
+  const handleVerifyCode = async (e?: FormEvent) => {
     e?.preventDefault();
+    setErrors([]);
+
     const verificationCode = code.join("");
-    navigate("/");
+
+    const result = verifyEmailSchema.safeParse({ code: verificationCode });
+
+    if (!result.success) {
+      const formatted = result.error.format();
+
+      const allErrors: string[] = [];
+
+      Object.values(formatted).forEach((value: any) => {
+        if (value?._errors) {
+          allErrors.push(...value._errors);
+        }
+      });
+
+      setErrors(allErrors);
+      return;
+    }
+
+    sessionStorage.removeItem("verificationEmail");
+
+    if (isPasswordReset) {
+      navigate("/reset-password");
+    } else {
+      sessionStorage.removeItem("isPasswordReset");
+      navigate("/");
+    }
+
     toast.success("Email verified successfully");
   };
 
-  const handleResendCode = async (e: MouseEvent<HTMLButtonElement>) => {
+  const handleResendCode = async (e: MouseEvent) => {
     e.preventDefault();
     toast.success("Resent code successfully");
   };
+
+  useEffect(() => {
+    const storedEmail = sessionStorage.getItem("verificationEmail");
+    if (!storedEmail) {
+      navigate("/register");
+      return;
+    }
+
+    const passwordResetFlag = sessionStorage.getItem("isPasswordReset");
+    setIsPasswordReset(passwordResetFlag === "true");
+
+    setEmail(storedEmail);
+  }, []);
 
   // Auto-submit when all inputs filled
   useEffect(() => {
@@ -84,12 +130,12 @@ const VerifyEmailPage = () => {
                   if (el) inputRefs.current[index] = el;
                 }}
                 type="text"
+                inputMode="numeric"
                 maxLength={6}
                 value={digit}
                 onChange={(e) => handleChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 className="size-12 text-center text-2xl font-bold bg-gray-400/50 rounded-lg border-2 border-gray-700 focus-visible:ring-2 focus-visible:ring-black/50"
-                required
               />
             ))}
           </div>
@@ -103,6 +149,17 @@ const VerifyEmailPage = () => {
               Resend
             </button>
           </div>
+
+          {/* Errors */}
+          {errors.length > 0 && (
+            <div className="w-full px-4 py-2 bg-red-200 border-2 border-red-500 text-red-600 rounded-lg text-xs">
+              <ul className="list-disc list-inside">
+                {errors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <button
             type="submit"

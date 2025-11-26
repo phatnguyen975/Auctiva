@@ -1,4 +1,4 @@
-const maskName = (name: string): string => {
+export const maskName = (name: string): string => {
   const trimmedName = name.trim();
 
   if (trimmedName.length <= 2) {
@@ -13,5 +13,3 @@ const maskName = (name: string): string => {
 
   return maskedPart + visiblePart;
 };
-
-export default maskName;

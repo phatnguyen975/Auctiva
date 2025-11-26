@@ -1,16 +1,39 @@
-import { ArrowLeft, Mail } from "lucide-react";
-import Input from "../../components/ui/Input";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Mail } from "lucide-react";
+import Input from "../../components/ui/Input";
+import { forgotPasswordSchema } from "../../utils/validation";
 
 const ForgotPasswordPage = () => {
+  const [errors, setErrors] = useState<string[]>([]);
   const [email, setEmail] = useState("");
 
   const navigate = useNavigate();
 
-  const handleForgotPassword = async (e: FormEvent<HTMLFormElement>) => {
+  const handleForgotPassword = async (e: FormEvent) => {
     e.preventDefault();
-    navigate("/verify-code");
+    setErrors([]);
+
+    const result = forgotPasswordSchema.safeParse({ email });
+
+    if (!result.success) {
+      const formatted = result.error.format();
+
+      const allErrors: string[] = [];
+
+      Object.values(formatted).forEach((value: any) => {
+        if (value?._errors) {
+          allErrors.push(...value._errors);
+        }
+      });
+
+      setErrors(allErrors);
+      return;
+    }
+
+    sessionStorage.setItem("verificationEmail", email);
+    sessionStorage.setItem("isPasswordReset", "true");
+    navigate("/verify-email");
   };
 
   return (
@@ -38,9 +61,19 @@ const ForgotPasswordPage = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
           </div>
+
+          {/* Errors */}
+          {errors.length > 0 && (
+            <div className="w-full px-4 py-2 bg-red-200 border-2 border-red-500 text-red-600 rounded-lg text-xs">
+              <ul className="list-disc list-inside">
+                {errors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <button
             type="submit"

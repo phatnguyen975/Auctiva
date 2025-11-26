@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Heart, Hammer, Calendar } from "lucide-react";
-import { formatPostDate } from "../../utils/dateUtils";
 import CountdownTimer from "./CountdownTimer";
-import maskName from "../../utils/maskName";
+import { formatPostDate } from "../../utils/date";
+import { maskName } from "../../utils/masking";
 
 interface ProductCardProps {
   id: string;
@@ -107,9 +107,7 @@ export function ProductCard({
                 </div>
                 <div className="flex gap-1">
                   Top:
-                  <span className="font-medium">
-                    {maskName(topBidder)}
-                  </span>
+                  <span className="font-medium">{maskName(topBidder)}</span>
                 </div>
               </div>
             </div>

@@ -81,8 +81,12 @@ const AuthBrandSide = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const passwordResetFlag = sessionStorage.getItem("isPasswordReset") || null;
+
   const isLoginRoute = location.pathname.startsWith("/login");
-  const isRegisterRoute = location.pathname.startsWith("/register") || location.pathname.startsWith("/verify-email");
+  const isRegisterRoute =
+    location.pathname.startsWith("/register") ||
+    (location.pathname.startsWith("/verify-email") && !passwordResetFlag);
 
   const info = isLoginRoute
     ? brandInfos.loginInfo

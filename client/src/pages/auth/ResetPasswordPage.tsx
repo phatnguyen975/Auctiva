@@ -3,21 +3,37 @@ import { useNavigate } from "react-router-dom";
 import { Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import Input from "../../components/ui/Input";
+import { resetPasswordSchema } from "../../utils/validation";
 
 const ResetPasswordPage = () => {
+  const [errors, setErrors] = useState<string[]>([]);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const navigate = useNavigate();
 
-  const handleResetPassword = async (e: FormEvent<HTMLFormElement>) => {
+  const handleResetPassword = async (e: FormEvent) => {
     e.preventDefault();
+    setErrors([]);
 
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+    const result = resetPasswordSchema.safeParse({ password, confirmPassword });
+
+    if (!result.success) {
+      const formatted = result.error.format();
+
+      const allErrors: string[] = [];
+
+      Object.values(formatted).forEach((value: any) => {
+        if (value?._errors) {
+          allErrors.push(...value._errors);
+        }
+      });
+
+      setErrors(allErrors);
       return;
     }
 
+    sessionStorage.removeItem("isPasswordReset");
     toast.success("Password reset successfully");
     setTimeout(() => navigate("/login"), 2000);
   };
@@ -64,6 +80,18 @@ const ResetPasswordPage = () => {
               required
             />
           </div>
+
+          {/* Errors */}
+          {errors.length > 0 && (
+            <div className="w-full px-4 py-2 bg-red-200 border-2 border-red-500 text-red-600 rounded-lg text-xs">
+              <ul className="list-disc list-inside">
+                {errors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <button
             type="submit"
             className="w-full py-2 px-4 text-white font-bold text-lg bg-black hover:bg-black/85 rounded-lg cursor-pointer disabled:cursor-not-allowed"

@@ -2,19 +2,42 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Gavel, Lock, Mail } from "lucide-react";
 import toast from "react-hot-toast";
+import { z } from "zod";
 import Input from "../../components/ui/Input";
+import { loginSchema } from "../../utils/validation";
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 const LoginPage = () => {
-  const [formData, setFormData] = useState({
+  const [errors, setErrors] = useState<string[]>([]);
+  const [formData, setFormData] = useState<LoginForm>({
     email: "",
     password: "",
   });
 
   const navigate = useNavigate();
 
-  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
-    alert(formData.email + " " + formData.password);
+    setErrors([]);
+
+    const result = loginSchema.safeParse(formData);
+
+    if (!result.success) {
+      const formatted = result.error.format();
+
+      const allErrors: string[] = [];
+
+      Object.values(formatted).forEach((value: any) => {
+        if (value?._errors) {
+          allErrors.push(...value._errors);
+        }
+      });
+
+      setErrors(allErrors);
+      return;
+    }
+
     navigate("/");
     toast.success("Logged in successfully");
   };
@@ -40,7 +63,7 @@ const LoginPage = () => {
         </div>
 
         {/* Login Form */}
-        <form className="flex flex-col gap-4" onSubmit={handleLogin}>
+        <form className="flex flex-col gap-2" onSubmit={handleLogin}>
           {/* Email */}
           <div>
             <label htmlFor="email" className="font-bold">
@@ -55,7 +78,6 @@ const LoginPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              required
             />
           </div>
 
@@ -73,15 +95,25 @@ const LoginPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              required
             />
           </div>
 
-          <div className="flex justify-end items-center -mt-2">
+          <div className="flex justify-end items-center">
             <Link to="/forgot-password" className="text-sm hover:underline">
               Forgot password?
             </Link>
           </div>
+
+          {/* Errors */}
+          {errors.length > 0 && (
+            <div className="w-full px-4 py-2 bg-red-200 border-2 border-red-500 text-red-600 rounded-lg text-xs">
+              <ul className="list-disc list-inside">
+                {errors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <button
             type="submit"

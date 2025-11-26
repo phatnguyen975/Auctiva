@@ -2,11 +2,16 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Gavel, Lock, Mail, MapPin, User } from "lucide-react";
 import toast from "react-hot-toast";
+import { z } from "zod";
 import Input from "../../components/ui/Input";
 import PasswordStrengthMeter from "../../components/auth/PasswordStrengthMeter";
+import { registerSchema } from "../../utils/validation";
+
+type RegisterForm = z.infer<typeof registerSchema>;
 
 const RegisterPage = () => {
-  const [formData, setFormData] = useState({
+  const [errors, setErrors] = useState<string[]>([]);
+  const [formData, setFormData] = useState<RegisterForm>({
     fullName: "",
     address: "",
     email: "",
@@ -15,8 +20,25 @@ const RegisterPage = () => {
 
   const navigate = useNavigate();
 
-  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
+    setErrors([]);
+
+    const result = registerSchema.safeParse(formData);
+
+    if (!result.success) {
+      const formatted = result.error.format();
+
+      const allErrors: string[] = [];
+      Object.values(formatted).forEach((val: any) => {
+        if (val?._errors) allErrors.push(...val._errors);
+      });
+
+      setErrors(allErrors);
+      return;
+    }
+
+    sessionStorage.setItem("verificationEmail", formData.email);
     navigate("/verify-email");
     toast.success("Account created successfully");
   };
@@ -40,7 +62,7 @@ const RegisterPage = () => {
         </div>
 
         {/* Register Form */}
-        <form className="flex flex-col gap-4" onSubmit={handleLogin}>
+        <form className="flex flex-col gap-2" onSubmit={handleLogin}>
           {/* Full Name */}
           <div>
             <label htmlFor="fullname" className="font-bold">
@@ -55,7 +77,6 @@ const RegisterPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, fullName: e.target.value })
               }
-              required
             />
           </div>
 
@@ -73,7 +94,6 @@ const RegisterPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, address: e.target.value })
               }
-              required
             />
           </div>
 
@@ -91,7 +111,6 @@ const RegisterPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              required
             />
           </div>
 
@@ -109,26 +128,24 @@ const RegisterPage = () => {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              required
             />
             {formData.password && (
               <PasswordStrengthMeter password={formData.password} />
             )}
           </div>
 
-          {/* Terms Checkbox */}
-          <div className="flex gap-2 items-center">
-            <input
-              id="terms"
-              type="checkbox"
-              className="cursor-pointer accent-gray-600"
-              required
-            />
-            <label htmlFor="terms" className="text-sm cursor-pointer">
-              I agree to the{" "}
-              <span className="hover:underline">Terms of Service</span>
-            </label>
-          </div>
+          {/* reCAPTCHA */}
+
+          {/* Errors */}
+          {errors.length > 0 && (
+            <div className="w-full px-4 py-2 bg-red-200 border-2 border-red-500 text-red-600 rounded-lg text-xs">
+              <ul className="list-disc list-inside">
+                {errors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <button
             type="submit"

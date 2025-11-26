@@ -12,7 +12,6 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import VerifyEmailPage from "./pages/auth/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import VerifyResetCodePage from "./pages/auth/VerifyResetCodePage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 const App = () => {
@@ -34,7 +33,6 @@ const App = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/verify-code" element={<VerifyResetCodePage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
 
