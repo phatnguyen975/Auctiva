@@ -409,7 +409,6 @@ export const dummyProductDetails = [
       "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop", // Main image
       "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800&h=800&fit=crop",
       "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&h=800&fit=crop",
-      "https://images.unsplash.com/photo-1524678606372-87139ee986e5?w=800&h=800&fit=crop",
     ],
     currentBid: 245,
     buyNowPrice: 350,
