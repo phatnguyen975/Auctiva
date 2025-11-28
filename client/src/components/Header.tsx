@@ -23,7 +23,7 @@ const Header = () => {
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Dummy
-  const user = false;
+  const user = true;
   const role: string = "bidder";
 
   const toggleCategory = (name: string) => {

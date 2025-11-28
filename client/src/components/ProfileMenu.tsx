@@ -3,6 +3,9 @@ import { LogOut, LayoutDashboard } from "lucide-react";
 import { assets } from "../assets/assets";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "../store/store";
+import { logoutThunk } from "../store/slices/authSlice";
 
 const ProfileMenu = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -10,7 +13,10 @@ const ProfileMenu = () => {
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const dispatch = useDispatch<AppDispatch>();
+
   const handleLogout = async () => {
+    dispatch(logoutThunk());
     toast.success("Logged out successfully");
   };
 

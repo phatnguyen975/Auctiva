@@ -6,10 +6,16 @@ import { z } from "zod";
 import Input from "../../components/ui/Input";
 import PasswordStrengthMeter from "../../components/auth/PasswordStrengthMeter";
 import { registerSchema } from "../../utils/validation";
+import type { AppDispatch, RootState } from "../../store/store";
+import { useDispatch, useSelector } from "react-redux";
+import { registerThunk } from "../../store/slices/authSlice";
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
 const RegisterPage = () => {
+  const loading = useSelector((state: RootState) => state.auth.loading);
+  const dispatch = useDispatch<AppDispatch>();
+
   const [errors, setErrors] = useState<string[]>([]);
   const [formData, setFormData] = useState<RegisterForm>({
     fullName: "",
@@ -20,7 +26,7 @@ const RegisterPage = () => {
 
   const navigate = useNavigate();
 
-  const handleLogin = async (e: FormEvent) => {
+  const handleRegister = async (e: FormEvent) => {
     e.preventDefault();
     setErrors([]);
 
@@ -37,6 +43,19 @@ const RegisterPage = () => {
       setErrors(allErrors);
       return;
     }
+
+    const registerInfo: {
+      full_name: string;
+      address: string;
+      email: string;
+      password: string;
+    } = {
+      full_name: formData.fullName,
+      address: formData.address,
+      email: formData.email,
+      password: formData.password,
+    };
+    dispatch(registerThunk(registerInfo));
 
     sessionStorage.setItem("verificationEmail", formData.email);
     navigate("/verify-email");
@@ -62,7 +81,7 @@ const RegisterPage = () => {
         </div>
 
         {/* Register Form */}
-        <form className="flex flex-col gap-2" onSubmit={handleLogin}>
+        <form className="flex flex-col gap-2" onSubmit={handleRegister}>
           {/* Full Name */}
           <div>
             <label htmlFor="fullname" className="font-bold">
@@ -150,8 +169,9 @@ const RegisterPage = () => {
           <button
             type="submit"
             className="w-full py-2 px-4 text-white font-bold text-lg bg-black hover:bg-black/85 rounded-lg cursor-pointer disabled:cursor-not-allowed"
+            disabled={loading}
           >
-            Register
+            {loading ? "Creating..." : "Create Account"}
           </button>
         </form>
 

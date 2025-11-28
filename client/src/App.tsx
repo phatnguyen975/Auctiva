@@ -14,9 +14,12 @@ import VerifyEmailPage from "./pages/auth/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
+import AuthListener from "./components/auth/AuthListener";
+
 const App = () => {
   return (
     <>
+      <AuthListener />
       <Toaster position="top-right" reverseOrder={false} />
 
       <Routes>

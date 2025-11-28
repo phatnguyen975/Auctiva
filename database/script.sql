@@ -35,7 +35,9 @@ create policy "Users can update own profile" on profiles
   for update using ((select auth.uid()) = id);
 
 create function public.handle_new_user()
-returns trigger as $$
+returns trigger
+set search_path = ''
+as $$
 begin
   insert into public.profiles (id, email, full_name, address, avatar_url)
   values (new.id, new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'address', new.raw_user_meta_data->>'avatar_url');
@@ -46,7 +48,6 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
-
 -- END: Profiles table --
 
 -- Ratings table
