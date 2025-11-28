@@ -5,10 +5,16 @@ import toast from "react-hot-toast";
 import { z } from "zod";
 import Input from "../../components/ui/Input";
 import { loginSchema } from "../../utils/validation";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../store/store";
+import { loginThunk } from "../../store/slices/authSlice";
 
 type LoginForm = z.infer<typeof loginSchema>;
 
 const LoginPage = () => {
+  const loading = useSelector((state: RootState) => state.auth.loading);
+  const dispatch = useDispatch<AppDispatch>();
+
   const [errors, setErrors] = useState<string[]>([]);
   const [formData, setFormData] = useState<LoginForm>({
     email: "",
@@ -38,8 +44,18 @@ const LoginPage = () => {
       return;
     }
 
-    navigate("/");
-    toast.success("Logged in successfully");
+    try {
+      await dispatch(
+        loginThunk({
+          email: formData.email,
+          password: formData.password,
+        })
+      ).unwrap();
+      navigate("/");
+      toast.success("Logged in successfully");
+    } catch (error) {
+      toast.error(error as string);
+    }
   };
 
   return (
@@ -118,8 +134,9 @@ const LoginPage = () => {
           <button
             type="submit"
             className="w-full py-2 px-4 text-white font-bold text-lg bg-black hover:bg-black/85 rounded-lg cursor-pointer disabled:cursor-not-allowed"
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 

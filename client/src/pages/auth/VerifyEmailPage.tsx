@@ -4,17 +4,20 @@ import {
   useState,
   type FormEvent,
   type KeyboardEvent,
-  type MouseEvent,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { verifyEmailSchema } from "../../utils/validation";
+import { verifyEmailThunk } from "../../store/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../store/store";
 
 const VerifyEmailPage = () => {
+  const loading = useSelector((state: RootState) => state.auth.loading);
+  const dispatch = useDispatch<AppDispatch>();
+
   const [errors, setErrors] = useState<string[]>([]);
-  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
-  const [email, setEmail] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const inputRefs = useRef<HTMLInputElement[]>([]);
@@ -56,7 +59,6 @@ const VerifyEmailPage = () => {
     setErrors([]);
 
     const verificationCode = code.join("");
-
     const result = verifyEmailSchema.safeParse({ code: verificationCode });
 
     if (!result.success) {
@@ -74,35 +76,28 @@ const VerifyEmailPage = () => {
       return;
     }
 
-    sessionStorage.removeItem("verificationEmail");
+    try {
+      const email = sessionStorage.getItem("verificationEmail") || "";
+      await dispatch(
+        verifyEmailThunk({ email, code: verificationCode })
+      ).unwrap();
 
-    if (isPasswordReset) {
-      navigate("/reset-password");
-    } else {
-      sessionStorage.removeItem("isPasswordReset");
-      navigate("/");
+      sessionStorage.removeItem("verificationEmail");
+      const isPasswordReset =
+        sessionStorage.getItem("isPasswordReset") === "true";
+
+      if (isPasswordReset) {
+        navigate("/reset-password");
+      } else {
+        sessionStorage.removeItem("isPasswordReset");
+        navigate("/");
+      }
+
+      toast.success("Email verified successfully");
+    } catch (error) {
+      toast.error(error as string);
     }
-
-    toast.success("Email verified successfully");
   };
-
-  const handleResendCode = async (e: MouseEvent) => {
-    e.preventDefault();
-    toast.success("Resent code successfully");
-  };
-
-  useEffect(() => {
-    const storedEmail = sessionStorage.getItem("verificationEmail");
-    if (!storedEmail) {
-      navigate("/register");
-      return;
-    }
-
-    const passwordResetFlag = sessionStorage.getItem("isPasswordReset");
-    setIsPasswordReset(passwordResetFlag === "true");
-
-    setEmail(storedEmail);
-  }, []);
 
   // Auto-submit when all inputs filled
   useEffect(() => {
@@ -140,16 +135,6 @@ const VerifyEmailPage = () => {
             ))}
           </div>
 
-          <div className="text-sm flex gap-1 items-center justify-center">
-            Didn't receive the code?
-            <button
-              className="font-semibold hover:underline cursor-pointer"
-              onClick={handleResendCode}
-            >
-              Resend
-            </button>
-          </div>
-
           {/* Errors */}
           {errors.length > 0 && (
             <div className="w-full px-4 py-2 bg-red-200 border-2 border-red-500 text-red-600 rounded-lg text-xs">
@@ -164,9 +149,9 @@ const VerifyEmailPage = () => {
           <button
             type="submit"
             className="w-full py-2 px-4 text-white font-bold text-lg bg-black hover:bg-black/85 rounded-lg cursor-pointer disabled:cursor-not-allowed"
-            disabled={code.some((digit) => !digit)}
+            disabled={loading || code.some((digit) => !digit)}
           >
-            Verify Email
+            {loading ? "Verifying..." : "Verify Email"}
           </button>
         </form>
       </div>

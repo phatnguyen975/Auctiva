@@ -4,8 +4,15 @@ import { Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import Input from "../../components/ui/Input";
 import { resetPasswordSchema } from "../../utils/validation";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../store/store";
+import { resetPasswordThunk } from "../../store/slices/authSlice";
+import { supabase } from "../../lib/supabaseClient";
 
 const ResetPasswordPage = () => {
+  const loading = useSelector((state: RootState) => state.auth.loading);
+  const dispatch = useDispatch<AppDispatch>();
+
   const [errors, setErrors] = useState<string[]>([]);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -33,9 +40,17 @@ const ResetPasswordPage = () => {
       return;
     }
 
-    sessionStorage.removeItem("isPasswordReset");
-    toast.success("Password reset successfully");
-    setTimeout(() => navigate("/login"), 2000);
+    try {
+      await dispatch(resetPasswordThunk(password)).unwrap();
+      await supabase.auth.signOut();
+
+      sessionStorage.removeItem("isPasswordReset");
+
+      toast.success("Password changed successfully");
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (error) {
+      toast.error(error as string);
+    }
   };
 
   return (
@@ -95,8 +110,9 @@ const ResetPasswordPage = () => {
           <button
             type="submit"
             className="w-full py-2 px-4 text-white font-bold text-lg bg-black hover:bg-black/85 rounded-lg cursor-pointer disabled:cursor-not-allowed"
+            disabled={loading}
           >
-            Change Password
+            {loading ? "Changing..." : "Change Password"}
           </button>
         </form>
       </div>

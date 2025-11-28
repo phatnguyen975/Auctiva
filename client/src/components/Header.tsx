@@ -13,18 +13,19 @@ import Input from "./ui/Input";
 import ThemeToggle from "./ui/ThemeToggle";
 import ProfileMenu from "./ProfileMenu";
 import { dummyAllCategories } from "../assets/assets";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store/store";
 
 const Header = () => {
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const role = authUser?.profile?.role;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [categorySidebarOpen, setCategorySidebarOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
-
-  // Dummy
-  const user = true;
-  const role: string = "bidder";
 
   const toggleCategory = (name: string) => {
     setExpandedCategories((prev) =>
@@ -103,7 +104,7 @@ const Header = () => {
               <ThemeToggle />
 
               {/* Watchlist */}
-              {user && role !== "admin" && (
+              {authUser && role !== "admin" && (
                 <button
                   className="relative p-2 shrink-0 hover:bg-gray-200 cursor-pointer rounded-lg"
                   onClick={() => navigate("/dashboard")}
@@ -116,7 +117,7 @@ const Header = () => {
               )}
 
               {/* Notifications */}
-              {user && role !== "admin" && (
+              {authUser && role !== "admin" && (
                 <button className="relative p-2 shrink-0 hover:bg-gray-200 cursor-pointer rounded-lg">
                   <Bell className="size-5" />
                   <div className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-5 bg-black rounded-full text-white text-xs">
@@ -126,8 +127,8 @@ const Header = () => {
               )}
 
               {/* User Avatar */}
-              {user ? (
-                <ProfileMenu />
+              {authUser ? (
+                <ProfileMenu userProfile={authUser.profile} />
               ) : (
                 <div className="flex items-center gap-2 shrink-0">
                   <button

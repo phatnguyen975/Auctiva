@@ -17,7 +17,6 @@ create table if not exists profiles (
   role                user_role default 'bidder',
   rating_positive     int default 0,
   rating_count        int default 0,
-  metadata            JSONB,
   created_at          timestamptz default now(),
   updated_at          timestamptz default now()
 );

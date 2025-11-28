@@ -3,8 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Mail } from "lucide-react";
 import Input from "../../components/ui/Input";
 import { forgotPasswordSchema } from "../../utils/validation";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../store/store";
+import { sendOtpThunk, setIsPasswordReset } from "../../store/slices/authSlice";
+import toast from "react-hot-toast";
 
 const ForgotPasswordPage = () => {
+  const loading = useSelector((state: RootState) => state.auth.loading);
+  const dispatch = useDispatch<AppDispatch>();
+
   const [errors, setErrors] = useState<string[]>([]);
   const [email, setEmail] = useState("");
 
@@ -31,9 +38,16 @@ const ForgotPasswordPage = () => {
       return;
     }
 
-    sessionStorage.setItem("verificationEmail", email);
-    sessionStorage.setItem("isPasswordReset", "true");
-    navigate("/verify-email");
+    try {
+      await dispatch(sendOtpThunk(email)).unwrap();
+
+      dispatch(setIsPasswordReset(true));
+      sessionStorage.setItem("verificationEmail", email);
+
+      navigate("/verify-email");
+    } catch (error) {
+      toast.error(error as string);
+    }
   };
 
   return (
@@ -78,8 +92,9 @@ const ForgotPasswordPage = () => {
           <button
             type="submit"
             className="w-full py-2 px-4 text-white font-bold text-lg bg-black hover:bg-black/85 rounded-lg cursor-pointer disabled:cursor-not-allowed"
+            disabled={loading}
           >
-            Send Verification Code
+            {loading ? "Sending..." : "Send Code"}
           </button>
         </form>
 

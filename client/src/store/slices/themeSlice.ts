@@ -1,16 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-export type ThemeState = "light" | "dark";
+export type ThemeMode = "light" | "dark";
 
-interface ThemeSliceState {
-  mode: ThemeState;
+interface ThemeState {
+  mode: ThemeMode;
 }
 
-const storedTheme = (localStorage.getItem("theme") as ThemeState) || null;
+const storedTheme = (localStorage.getItem("theme") as ThemeMode) || null;
 const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
 const initialTheme = storedTheme || (prefersDark ? "dark" : "light");
 
-const initialState: ThemeSliceState = { mode: initialTheme };
+const initialState: ThemeState = { mode: initialTheme };
 
 const themeSlice = createSlice({
   name: "theme",

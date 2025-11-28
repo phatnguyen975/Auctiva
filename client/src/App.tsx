@@ -19,8 +19,13 @@ import AuthListener from "./components/auth/AuthListener";
 const App = () => {
   return (
     <>
+      <Toaster
+        position="top-right"
+        reverseOrder={false}
+        toastOptions={{ duration: 2000 }}
+      />
+
       <AuthListener />
-      <Toaster position="top-right" reverseOrder={false} />
 
       <Routes>
         {/* Public Routes */}

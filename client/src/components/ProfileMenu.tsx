@@ -6,18 +6,26 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../store/store";
 import { logoutThunk } from "../store/slices/authSlice";
+import type { Profile } from "../types/profile";
 
-const ProfileMenu = () => {
+interface UserProfile {
+  userProfile: Profile | null;
+}
+
+const ProfileMenu = ({ userProfile }: UserProfile) => {
+  const dispatch = useDispatch<AppDispatch>();
+
   const [menuOpen, setMenuOpen] = useState(false);
   
   const navigate = useNavigate();
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const dispatch = useDispatch<AppDispatch>();
-
   const handleLogout = async () => {
-    dispatch(logoutThunk());
-    toast.success("Logged out successfully");
+    try {
+      await dispatch(logoutThunk()).unwrap();
+    } catch (error) {
+      toast.error(error as string);
+    }
   };
 
   useEffect(() => {
@@ -26,6 +34,7 @@ const ProfileMenu = () => {
         setMenuOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -38,7 +47,7 @@ const ProfileMenu = () => {
         onClick={() => setMenuOpen((prev) => !prev)}
       >
         <img
-          src={assets.avatar}
+          src={userProfile?.avatar_url || assets.avatar}
           alt="Avatar"
           className="w-full h-full object-cover"
         />
@@ -50,13 +59,13 @@ const ProfileMenu = () => {
           {/* Information */}
           <div className="flex items-center gap-3 p-4">
             <img
-              src={assets.avatar}
+              src={userProfile?.avatar_url || assets.avatar}
               alt="avatar"
               className="size-12 rounded-full object-cover ring-2 ring-gray-400"
             />
             <div>
-              <p className="font-semibold max-w-[150px] truncate">Phat Nguyen</p>
-              <p className="text-gray-600 text-sm max-w-[150px] truncate">phatnguyen9725@gmail.com</p>
+              <p className="font-semibold max-w-[150px] truncate">{userProfile?.full_name}</p>
+              <p className="text-gray-600 text-sm max-w-[150px] truncate">{userProfile?.email}</p>
             </div>
           </div>
 

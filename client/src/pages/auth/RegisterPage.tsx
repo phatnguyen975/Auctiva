@@ -8,7 +8,10 @@ import PasswordStrengthMeter from "../../components/auth/PasswordStrengthMeter";
 import { registerSchema } from "../../utils/validation";
 import type { AppDispatch, RootState } from "../../store/store";
 import { useDispatch, useSelector } from "react-redux";
-import { registerThunk } from "../../store/slices/authSlice";
+import {
+  registerThunk,
+  setIsPasswordReset,
+} from "../../store/slices/authSlice";
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
@@ -44,22 +47,24 @@ const RegisterPage = () => {
       return;
     }
 
-    const registerInfo: {
-      full_name: string;
-      address: string;
-      email: string;
-      password: string;
-    } = {
-      full_name: formData.fullName,
-      address: formData.address,
-      email: formData.email,
-      password: formData.password,
-    };
-    dispatch(registerThunk(registerInfo));
+    try {
+      await dispatch(
+        registerThunk({
+          full_name: formData.fullName,
+          address: formData.address,
+          email: formData.email,
+          password: formData.password,
+        })
+      ).unwrap();
 
-    sessionStorage.setItem("verificationEmail", formData.email);
-    navigate("/verify-email");
-    toast.success("Account created successfully");
+      dispatch(setIsPasswordReset(false));
+      sessionStorage.setItem("verificationEmail", formData.email);
+
+      navigate("/verify-email");
+      toast.success("Account created successfully");
+    } catch (error) {
+      toast.error(error as string);
+    }
   };
 
   return (

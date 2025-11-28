@@ -1,8 +1,14 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "../../lib/supabaseClient";
+import type { Profile } from "../../types/profile";
+import type { RootState } from "../store";
 
-// Thunks
+// Register Thunk
 export const registerThunk = createAsyncThunk(
   "auth/register",
   async ({
@@ -15,8 +21,8 @@ export const registerThunk = createAsyncThunk(
     address: string;
     email: string;
     password: string;
-  }) => {
-    const { data, error } = await supabase.auth.signUp({
+  }, { rejectWithValue }) => {
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -25,53 +31,148 @@ export const registerThunk = createAsyncThunk(
     });
 
     if (error) {
-      throw error;
+      return rejectWithValue(error.message);
     }
 
-    return data.user;
+    return true;
   }
 );
 
+// Verify Email Thunk
+export const verifyEmailThunk = createAsyncThunk(
+  "auth/verifyEmail",
+  async ({ email, code }: { email: string; code: string }, { getState, rejectWithValue }) => {
+    const state = getState() as RootState;
+    const isPasswordReset = state.auth.isPasswordReset;
+
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: code,
+      type: isPasswordReset ? "recovery" : "email",
+    });
+
+    if (error) {
+      return rejectWithValue(error.message);
+    }
+
+    return true;
+  }
+);
+
+// Login Thunk
 export const loginThunk = createAsyncThunk(
   "auth/login",
-  async ({ email, password }: { email: string; password: string }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+  async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
-      throw error;
+      return rejectWithValue(error.message);
     }
 
-    return data.user;
+    return true;
   }
 );
 
-export const logoutThunk = createAsyncThunk("auth/logout", async () => {
-  await supabase.auth.signOut();
+// Logout Thunk
+export const logoutThunk = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    return rejectWithValue(error.message);
+  }
+
+  return true;
 });
 
+// Fetch Profile Thunk
+export const fetchProfileThunk = createAsyncThunk(
+  "auth/fetchProfile",
+  async (userId: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data as Profile;
+  }
+);
+
+// Send OTP Thunk
+export const sendOtpThunk = createAsyncThunk(
+  "auth/sendOtp",
+  async (email: string, { rejectWithValue }) => {
+    const { data: user, error: userError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .single();
+
+    if (userError || !user) {
+      return rejectWithValue("User not found");
+    }
+
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email);
+
+    if (resetError) {
+      return rejectWithValue(resetError.message);
+    }
+
+    return true;
+  }
+);
+
+// Reset Password Thunk
+export const resetPasswordThunk = createAsyncThunk(
+  "auth/resetPassword",
+  async (password: string, { rejectWithValue }) => {
+    const { error } = await supabase.auth.updateUser({ password });
+
+    if (error) {
+      return rejectWithValue(error.message);
+    }
+
+    return true;
+  }
+);
+
 // Slice
-interface AuthState {
+interface AuthUser {
   user: User | null;
+  profile: Profile | null;
+}
+
+interface AuthState {
+  authUser: AuthUser | null;
   loading: boolean;
   error: string | null;
+  isPasswordReset: boolean;
 }
 
 const initialState: AuthState = {
-  user: null,
+  authUser: null,
   loading: false,
   error: null,
+  isPasswordReset: false,
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser: (state, action) => {
-      state.user = action.payload;
-      state.loading = false;
+    setUser: (state, action: PayloadAction<AuthUser | null>) => {
+      state.authUser = action.payload;
+    },
+    setIsPasswordReset(state, action: PayloadAction<boolean>) {
+      state.isPasswordReset = action.payload;
+      sessionStorage.setItem("isPasswordReset", String(action.payload));
     },
   },
   extraReducers: (builder) => {
@@ -81,22 +182,32 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(registerThunk.fulfilled, (state, action) => {
+      .addCase(registerThunk.fulfilled, (state) => {
         state.loading = false;
-        state.user = action.payload;
       })
       .addCase(registerThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Register failed";
+      })
+      // --- Verify Email ---
+      .addCase(verifyEmailThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(verifyEmailThunk.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(verifyEmailThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Verify email failed";
       })
       // --- Login ---
       .addCase(loginThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(loginThunk.fulfilled, (state, action) => {
+      .addCase(loginThunk.fulfilled, (state) => {
         state.loading = false;
-        state.user = action.payload;
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.loading = false;
@@ -104,11 +215,45 @@ const authSlice = createSlice({
       })
       // --- Logout ---
       .addCase(logoutThunk.fulfilled, (state) => {
-        state.user = null;
+        state.authUser = null;
+        state.loading = false;
+        state.error = null;
+        state.isPasswordReset = false;
+      })
+      // --- Fetch Profile ---
+      .addCase(fetchProfileThunk.fulfilled, (state, action) => {
+        if (!state.authUser) {
+          return;
+        }
+        state.authUser.profile = action.payload;
+      })
+      // --- Send OTP ---
+      .addCase(sendOtpThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(sendOtpThunk.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(sendOtpThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Send OTP failed";
+      })
+      // --- Reset Password ---
+      .addCase(resetPasswordThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPasswordThunk.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(resetPasswordThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || "Reset password failed";
       });
   },
 });
 
-export const { setUser } = authSlice.actions;
+export const { setUser, setIsPasswordReset } = authSlice.actions;
 
 export default authSlice.reducer;
