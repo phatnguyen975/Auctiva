@@ -399,3 +399,301 @@ export const dummyAllProducts = [
     isNew: false,
   },
 ];
+
+export const dummyProductDetails = [
+  {
+    id: "1",
+    title:
+      "Premium Wireless Headphones - Studio Quality Audio with Active Noise Cancellation",
+    images: [
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=800&fit=crop", // Main image
+      "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1524678606372-87139ee986e5?w=800&h=800&fit=crop",
+    ],
+    currentBid: 245,
+    buyNowPrice: 350,
+    bidStep: 5,
+    topBidder: "****Khoa",
+    topBidderRating: 96.5,
+    totalBids: 23,
+    endTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 3 * 60 * 60 * 1000),
+    seller: {
+      name: "AudioPhile Gear",
+      rating: 4.9,
+      totalSales: 1234,
+    },
+    condition: "Brand New",
+    category: "Electronics > Audio > Headphones",
+    description:
+      "Experience sound like never before with these premium wireless headphones. Featuring advanced active noise cancellation, 30-hour battery life, and plush ear cushions for all-day comfort.",
+  },
+  {
+    id: "2",
+    title: "Luxury Vintage Watch - Limited Edition 2020 - Swiss Movement",
+    images: [
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?w=800&h=800&fit=crop",
+    ],
+    currentBid: 1250,
+    buyNowPrice: 1800,
+    bidStep: 50,
+    topBidder: "****John",
+    topBidderRating: 99.0,
+    totalBids: 45,
+    endTime: new Date(Date.now() + 4 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    seller: {
+      name: "Vintage Timekeepers",
+      rating: 4.8,
+      totalSales: 560,
+    },
+    condition: "Used - Like New",
+    category: "Fashion > Accessories > Watches",
+    description:
+      "A stunning piece of craftsmanship. This limited edition vintage watch features automatic Swiss movement, a sapphire crystal face, and a genuine leather strap.",
+  },
+  {
+    id: "3",
+    title: "Professional DSLR Camera with 18-55mm Lens Kit - 24MP",
+    images: [
+      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800&h=800&fit=crop",
+    ],
+    currentBid: 890,
+    buyNowPrice: undefined, // Sản phẩm này không có buyNowPrice ở list
+    bidStep: 10,
+    topBidder: "****Anna",
+    topBidderRating: 95.0,
+    totalBids: 31,
+    endTime: new Date(Date.now() + 6 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 5 * 60 * 60 * 1000),
+    seller: {
+      name: "Camera Hub",
+      rating: 4.7,
+      totalSales: 890,
+    },
+    condition: "Used - Good",
+    category: "Electronics > Cameras > DSLR",
+    description:
+      "Perfect for photography enthusiasts. This DSLR comes with a standard kit lens, charger, and carrying bag. Shutter count is low, approximately 5000 shots.",
+  },
+  {
+    id: "4",
+    title: "Designer Sunglasses - Authentic Brand New - UV400 Protection",
+    images: [
+      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1577803645773-f96470509666?w=800&h=800&fit=crop",
+    ],
+    currentBid: 180,
+    buyNowPrice: 250,
+    bidStep: 5,
+    topBidder: "****Mike",
+    topBidderRating: 92.5,
+    totalBids: 18,
+    endTime: new Date(Date.now() + 1 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 30 * 60 * 60 * 1000),
+    seller: {
+      name: "Fashionista Direct",
+      rating: 5.0,
+      totalSales: 300,
+    },
+    condition: "Brand New",
+    category: "Fashion > Accessories > Sunglasses",
+    description:
+      "Step out in style with these authentic designer sunglasses. Full UV400 protection with scratch-resistant lenses. Includes original case and cleaning cloth.",
+  },
+  {
+    id: "5",
+    title: "Limited Edition Sneakers - Size 10 - Collectors Choice",
+    images: [
+      "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=800&h=800&fit=crop",
+    ],
+    currentBid: 320,
+    buyNowPrice: undefined,
+    bidStep: 10,
+    topBidder: "****Sarah",
+    topBidderRating: 98.2,
+    totalBids: 52,
+    endTime: new Date(Date.now() + 10 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+    seller: {
+      name: "Sneakerhead Vault",
+      rating: 4.6,
+      totalSales: 2100,
+    },
+    condition: "Used - Very Good",
+    category: "Fashion > Footwear > Sneakers",
+    description:
+      "Rare colorway, sold out everywhere. Worn twice for photoshoots, soles are clean. Box is included but slightly damaged.",
+  },
+  {
+    id: "6",
+    title: "Vintage Motorcycle Helmet - 1970s Style Collectors Item",
+    images: [
+      "https://images.unsplash.com/photo-1588508065123-287b28e013da?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1558507340-0b61f9d519b5?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1626847037657-fd3622613ce3?w=800&h=800&fit=crop",
+    ],
+    currentBid: 420,
+    buyNowPrice: undefined,
+    bidStep: 20,
+    topBidder: "****David",
+    topBidderRating: 94.0,
+    totalBids: 67,
+    endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    seller: {
+      name: "Retro Moto",
+      rating: 4.9,
+      totalSales: 150,
+    },
+    condition: "Used - Vintage",
+    category: "Automotive > Accessories > Helmets",
+    description:
+      "An authentic vintage helmet from the 70s. Great for display or restoration projects. Interior padding needs replacement if intended for use.",
+  },
+  {
+    id: "7",
+    title: "Mechanical Gaming Keyboard RGB - Blue Switches - TKL",
+    images: [
+      "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1595225476474-87563907a212?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef?w=800&h=800&fit=crop",
+    ],
+    currentBid: 155,
+    buyNowPrice: 220,
+    bidStep: 5,
+    topBidder: "****Lisa",
+    topBidderRating: 97.5,
+    totalBids: 59,
+    endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    seller: {
+      name: "Pro Gamer Shop",
+      rating: 4.8,
+      totalSales: 4000,
+    },
+    condition: "Brand New",
+    category: "Electronics > Computers > Peripherals",
+    description:
+      "Dominate the game with this high-performance mechanical keyboard. Features customizable RGB lighting, durable blue switches, and a compact tenkeyless design.",
+  },
+  {
+    id: "8",
+    title: "Smart Watch Series 7 - 45mm Aluminum Case - Like New",
+    images: [
+      "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&h=800&fit=crop",
+      "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=800&h=800&fit=crop",
+    ],
+    currentBid: 280,
+    buyNowPrice: undefined,
+    bidStep: 10,
+    topBidder: "****Emma",
+    topBidderRating: 93.8,
+    totalBids: 54,
+    endTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    seller: {
+      name: "Tech Reseller",
+      rating: 4.5,
+      totalSales: 750,
+    },
+    condition: "Used - Like New",
+    category: "Electronics > Wearables > Smartwatches",
+    description:
+      "Barely used Series 7 smartwatch. Battery health at 100%. Comes with original charging cable and a spare sport band.",
+  },
+];
+
+export const dummyBidHistory = [
+  { time: "2 minutes ago", bidder: "****Khoa", amount: 245, rating: 96.5 },
+  { time: "15 minutes ago", bidder: "****John", amount: 240, rating: 92.0 },
+  { time: "32 minutes ago", bidder: "****Khoa", amount: 235, rating: 96.5 },
+  { time: "1 hour ago", bidder: "****Sarah", amount: 230, rating: 94.8 },
+  { time: "1 hour ago", bidder: "****Mike", amount: 225, rating: 89.5 },
+  { time: "2 hours ago", bidder: "****John", amount: 220, rating: 92.0 },
+];
+
+export const dummyQAItems = [
+  {
+    question: "Is this compatible with iPhone?",
+    answer:
+      "Yes, these headphones work with any Bluetooth-enabled device including all iPhones.",
+    askedBy: "****Anna",
+    answeredAt: "1 day ago",
+  },
+  {
+    question: "What's the warranty period?",
+    answer:
+      "Comes with 1-year manufacturer warranty. Extended warranty available at checkout.",
+    askedBy: "****Tom",
+    answeredAt: "2 days ago",
+  },
+];
+
+export const dummyRelatedProducts = [
+  {
+    id: "101",
+    image:
+      "https://images.unsplash.com/photo-1588508065123-287b28e013da?w=400&h=400&fit=crop",
+    title: "Wireless Earbuds Pro",
+    currentBid: 85,
+    topBidder: "****Lisa",
+    totalBids: 15,
+    endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+  },
+  {
+    id: "102",
+    image:
+      "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&h=400&fit=crop",
+    title: "Studio Monitor Speakers",
+    currentBid: 320,
+    buyNowPrice: 450,
+    topBidder: "****Chris",
+    totalBids: 28,
+    endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+  },
+  {
+    id: "103",
+    image:
+      "https://images.unsplash.com/photo-1545127398-14699f92334b?w=400&h=400&fit=crop",
+    title: "Audio Interface USB",
+    currentBid: 145,
+    topBidder: "****Emma",
+    totalBids: 12,
+    endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+  },
+  {
+    id: "104",
+    image:
+      "https://images.unsplash.com/photo-1487215078519-e21cc028cb29?w=400&h=400&fit=crop",
+    title: "Professional Microphone",
+    currentBid: 180,
+    topBidder: "****Alex",
+    totalBids: 19,
+    endTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
+  },
+  {
+    id: "105",
+    image:
+      "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop",
+    title: "Headphone Amplifier",
+    currentBid: 95,
+    topBidder: "****David",
+    totalBids: 8,
+    endTime: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
+    postedDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 days ago (will show as date)
+  },
+];
