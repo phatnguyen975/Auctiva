@@ -11,13 +11,32 @@ const TabsContext = createContext<TabsContextType | undefined>(undefined);
 // 2. Component cha: Tabs
 // Nhiệm vụ: Giữ state (tab nào đang mở) và cung cấp Context
 interface TabsProps {
-  defaultValue: string;
+  defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
   className?: string;
   children: React.ReactNode;
 }
 
-export function Tabs({ defaultValue, className, children }: TabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultValue);
+export function Tabs({
+  defaultValue,
+  value,
+  onValueChange,
+  className,
+  children,
+}: TabsProps) {
+  const [internalState, setInternalState] = useState(defaultValue || "");
+  const activeTab = value !== undefined ? value : internalState;
+
+  const setActiveTab = (newValue: string) => {
+    if (onValueChange) {
+      onValueChange(newValue);
+    }
+
+    setInternalState(newValue);
+  };
+
+  //const [activeTab, setActiveTab] = useState(defaultValue);
 
   return (
     <TabsContext.Provider value={{ activeTab, setActiveTab }}>
