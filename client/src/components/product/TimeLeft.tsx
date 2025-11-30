@@ -6,15 +6,12 @@ import {
   isPast,
 } from "date-fns";
 
-interface CountdownTimerProps {
+interface TimeLeftProps {
   endDate: Date;
   viewMode?: string;
 }
 
-const CountdownTimer = ({
-  endDate,
-  viewMode = "grid",
-}: CountdownTimerProps) => {
+const TimeLeft = ({ endDate, viewMode = "grid" }: TimeLeftProps) => {
   let displayText: string;
   let urgent = false;
 
@@ -38,10 +35,12 @@ const CountdownTimer = ({
         viewMode === "grid" ? "text-lg lg:text-xs" : "text-sm"
       } ${urgent && "text-red-500"}`}
     >
-      <Clock className={`${viewMode === "grid" ? "size-5 lg:size-3" : "size-4"}`} />
+      <Clock
+        className={`${viewMode === "grid" ? "size-5 lg:size-3" : "size-4"}`}
+      />
       {displayText}
     </div>
   );
 };
 
-export default CountdownTimer;
+export default TimeLeft;

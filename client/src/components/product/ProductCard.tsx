@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Heart, Hammer, Calendar } from "lucide-react";
-import CountdownTimer from "./CountdownTimer";
+import TimeLeft from "./TimeLeft";
 import { formatPostDate } from "../../utils/date";
 import { maskName } from "../../utils/masking";
 
@@ -114,7 +114,7 @@ export function ProductCard({
 
             {/* End Date & Post Date */}
             <div className="flex items-center justify-between gap-4 pt-3 border-t">
-              <CountdownTimer endDate={endDate} viewMode={viewMode} />
+              <TimeLeft endDate={endDate} viewMode={viewMode} />
               {endDate && (
                 <div className="flex items-center gap-1 text-sm whitespace-nowrap">
                   <Calendar className="size-4" />
@@ -197,7 +197,7 @@ export function ProductCard({
 
           {/* Countdown and Posted Date */}
           <div className="flex items-center justify-between pt-7 md:pt-5 lg:pt-3 border-t">
-            <CountdownTimer endDate={endDate} />
+            {endDate && <TimeLeft endDate={endDate} />}
             {endDate && (
               <div className="flex items-center gap-1 text-lg lg:text-xs text-gray-800 whitespace-nowrap">
                 <Calendar className="size-5 lg:size-3" />
