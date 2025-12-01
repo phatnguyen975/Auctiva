@@ -1,5 +1,5 @@
 // BanModal.tsx
-import { AlertCircle, Ban } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 interface BanModalProps {
   isOpen: boolean;
@@ -51,7 +51,7 @@ export default function BanModal({
         <div className="px-6">
           <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200 dark:border-amber-800 rounded-lg p-4">
             <div className="flex gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
                   Note:
