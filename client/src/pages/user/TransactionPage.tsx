@@ -5,7 +5,7 @@ import AuctionEndedOverlay from "../../components/transaction/AuctionEndedOverla
 type UserType = "winner" | "seller" | "non-participant";
 
 const TransactionPage = () => {
-  const [viewAs, setViewAs] = useState<UserType>("winner");
+  const [viewAs, setViewAs] = useState<UserType>("seller");
 
   // Mock data
   const productData = {

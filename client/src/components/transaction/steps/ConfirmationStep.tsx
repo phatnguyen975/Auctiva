@@ -10,14 +10,14 @@ interface ConfirmationStepProps {
   onConfirm: () => void;
 }
 
-export function ConfirmationStep({
+const ConfirmationStep = ({
   userRole,
   shippingAddress,
   paymentProof,
   shippingReceipt,
   onFileUpload,
   onConfirm,
-}: ConfirmationStepProps) {
+}: ConfirmationStepProps) => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
@@ -102,4 +102,6 @@ export function ConfirmationStep({
       )}
     </div>
   );
-}
+};
+
+export default ConfirmationStep;
