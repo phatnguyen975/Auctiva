@@ -1,4 +1,4 @@
-export type Profile = {
+export interface Profile {
   full_name: string;
   email: string;
   address: string | null;

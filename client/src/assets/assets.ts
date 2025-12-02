@@ -647,8 +647,8 @@ export const dummyRelatedProducts = [
     currentBid: 85,
     topBidder: "****Lisa",
     totalBids: 15,
-    endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-    postedDate: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+    postDate: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
   },
   {
     id: "102",
@@ -659,8 +659,8 @@ export const dummyRelatedProducts = [
     buyNowPrice: 450,
     topBidder: "****Chris",
     totalBids: 28,
-    endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-    postedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    postDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
   },
   {
     id: "103",
@@ -670,8 +670,8 @@ export const dummyRelatedProducts = [
     currentBid: 145,
     topBidder: "****Emma",
     totalBids: 12,
-    endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    postedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    postDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
   },
   {
     id: "104",
@@ -681,8 +681,8 @@ export const dummyRelatedProducts = [
     currentBid: 180,
     topBidder: "****Alex",
     totalBids: 19,
-    endTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
-    postedDate: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
+    endDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+    postDate: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
   },
   {
     id: "105",
@@ -692,7 +692,7 @@ export const dummyRelatedProducts = [
     currentBid: 95,
     topBidder: "****David",
     totalBids: 8,
-    endTime: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
-    postedDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 days ago (will show as date)
+    endDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000),
+    postDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 days ago (will show as date)
   },
 ];

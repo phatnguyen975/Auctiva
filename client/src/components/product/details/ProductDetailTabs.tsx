@@ -184,7 +184,7 @@ const ProductDetailTabs = ({
             <h3 className="font-semibold mb-4">Ask a Question</h3>
             <div className="space-y-3">
               <textarea
-                className="w-full rounded-md border p-3 min-h-16 bg-input-background"
+                className="w-full rounded-md border p-3 min-h-16 bg-input-background resize-none"
                 placeholder="Type your question here..."
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
@@ -226,7 +226,7 @@ const ProductDetailTabs = ({
       <TabsContent value="related" className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {relatedProducts.map((rp) => (
-            <ProductCard key={rp.id} {...rp} viewMode="grid" />
+            <ProductCard key={rp.id} {...rp} />
           ))}
         </div>
       </TabsContent>

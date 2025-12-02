@@ -84,7 +84,7 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
     <button
       onClick={() => setActiveTab(value)}
       className={`
-        whitespace-nowrap rounded-4xl md:px-1.5 lg:px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50
+        whitespace-nowrap rounded-4xl md:px-1.5 lg:px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer
         ${
           isActive
             ? "bg-gray-300 text-foreground shadow-sm" // Style khi Active

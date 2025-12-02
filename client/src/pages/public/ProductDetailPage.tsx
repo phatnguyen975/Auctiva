@@ -12,6 +12,7 @@ import {
   Eye,
   Package,
   BanknoteArrowUp,
+  Gavel,
 } from "lucide-react";
 
 import type { ProductDetail } from "../../types/product";
@@ -237,7 +238,8 @@ const ProductDetailPage = () => {
                         </div>
                       </div>
                     </div>
-                    <button className="w-full bg-black text-white px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold">
+                    <button className="flex justify-center items-center w-full bg-black text-white px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold">
+                      <Gavel className="size-5 mr-2" />
                       Place Bid
                     </button>
                   </>
@@ -245,13 +247,13 @@ const ProductDetailPage = () => {
 
                 {product?.buyNowPrice && (
                   <button className="flex justify-center items-center w-full bg-gray-300 text-black px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold">
-                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    <ShoppingCart className="size-5 mr-2" />
                     Buy Now - ${product.buyNowPrice}
                   </button>
                 )}
 
                 <button className="flex justify-center items-center w-full bg-transparent hover:bg-gray-200 text-black px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold">
-                  <Heart className="h-5 w-5 mr-2" />
+                  <Heart className="size-5 mr-2" />
                   Add to Watchlist
                 </button>
               </div>

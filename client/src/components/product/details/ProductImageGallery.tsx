@@ -53,7 +53,7 @@ const ProductImageGallery = ({
               className={cn(
                 "aspect-square rounded-lg overflow-hidden border-2 transition-all bg-white",
                 selectedImage === index
-                  ? "border-primary ring-2 ring-primary/20 scale-95" // Active state
+                  ? "border-gray-800 ring-2 ring-gray-200 scale-95" // Active state
                   : "border-transparent hover:border-muted hover:opacity-80" // Inactive state
               )}
             >
