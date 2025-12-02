@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Gavel, Lock, Mail, MapPin, User } from "lucide-react";
 import toast from "react-hot-toast";
@@ -12,6 +12,7 @@ import {
   registerThunk,
   setIsPasswordReset,
 } from "../../store/slices/authSlice";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
@@ -26,6 +27,9 @@ const RegisterPage = () => {
     email: "",
     password: "",
   });
+
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<HCaptcha | null>(null);
 
   const navigate = useNavigate();
 
@@ -54,11 +58,15 @@ const RegisterPage = () => {
           address: formData.address,
           email: formData.email,
           password: formData.password,
+          captchaToken: captchaToken || "",
         })
       ).unwrap();
 
       dispatch(setIsPasswordReset(false));
       sessionStorage.setItem("verificationEmail", formData.email);
+
+      setCaptchaToken(null);
+      captchaRef?.current?.resetCaptcha();
 
       navigate("/verify-email");
       toast.success("Account created successfully");
@@ -159,6 +167,13 @@ const RegisterPage = () => {
           </div>
 
           {/* reCAPTCHA */}
+          <div className="flex justify-end">
+            <HCaptcha
+              ref={captchaRef}
+              sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY ?? ""}
+              onVerify={setCaptchaToken}
+            />
+          </div>
 
           {/* Errors */}
           {errors.length > 0 && (

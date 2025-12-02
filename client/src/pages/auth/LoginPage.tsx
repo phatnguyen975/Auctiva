@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Gavel, Lock, Mail } from "lucide-react";
 import toast from "react-hot-toast";
@@ -8,6 +8,7 @@ import { loginSchema } from "../../utils/validation";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
 import { loginThunk } from "../../store/slices/authSlice";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 type LoginForm = z.infer<typeof loginSchema>;
 
@@ -20,6 +21,9 @@ const LoginPage = () => {
     email: "",
     password: "",
   });
+
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<HCaptcha | null>(null);
 
   const navigate = useNavigate();
 
@@ -49,8 +53,13 @@ const LoginPage = () => {
         loginThunk({
           email: formData.email,
           password: formData.password,
+          captchaToken: captchaToken || "",
         })
       ).unwrap();
+
+      setCaptchaToken(null);
+      captchaRef?.current?.resetCaptcha();
+
       navigate("/");
       toast.success("Logged in successfully");
     } catch (error) {
@@ -114,10 +123,20 @@ const LoginPage = () => {
             />
           </div>
 
+          {/* Forgot Password */}
           <div className="flex justify-end items-center">
             <Link to="/forgot-password" className="text-sm hover:underline">
               Forgot password?
             </Link>
+          </div>
+
+          {/* reCAPTCHA */}
+          <div className="flex justify-end">
+            <HCaptcha
+              ref={captchaRef}
+              sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY ?? ""}
+              onVerify={setCaptchaToken}
+            />
           </div>
 
           {/* Errors */}

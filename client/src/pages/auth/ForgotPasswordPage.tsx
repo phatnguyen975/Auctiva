@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Mail } from "lucide-react";
 import Input from "../../components/ui/Input";
@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
 import { sendOtpThunk, setIsPasswordReset } from "../../store/slices/authSlice";
 import toast from "react-hot-toast";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const ForgotPasswordPage = () => {
   const loading = useSelector((state: RootState) => state.auth.loading);
@@ -14,6 +15,9 @@ const ForgotPasswordPage = () => {
 
   const [errors, setErrors] = useState<string[]>([]);
   const [email, setEmail] = useState("");
+
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<HCaptcha | null>(null);
 
   const navigate = useNavigate();
 
@@ -39,12 +43,15 @@ const ForgotPasswordPage = () => {
     }
 
     try {
-      await dispatch(sendOtpThunk(email)).unwrap();
+      await dispatch(
+        sendOtpThunk({ email, captchaToken: captchaToken || "" })
+      ).unwrap();
 
       dispatch(setIsPasswordReset(true));
       sessionStorage.setItem("verificationEmail", email);
 
       navigate("/verify-email");
+      toast.success("Verification code sent to your email");
     } catch (error) {
       toast.error(error as string);
     }
@@ -75,6 +82,15 @@ const ForgotPasswordPage = () => {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          {/* reCAPTCHA */}
+          <div>
+            <HCaptcha
+              ref={captchaRef}
+              sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY ?? ""}
+              onVerify={setCaptchaToken}
             />
           </div>
 

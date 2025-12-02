@@ -11,21 +11,27 @@ import type { RootState } from "../store";
 // Register Thunk
 export const registerThunk = createAsyncThunk(
   "auth/register",
-  async ({
-    full_name,
-    address,
-    email,
-    password,
-  }: {
-    full_name: string;
-    address: string;
-    email: string;
-    password: string;
-  }, { rejectWithValue }) => {
+  async (
+    {
+      full_name,
+      address,
+      email,
+      password,
+      captchaToken,
+    }: {
+      full_name: string;
+      address: string;
+      email: string;
+      password: string;
+      captchaToken: string;
+    },
+    { rejectWithValue }
+  ) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
+        captchaToken,
         data: { full_name, address },
       },
     });
@@ -41,7 +47,10 @@ export const registerThunk = createAsyncThunk(
 // Verify Email Thunk
 export const verifyEmailThunk = createAsyncThunk(
   "auth/verifyEmail",
-  async ({ email, code }: { email: string; code: string }, { getState, rejectWithValue }) => {
+  async (
+    { email, code }: { email: string; code: string },
+    { getState, rejectWithValue }
+  ) => {
     const state = getState() as RootState;
     const isPasswordReset = state.auth.isPasswordReset;
 
@@ -62,10 +71,18 @@ export const verifyEmailThunk = createAsyncThunk(
 // Login Thunk
 export const loginThunk = createAsyncThunk(
   "auth/login",
-  async ({ email, password }: { email: string; password: string }, { rejectWithValue }) => {
+  async (
+    {
+      email,
+      password,
+      captchaToken,
+    }: { email: string; password: string; captchaToken: string },
+    { rejectWithValue }
+  ) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: { captchaToken },
     });
 
     if (error) {
@@ -77,15 +94,18 @@ export const loginThunk = createAsyncThunk(
 );
 
 // Logout Thunk
-export const logoutThunk = createAsyncThunk("auth/logout", async (_, { rejectWithValue }) => {
-  const { error } = await supabase.auth.signOut();
+export const logoutThunk = createAsyncThunk(
+  "auth/logout",
+  async (_, { rejectWithValue }) => {
+    const { error } = await supabase.auth.signOut();
 
-  if (error) {
-    return rejectWithValue(error.message);
+    if (error) {
+      return rejectWithValue(error.message);
+    }
+
+    return true;
   }
-
-  return true;
-});
+);
 
 // Fetch Profile Thunk
 export const fetchProfileThunk = createAsyncThunk(
@@ -108,7 +128,10 @@ export const fetchProfileThunk = createAsyncThunk(
 // Send OTP Thunk
 export const sendOtpThunk = createAsyncThunk(
   "auth/sendOtp",
-  async (email: string, { rejectWithValue }) => {
+  async (
+    { email, captchaToken }: { email: string; captchaToken: string },
+    { rejectWithValue }
+  ) => {
     const { data: user, error: userError } = await supabase
       .from("profiles")
       .select("id")
@@ -119,7 +142,10 @@ export const sendOtpThunk = createAsyncThunk(
       return rejectWithValue("User not found");
     }
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      email,
+      { captchaToken }
+    );
 
     if (resetError) {
       return rejectWithValue(resetError.message);
