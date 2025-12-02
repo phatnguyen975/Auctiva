@@ -78,25 +78,25 @@ const ProductDetailTabs = ({
                   <span className="text-sm">40-hour battery life</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
                   <span className="text-sm">
                     Premium memory foam ear cushions
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
                   <span className="text-sm">
                     Bluetooth 5.0 with aptX HD support
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
                   <span className="text-sm">
                     Foldable design with hard carrying case
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
                   <span className="text-sm">Built-in microphone for calls</span>
                 </li>
               </ul>

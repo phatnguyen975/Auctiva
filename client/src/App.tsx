@@ -6,6 +6,7 @@ import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/public/HomePage";
 import ProductListPage from "./pages/public/ProductListPage";
 import ProductDetailPage from "./pages/public/ProductDetailPage";
+import TransactionPage from "./pages/public/TransactionPage";
 
 import AuthLayout from "./layouts/AuthLayout";
 import LoginPage from "./pages/auth/LoginPage";
@@ -15,7 +16,6 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 
 import AuthListener from "./components/auth/AuthListener";
-import TransactionPage from "./pages/user/TransactionPage";
 
 const App = () => {
   return (
@@ -34,7 +34,6 @@ const App = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductListPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
-
           <Route path="/transaction" element={<TransactionPage />} />
         </Route>
 

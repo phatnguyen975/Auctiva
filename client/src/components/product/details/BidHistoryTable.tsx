@@ -1,4 +1,3 @@
-import React from "react";
 import { User, Ban } from "lucide-react";
 import {
   Table,
