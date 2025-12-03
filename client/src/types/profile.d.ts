@@ -1,4 +1,5 @@
 export interface Profile {
+  user_name: string | null;
   full_name: string;
   email: string;
   address: string | null;

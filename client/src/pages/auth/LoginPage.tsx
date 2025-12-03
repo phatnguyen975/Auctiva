@@ -7,7 +7,11 @@ import Input from "../../components/ui/Input";
 import { loginSchema } from "../../utils/validation";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store/store";
-import { loginThunk } from "../../store/slices/authSlice";
+import {
+  loginThunk,
+  loginWithGitHubThunk,
+  loginWithGoogleThunk,
+} from "../../store/slices/authSlice";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -65,6 +69,22 @@ const LoginPage = () => {
 
       navigate(from, { replace: true });
       toast.success("Logged in successfully");
+    } catch (error) {
+      toast.error(error as string);
+    }
+  };
+
+  const handleLoginGoogle = async () => {
+    try {
+      await dispatch(loginWithGoogleThunk()).unwrap();
+    } catch (error) {
+      toast.error(error as string);
+    }
+  };
+
+  const handleLoginGitHub = async () => {
+    try {
+      await dispatch(loginWithGitHubThunk()).unwrap();
     } catch (error) {
       toast.error(error as string);
     }
@@ -169,7 +189,10 @@ const LoginPage = () => {
 
         {/* Social Login */}
         <div className="flex flex-col gap-3">
-          <button className="flex gap-2 items-center justify-center py-1.5 px-10 border border-gray-300 bg-gray-100 hover:bg-gray-200/60 rounded-lg cursor-pointer">
+          <button
+            className="flex gap-2 items-center justify-center py-1.5 px-10 border border-gray-300 bg-gray-100 hover:bg-gray-200/60 rounded-lg cursor-pointer"
+            onClick={handleLoginGoogle}
+          >
             <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
               <path
                 fill="currentColor"
@@ -191,18 +214,10 @@ const LoginPage = () => {
             Login with Google
           </button>
 
-          <button className="flex gap-2 items-center justify-center py-1.5 px-10 border border-gray-300 bg-gray-100 hover:bg-gray-200/60 rounded-lg cursor-pointer">
-            <svg
-              className="mr-2 h-5 w-5"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-            </svg>
-            Login with Facebook
-          </button>
-
-          <button className="flex gap-2 items-center justify-center py-1.5 px-10 border border-gray-300 bg-gray-100 hover:bg-gray-200/60 rounded-lg cursor-pointer">
+          <button
+            className="flex gap-2 items-center justify-center py-1.5 px-10 border border-gray-300 bg-gray-100 hover:bg-gray-200/60 rounded-lg cursor-pointer"
+            onClick={handleLoginGitHub}
+          >
             <svg
               className="mr-2 h-5 w-5"
               fill="currentColor"

@@ -9,6 +9,7 @@ create type bid_status as enum ('valid', 'rejected');
 -- BEGIN: Profiles table --
 create table if not exists profiles (
   id                  uuid primary key references auth.users(id) on delete cascade,
+  user_name           text,
   email               text unique not null,
   full_name           text not null,
   address             text,
@@ -38,8 +39,8 @@ returns trigger
 set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, email, full_name, address, avatar_url)
-  values (new.id, new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'address', new.raw_user_meta_data->>'avatar_url');
+  insert into public.profiles (id, user_name, email, full_name, address, avatar_url)
+  values (new.id, new.raw_user_meta_data->>'user_name', new.email, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'address', new.raw_user_meta_data->>'avatar_url');
   return new;
 end;
 $$ language plpgsql security definer;

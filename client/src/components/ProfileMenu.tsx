@@ -46,7 +46,7 @@ const ProfileMenu = ({ userProfile, isDashboard }: ProfileMenuProps) => {
     <div className="relative" ref={menuRef}>
       {/* Avatar */}
       <button
-        className="size-10 rounded-full overflow-hidden ring-2 ring-gray-400 cursor-pointer"
+        className="size-9 rounded-full overflow-hidden ring-2 ring-gray-500 cursor-pointer"
         onClick={() => setMenuOpen((prev) => !prev)}
       >
         <img
@@ -68,7 +68,7 @@ const ProfileMenu = ({ userProfile, isDashboard }: ProfileMenuProps) => {
             />
             <div>
               <p className="font-semibold max-w-[150px] truncate">
-                {userProfile?.full_name}
+                {userProfile?.user_name || userProfile?.full_name}
               </p>
               <p className="text-gray-600 text-sm max-w-[150px] truncate">
                 {userProfile?.email}

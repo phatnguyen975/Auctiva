@@ -93,6 +93,36 @@ export const loginThunk = createAsyncThunk(
   }
 );
 
+export const loginWithGoogleThunk = createAsyncThunk(
+  "auth/login-google",
+  async (_, { rejectWithValue }) => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+    });
+
+    if (error) {
+      return rejectWithValue(error.message);
+    }
+
+    return true;
+  }
+);
+
+export const loginWithGitHubThunk = createAsyncThunk(
+  "auth/login-github",
+  async (_, { rejectWithValue }) => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+    });
+
+    if (error) {
+      return rejectWithValue(error.message);
+    }
+
+    return true;
+  }
+);
+
 // Logout Thunk
 export const logoutThunk = createAsyncThunk(
   "auth/logout",
