@@ -87,10 +87,10 @@ const VerifyEmailPage = () => {
         sessionStorage.getItem("isPasswordReset") === "true";
 
       if (isPasswordReset) {
-        navigate("/reset-password");
+        navigate("/reset-password", { replace: true });
       } else {
         sessionStorage.removeItem("isPasswordReset");
-        navigate("/");
+        navigate("/", { replace: true });
       }
 
       toast.success("Email verified successfully");

@@ -128,7 +128,7 @@ const TransactionFlow = ({
         {/* Header */}
         <div className="mb-8">
           <span
-            className="inline-flex items-center bg-transparent hover:bg-amber-600 justify-center rounded-md border px-2 py-0.5 text-xs font-medium  w-fit whitespace-nowrap 
+            className="mb-4 inline-flex items-center bg-transparent hover:bg-amber-600 justify-center rounded-md border px-2 py-0.5 text-xs font-medium  w-fit whitespace-nowrap 
                   text-primary border-primary shrink-0 gap-1"
           >
             Transaction in Progress

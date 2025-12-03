@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Bell,
   ChevronRight,
@@ -7,16 +9,14 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Input from "./ui/Input";
 import ThemeToggle from "./ui/ThemeToggle";
 import ProfileMenu from "./ProfileMenu";
-import { dummyAllCategories } from "../assets/assets";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
+import { dummyAllCategories } from "../assets/assets";
 
-const Header = () => {
+const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const authUser = useSelector((state: RootState) => state.auth.authUser);
   const role = authUser?.profile?.role;
 
@@ -52,7 +52,7 @@ const Header = () => {
     <>
       {/* Header */}
       <header className="sticky top-0 z-50 w-full bg-white shadow-sm transition-colors duration-300">
-        <div className="container px-4 mx-auto">
+        <div className="container mx-auto px-4">
           <div className="flex h-16 md:h-20 items-center justify-between gap-2 md:gap-4">
             {/* Logo + All Categories */}
             <div className="flex items-center gap-2 md:gap-4">
@@ -70,33 +70,37 @@ const Header = () => {
               </button>
 
               {/* All Categories */}
-              <button
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer shrink-0"
-                onClick={() => setCategorySidebarOpen(true)}
-              >
-                <Menu className="size-5" />
-                <span className="text-sm font-semibold">All Categories</span>
-              </button>
+              {!isDashboard && (
+                <button
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer shrink-0"
+                  onClick={() => setCategorySidebarOpen(true)}
+                >
+                  <Menu className="size-5" />
+                  <span className="text-sm font-semibold">All Categories</span>
+                </button>
+              )}
             </div>
 
             {/* Search Bar */}
-            <div className="flex-1 max-w-2xl hidden md:block">
-              <div className="relative">
-                <Input
-                  icon={Search}
-                  type="text"
-                  placeholder="Search for anything..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      navigate(`/products?keyword=${searchQuery}`);
-                      setSearchQuery("");
-                    }
-                  }}
-                />
+            {!isDashboard && (
+              <div className="flex-1 max-w-2xl hidden md:block">
+                <div className="relative">
+                  <Input
+                    icon={Search}
+                    type="text"
+                    placeholder="Search for anything..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        navigate(`/products?keyword=${searchQuery}`);
+                        setSearchQuery("");
+                      }
+                    }}
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Right Actions */}
             <div className="flex items-center gap-2">
@@ -104,7 +108,7 @@ const Header = () => {
               <ThemeToggle />
 
               {/* Watchlist */}
-              {authUser && role !== "admin" && (
+              {authUser && role !== "admin" && !isDashboard && (
                 <button
                   className="relative p-2 shrink-0 hover:bg-gray-200 cursor-pointer rounded-lg"
                   onClick={() => navigate("/dashboard")}
@@ -117,7 +121,7 @@ const Header = () => {
               )}
 
               {/* Notifications */}
-              {authUser && role !== "admin" && (
+              {authUser && role !== "admin" && !isDashboard && (
                 <button className="relative p-2 shrink-0 hover:bg-gray-200 cursor-pointer rounded-lg">
                   <Bell className="size-5" />
                   <div className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-5 bg-black rounded-full text-white text-xs">
@@ -128,7 +132,7 @@ const Header = () => {
 
               {/* User Avatar */}
               {authUser ? (
-                <ProfileMenu userProfile={authUser.profile} />
+                <ProfileMenu userProfile={authUser.profile} isDashboard={isDashboard} />
               ) : (
                 <div className="flex items-center gap-2 shrink-0">
                   <button
@@ -156,7 +160,7 @@ const Header = () => {
         </div>
 
         {/* Mobile Search Bar */}
-        <div className="border-t md:hidden">
+        {!isDashboard && <div className="border-t border-gray-300 md:hidden">
           <div className="container mx-auto px-4 py-3">
             <Input
               icon={Search}
@@ -172,11 +176,11 @@ const Header = () => {
               }}
             />
           </div>
-        </div>
+        </div>}
       </header>
 
       {/* Category Side Bar */}
-      {categorySidebarOpen && (
+      {categorySidebarOpen && !isDashboard && (
         <div className="fixed inset-0 z-50 flex">
           {/* Overlay */}
           <div className="fixed inset-0 bg-black/50 transition-opacity" />

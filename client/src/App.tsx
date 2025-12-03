@@ -1,23 +1,70 @@
-import { Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
-import NotFoundPage from "./pages/NotFoundPage";
-
-import MainLayout from "./layouts/MainLayout";
-import HomePage from "./pages/public/HomePage";
-import ProductListPage from "./pages/public/ProductListPage";
-import ProductDetailPage from "./pages/public/ProductDetailPage";
-import TransactionPage from "./pages/public/TransactionPage";
-
-import AuthLayout from "./layouts/AuthLayout";
-import LoginPage from "./pages/auth/LoginPage";
-import RegisterPage from "./pages/auth/RegisterPage";
-import VerifyEmailPage from "./pages/auth/VerifyEmailPage";
-import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
-
-import AuthListener from "./components/auth/AuthListener";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "./store/store";
+import { supabase } from "./lib/supabaseClient";
+import {
+  fetchProfileThunk,
+  setIsCheckingAuth,
+  setUser,
+} from "./store/slices/authSlice";
+import LoadingSpinner from "./components/ui/LoadingSpinner";
+import AppRoutes from "./routes/AppRoutes";
 
 const App = () => {
+  const isCheckingAuth = useSelector(
+    (state: RootState) => state.auth.isCheckingAuth
+  );
+  const dispatch = useDispatch<AppDispatch>();
+
+  useEffect(() => {
+    // Get current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        dispatch(
+          setUser({
+            user: session.user,
+            profile: null,
+          })
+        );
+
+        dispatch(fetchProfileThunk(session.user.id));
+      } else {
+        dispatch(setUser(null));
+        dispatch(setIsCheckingAuth(false));
+      }
+    });
+
+    // Listen auth state change
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (session?.user) {
+          dispatch(
+            setUser({
+              user: session.user,
+              profile: null,
+            })
+          );
+
+          dispatch(fetchProfileThunk(session.user.id));
+        } else {
+          dispatch(setUser(null));
+          dispatch(setIsCheckingAuth(false));
+        }
+      }
+    );
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   return (
     <>
       <Toaster
@@ -26,28 +73,7 @@ const App = () => {
         toastOptions={{ duration: 2000 }}
       />
 
-      <AuthListener />
-
-      <Routes>
-        {/* Public Routes */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/products" element={<ProductListPage />} />
-          <Route path="/products/:id" element={<ProductDetailPage />} />
-          <Route path="/transaction" element={<TransactionPage />} />
-        </Route>
-
-        {/* Auth Routes */}
-        <Route element={<AuthLayout />}>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/verify-email" element={<VerifyEmailPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-        </Route>
-
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
+      <AppRoutes />
     </>
   );
 };

@@ -68,7 +68,7 @@ const RegisterPage = () => {
       setCaptchaToken(null);
       captchaRef?.current?.resetCaptcha();
 
-      navigate("/verify-email");
+      navigate("/verify-email", { replace: true });
       toast.success("Account created successfully");
     } catch (error) {
       toast.error(error as string);
@@ -167,13 +167,11 @@ const RegisterPage = () => {
           </div>
 
           {/* reCAPTCHA */}
-          <div className="flex justify-end">
-            <HCaptcha
-              ref={captchaRef}
-              sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY ?? ""}
-              onVerify={setCaptchaToken}
-            />
-          </div>
+          <HCaptcha
+            ref={captchaRef}
+            sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY ?? ""}
+            onVerify={setCaptchaToken}
+          />
 
           {/* Errors */}
           {errors.length > 0 && (

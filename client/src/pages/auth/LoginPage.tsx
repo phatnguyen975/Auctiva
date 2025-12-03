@@ -1,5 +1,5 @@
 import { useRef, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Gavel, Lock, Mail } from "lucide-react";
 import toast from "react-hot-toast";
 import { z } from "zod";
@@ -26,6 +26,9 @@ const LoginPage = () => {
   const captchaRef = useRef<HCaptcha | null>(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || "/";
 
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
@@ -60,7 +63,7 @@ const LoginPage = () => {
       setCaptchaToken(null);
       captchaRef?.current?.resetCaptcha();
 
-      navigate("/");
+      navigate(from, { replace: true });
       toast.success("Logged in successfully");
     } catch (error) {
       toast.error(error as string);
@@ -108,9 +111,14 @@ const LoginPage = () => {
 
           {/* Password */}
           <div>
-            <label htmlFor="password" className="font-bold">
-              Password
-            </label>
+            <div className="flex justify-between items-center">
+              <label htmlFor="password" className="font-bold">
+                Password
+              </label>
+              <Link to="/forgot-password" className="text-sm hover:underline">
+                Forgot password?
+              </Link>
+            </div>
             <Input
               icon={Lock}
               type="password"
@@ -123,21 +131,12 @@ const LoginPage = () => {
             />
           </div>
 
-          {/* Forgot Password */}
-          <div className="flex justify-end items-center">
-            <Link to="/forgot-password" className="text-sm hover:underline">
-              Forgot password?
-            </Link>
-          </div>
-
           {/* reCAPTCHA */}
-          <div className="flex justify-end">
-            <HCaptcha
-              ref={captchaRef}
-              sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY ?? ""}
-              onVerify={setCaptchaToken}
-            />
-          </div>
+          <HCaptcha
+            ref={captchaRef}
+            sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY ?? ""}
+            onVerify={setCaptchaToken}
+          />
 
           {/* Errors */}
           {errors.length > 0 && (

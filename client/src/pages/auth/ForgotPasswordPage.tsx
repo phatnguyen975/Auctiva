@@ -50,7 +50,7 @@ const ForgotPasswordPage = () => {
       dispatch(setIsPasswordReset(true));
       sessionStorage.setItem("verificationEmail", email);
 
-      navigate("/verify-email");
+      navigate("/verify-email", { replace: true });
       toast.success("Verification code sent to your email");
     } catch (error) {
       toast.error(error as string);

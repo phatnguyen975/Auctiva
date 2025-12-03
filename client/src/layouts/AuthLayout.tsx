@@ -3,7 +3,7 @@ import AuthBrandSide from "../components/auth/AuthBrandSide";
 
 const AuthLayout = () => {
   return (
-    <div className="min-h-screen h-screen flex overflow-hidden">
+    <div className="min-h-screen flex overflow-hidden">
       {/* Left Side - Brand */}
       <AuthBrandSide />
 

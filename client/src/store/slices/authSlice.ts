@@ -180,6 +180,7 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   isPasswordReset: boolean;
+  isCheckingAuth: boolean;
 }
 
 const initialState: AuthState = {
@@ -187,6 +188,7 @@ const initialState: AuthState = {
   loading: false,
   error: null,
   isPasswordReset: false,
+  isCheckingAuth: true,
 };
 
 const authSlice = createSlice({
@@ -199,6 +201,9 @@ const authSlice = createSlice({
     setIsPasswordReset(state, action: PayloadAction<boolean>) {
       state.isPasswordReset = action.payload;
       sessionStorage.setItem("isPasswordReset", String(action.payload));
+    },
+    setIsCheckingAuth(state, action: PayloadAction<boolean>) {
+      state.isCheckingAuth = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -247,10 +252,15 @@ const authSlice = createSlice({
         state.isPasswordReset = false;
       })
       // --- Fetch Profile ---
+      .addCase(fetchProfileThunk.pending, (state) => {
+        state.isCheckingAuth = true;
+        state.error = null;
+      })
       .addCase(fetchProfileThunk.fulfilled, (state, action) => {
         if (!state.authUser) {
           return;
         }
+        state.isCheckingAuth = false;
         state.authUser.profile = action.payload;
       })
       // --- Send OTP ---
@@ -280,6 +290,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, setIsPasswordReset } = authSlice.actions;
+export const { setUser, setIsPasswordReset, setIsCheckingAuth } =
+  authSlice.actions;
 
 export default authSlice.reducer;
