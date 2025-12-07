@@ -1,8 +1,340 @@
+import { useState } from "react";
+import { useSelector } from "react-redux";
+import {
+  Pencil,
+  Star,
+  Clock,
+  AlertTriangle,
+  User,
+  Settings,
+  Heart,
+  Gavel,
+  Trophy,
+  TrendingUp,
+  ShoppingBag,
+  Package,
+  PackageCheck,
+} from "lucide-react";
+
+import {
+  dumpyWatchist,
+  dumpyMyBids,
+  dumpyActiveListings,
+} from "../../assets/assets";
+
+import type { RootState } from "../../store/store";
+
 const DesktopDashboardSidebar = () => {
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const userRole = authUser?.profile?.role;
+
+  const [activeTab, setActiveTab] = useState("overview");
+
+  const [avatarUrl, setAvatarUrl] = useState(
+    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop"
+  );
+
+  // Avatar upload handler
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleTabClick = (tab: string) => {
+    setActiveTab(tab);
+    //onMobileClose?.();
+  };
+
+  const formatExpiryTime = () => {
+    const diff = sellerPrivilegesExpiry.getTime() - Date.now();
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+    if (days > 0) {
+      return `${days} Day${days > 1 ? "s" : ""} Remaining`;
+    } else {
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      return `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    }
+  };
+
+  const watchlistCount = dumpyWatchist.length;
+  const myBidsCount = dumpyMyBids.length;
+  const activeListingsCount = dumpyActiveListings.length;
+
+  const sellerPrivilegesExpiry = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days remaining
+  const isExpiryUrgent =
+    sellerPrivilegesExpiry.getTime() - Date.now() < 24 * 60 * 60 * 1000;
+
+  const sidebarTabs = [
+    {
+      id: "overview",
+      label: "Profile Overview",
+      icon: User,
+    },
+    {
+      id: "settings",
+      label: "Account Settings",
+      icon: Settings,
+    },
+    {
+      id: "watchlist",
+      label: "Watchlist",
+      icon: Heart,
+      count: watchlistCount, // Biến này lấy từ props hoặc state của bạn
+    },
+    {
+      id: "bids",
+      label: "My Bids",
+      icon: Gavel,
+      count: myBidsCount,
+    },
+    {
+      id: "won",
+      label: "Won Auctions",
+      icon: Trophy,
+    },
+  ];
+
+  const bidderTabs = [
+    {
+      id: "upgrade",
+      label: "Upgrade to Seller",
+      icon: TrendingUp,
+      count: undefined,
+    },
+  ];
+
+  const sellerTabs = [
+    {
+      id: "studio",
+      label: "Seller Studio",
+      icon: ShoppingBag,
+      count: undefined,
+    },
+    {
+      id: "active",
+      label: "Active Listings",
+      icon: Package,
+      count: activeListingsCount,
+    },
+    {
+      id: "sold",
+      label: "Sold Items",
+      icon: PackageCheck,
+      count: undefined,
+    },
+  ];
+
+  // Mock User Data
+  const userData = {
+    name: "John Doe",
+    email: "john.doe@example.com",
+    address: "123 Main Street, New York, NY 10001",
+    dateOfBirth: "Jan 15, 1990",
+    avatar: avatarUrl,
+    rating: 98.5,
+    role: "bidder",
+    auctionsWon: 45,
+    bidsPlaced: 127,
+  };
+
+  const roleSpecificTabs =
+    userData.role === "bidder"
+      ? bidderTabs
+      : userData.role === "seller"
+      ? sellerTabs
+      : [];
+
   return (
     <aside className="hidden lg:block w-64 xl:w-80 shrink-0">
       <div className="rounded-lg p-4 xl:p-6 sticky top-24">
-        Desktop Sidebar
+        <div className="space-y-4 xl:space-y-6">
+          {/* User Profile Summary */}
+          <div className="text-center pb-6 border-b">
+            <div className="relative inline-block mb-4">
+              <img
+                src={userData.avatar}
+                alt="Avatar"
+                className="w-20 h-20 lg:w-24 lg:h-24 rounded-full object-cover mx-auto border-4 border-black/10"
+              />
+              <label
+                htmlFor="avatar-upload"
+                className="absolute bottom-0 right-0 bg-black text-white rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors shadow-lg"
+              >
+                <Pencil className="h-3 w-3 lg:h-3.5 lg:w-3.5" />
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            <h3 className="font-bold mb-1">{userData.name}</h3>
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+              <span className="font-semibold text-lg text-amber-600">
+                {userData.rating}%
+              </span>
+            </div>
+            <span
+              className="inline-flex items-center bg-gray-200 justify-center rounded-lg px-2 py-1 text-xs font-medium w-fit whitespace-nowrap 
+                  text-primary border-primary shrink-0 gap-1"
+            >
+              {userData.role === "seller" ? "Seller" : "Bidder"}
+            </span>
+          </div>
+
+          {/* Seller Status Widget */}
+          {userData.role === "seller" && (
+            <div
+              className={`p-3 lg:p-4 rounded-lg border-2 ${
+                isExpiryUrgent
+                  ? "bg-destructive/10 border-destructive"
+                  : "bg-primary/10 border-primary"
+              }`}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Clock
+                  className={`h-4 w-4 ${
+                    isExpiryUrgent ? "text-destructive" : "text-primary"
+                  }`}
+                />
+                <span className="text-xs font-medium">Seller Privileges</span>
+                <div className="group relative ml-auto flex items-center justify-center">
+                  <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                  <div
+                    className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-max max-w-xs 
+                  scale-0 opacity-0 transition-all duration-200 
+                  group-hover:scale-100 group-hover:opacity-100 origin-bottom"
+                  >
+                    <div className="bg-black text-white rounded-md px-3 py-1.5 text-xs shadow-md text-center">
+                      <p>
+                        You can manage existing listings after expiry, but
+                        cannot create new ones.
+                      </p>
+                    </div>
+
+                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-primary rotate-45"></div>
+                  </div>
+                </div>
+              </div>
+              <div
+                className={`text-base lg:text-lg font-bold ${
+                  isExpiryUrgent ? "text-destructive" : "text-primary"
+                }`}
+              >
+                {formatExpiryTime()}
+              </div>
+            </div>
+          )}
+
+          {/* Navigation Menu */}
+          <nav className="space-y-1">
+            <div className="flex flex-col gap-1 w-full">
+              {sidebarTabs.map((item) => {
+                const isActive = activeTab === item.id;
+                const Icon = item.icon;
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleTabClick(item.id)}
+                    className={`
+                      group flex w-full items-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-200 hover:cursor-pointer
+                      ${
+                        isActive
+                          ? "bg-slate-900 text-white shadow-sm"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      }
+                    `}
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+
+                    {item.label}
+
+                    {item.count !== undefined && (
+                      <span
+                        className={`
+                          ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs
+                          ${
+                            isActive
+                              ? "bg-white/20 text-white"
+                              : "bg-slate-200 text-slate-900"
+                          }
+                        `}
+                      >
+                        {item.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
+
+          {/* Role-Specific Menu Items */}
+          {roleSpecificTabs.length > 0 && (
+            <>
+              {/* Đường kẻ phân cách (Divider) */}
+              <div className="my-2 border-t pt-2" />
+
+              {/* Map qua danh sách item của Role */}
+              <div className="flex flex-col gap-1 w-full">
+                {roleSpecificTabs.map((item) => {
+                  const isActive = activeTab === item.id;
+                  const Icon = item.icon;
+
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleTabClick(item.id)}
+                      className={`
+                        group flex w-full items-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-200 hover:cursor-pointer
+                        ${
+                          isActive
+                            ? "bg-slate-900 text-white shadow-sm"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                        }
+                      `}
+                    >
+                      <Icon className="mr-2 h-4 w-4" />
+
+                      {item.label}
+
+                      {/* Badge hiển thị số lượng (nếu có) */}
+                      {item.count !== undefined && (
+                        <span
+                          className={`
+                            ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs
+                            ${
+                              isActive
+                                ? "bg-white/20 text-white"
+                                : "bg-slate-200 text-slate-900"
+                            }
+                          `}
+                        >
+                          {item.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </aside>
   );
