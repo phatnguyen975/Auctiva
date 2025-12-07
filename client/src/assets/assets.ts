@@ -696,3 +696,70 @@ export const dummyRelatedProducts = [
     postDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000), // 8 days ago (will show as date)
   },
 ];
+
+export const dumpyWatchist = [
+  {
+    id: "1",
+    image:
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop",
+    title: "Premium Wireless Headphones",
+    currentBid: 245,
+    timeLeft: new Date(Date.now() + 2 * 60 * 60 * 1000),
+    totalBids: 23,
+  },
+  {
+    id: "2",
+    image:
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop",
+    title: "Luxury Watch Collection",
+    currentBid: 890,
+    timeLeft: new Date(Date.now() + 5 * 60 * 60 * 1000),
+    totalBids: 45,
+  },
+];
+
+export const dumpyMyBids = [
+  {
+    id: "1",
+    image:
+      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=100&h=100&fit=crop",
+    title: "Designer Sunglasses",
+    myBid: 180,
+    currentBid: 185,
+    isWinning: false,
+    timeLeft: new Date(Date.now() + 3 * 60 * 60 * 1000),
+    totalBids: 18,
+  },
+  {
+    id: "2",
+    image:
+      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=100&h=100&fit=crop",
+    title: "Vintage Camera",
+    myBid: 450,
+    currentBid: 450,
+    isWinning: true,
+    timeLeft: new Date(Date.now() + 6 * 60 * 60 * 1000),
+    totalBids: 23,
+  },
+];
+
+export const dumpyActiveListings = [
+  {
+    id: "1",
+    image:
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop",
+    title: "Premium Headphones",
+    currentBid: 245,
+    timeLeft: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+    totalBids: 23,
+  },
+  {
+    id: "2",
+    image:
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop",
+    title: "Luxury Watch",
+    currentBid: 890,
+    timeLeft: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+    totalBids: 45,
+  },
+];
