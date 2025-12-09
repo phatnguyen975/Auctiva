@@ -1,7 +1,5 @@
 const SellerOverviewPage = () => {
-  return (
-    <div>SellerOverviewPage</div>
-  );
+  return <div>SellerOverviewPage</div>;
 };
 
 export default SellerOverviewPage;
