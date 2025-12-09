@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   Pencil,
@@ -32,9 +33,8 @@ const DesktopDashboardSidebar = ({
   isDesktop = true,
 }: DesktopDashboardSidebarProps) => {
   const authUser = useSelector((state: RootState) => state.auth.authUser);
-  const userRole = authUser?.profile?.role;
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("profile");
 
   const [avatarUrl, setAvatarUrl] = useState(
     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop"
@@ -52,8 +52,11 @@ const DesktopDashboardSidebar = ({
     }
   };
 
+  const navigate = useNavigate();
+
   const handleTabClick = (tab: string) => {
     setActiveTab(tab);
+    navigate(`/dashboard/${tab}`);
     //onMobileClose?.();
   };
 
@@ -83,7 +86,7 @@ const DesktopDashboardSidebar = ({
 
   const sidebarTabs = [
     {
-      id: "overview",
+      id: "profile",
       label: "Profile Overview",
       icon: User,
     },
@@ -99,13 +102,13 @@ const DesktopDashboardSidebar = ({
       count: watchlistCount, // Biến này lấy từ props hoặc state của bạn
     },
     {
-      id: "bids",
+      id: "my-bids",
       label: "My Bids",
       icon: Gavel,
       count: myBidsCount,
     },
     {
-      id: "won",
+      id: "won-auctions",
       label: "Won Auctions",
       icon: Trophy,
     },
@@ -203,7 +206,7 @@ const DesktopDashboardSidebar = ({
               </span>
             </div>
             <span
-              className="inline-flex items-center bg-gray-200 justify-center rounded-lg px-2 py-1 text-xs font-medium w-fit whitespace-nowrap 
+              className="inline-flex items-center bg-gray-200 justify-center rounded-lg px-2 py-1 text-xm font-medium w-fit whitespace-nowrap 
                   text-primary border-primary shrink-0 gap-1"
             >
               {userData.role === "seller" ? "Seller" : "Bidder"}

@@ -763,3 +763,86 @@ export const dumpyActiveListings = [
     totalBids: 45,
   },
 ];
+
+export const dumpyRecentReviews = [
+  {
+    id: "1",
+    reviewer: "****Sarah",
+    type: "positive",
+    comment: "Great buyer, fast payment!",
+    date: "2 days ago",
+  },
+  {
+    id: "2",
+    reviewer: "****Mike",
+    type: "positive",
+    comment: "Smooth transaction, highly recommended",
+    date: "5 days ago",
+  },
+  {
+    id: "3",
+    reviewer: "****Alex",
+    type: "negative",
+    comment: "Payment was delayed",
+    date: "1 week ago",
+  },
+];
+
+export const dumpyAllReviews = [
+  {
+    id: "1",
+    reviewer: "****Sarah",
+    type: "positive",
+    comment: "Great buyer, fast payment!",
+    date: "2 days ago",
+  },
+  {
+    id: "2",
+    reviewer: "****Mike",
+    type: "positive",
+    comment: "Smooth transaction, highly recommended",
+    date: "5 days ago",
+  },
+  {
+    id: "3",
+    reviewer: "****Alex",
+    type: "negative",
+    comment: "Payment was delayed",
+    date: "1 week ago",
+  },
+  {
+    id: "4",
+    reviewer: "****Emma",
+    type: "positive",
+    comment: "Excellent seller, item as described",
+    date: "2 weeks ago",
+  },
+  {
+    id: "5",
+    reviewer: "****David",
+    type: "positive",
+    comment: "Very professional and quick shipping",
+    date: "3 weeks ago",
+  },
+  {
+    id: "6",
+    reviewer: "****Lisa",
+    type: "positive",
+    comment: "Would buy from again!",
+    date: "1 month ago",
+  },
+  {
+    id: "7",
+    reviewer: "****Tom",
+    type: "negative",
+    comment: "Item not as expected",
+    date: "1 month ago",
+  },
+  {
+    id: "8",
+    reviewer: "****Rachel",
+    type: "positive",
+    comment: "Amazing transaction, highly recommend",
+    date: "2 months ago",
+  },
+];
