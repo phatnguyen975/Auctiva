@@ -764,30 +764,6 @@ export const dumpyActiveListings = [
   },
 ];
 
-export const dumpyRecentReviews = [
-  {
-    id: "1",
-    reviewer: "****Sarah",
-    type: "positive",
-    comment: "Great buyer, fast payment!",
-    date: "2 days ago",
-  },
-  {
-    id: "2",
-    reviewer: "****Mike",
-    type: "positive",
-    comment: "Smooth transaction, highly recommended",
-    date: "5 days ago",
-  },
-  {
-    id: "3",
-    reviewer: "****Alex",
-    type: "negative",
-    comment: "Payment was delayed",
-    date: "1 week ago",
-  },
-];
-
 export const dumpyAllReviews = [
   {
     id: "1",

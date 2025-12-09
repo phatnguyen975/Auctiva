@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   Pencil,
@@ -34,7 +34,11 @@ const DesktopDashboardSidebar = ({
 }: DesktopDashboardSidebarProps) => {
   const authUser = useSelector((state: RootState) => state.auth.authUser);
 
-  const [activeTab, setActiveTab] = useState("profile");
+  const location = useLocation();
+  const pathSegments = location.pathname.split("/").filter(Boolean);
+  const currentTabId = pathSegments[pathSegments.length - 1] || "profile";
+
+  const [activeTab, setActiveTab] = useState(currentTabId);
 
   const [avatarUrl, setAvatarUrl] = useState(
     "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop"
