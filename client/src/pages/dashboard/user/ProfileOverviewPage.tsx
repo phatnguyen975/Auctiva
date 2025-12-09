@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Star,
@@ -14,10 +14,20 @@ import {
 } from "lucide-react";
 
 import type { RootState } from "../../../store/store";
-import { dumpyRecentReviews, dumpyAllReviews } from "../../../assets/assets";
+import { dumpyAllReviews } from "../../../assets/assets";
+
+interface Review {
+  id: number | string;
+  type: "positive" | "negative" | string;
+  reviewer: string;
+  date: string;
+  comment: string;
+}
 
 const ProfileOverviewPage = () => {
   const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [recentReviews, setRecentReviews] = useState<Review[]>([]);
 
   const [showAllReviews, setShowAllReviews] = useState(false);
 
@@ -33,6 +43,16 @@ const ProfileOverviewPage = () => {
     auctionsWon: 45, // Mock
     bidsPlaced: 127, // Mock
   };
+
+  useEffect(() => {
+    const loadReviews = async () => {
+      // Call API
+      setReviews(dumpyAllReviews);
+      setRecentReviews(dumpyAllReviews.slice(0, 3));
+    };
+
+    loadReviews();
+  }, []);
 
   return (
     <>
@@ -164,7 +184,7 @@ const ProfileOverviewPage = () => {
 
             {/* --- DANH SÁCH REVIEW GẦN ĐÂY (HIỂN THỊ MẶC ĐỊNH) --- */}
             <div className="space-y-4">
-              {dumpyRecentReviews.map((review) => (
+              {recentReviews.map((review) => (
                 <ReviewItem key={review.id} review={review} />
               ))}
             </div>
@@ -183,8 +203,7 @@ const ProfileOverviewPage = () => {
               <div>
                 <h2 className="text-lg font-semibold">All Reviews</h2>
                 <p className="text-sm text-[hsl(var(--muted-foreground))]">
-                  Complete history of your reviews ({dumpyAllReviews.length}{" "}
-                  total)
+                  Complete history of your reviews ({reviews.length} total)
                 </p>
               </div>
               <button
@@ -198,7 +217,7 @@ const ProfileOverviewPage = () => {
             {/* Modal Body (Scrollable) */}
             <div className="p-6 overflow-y-auto">
               <div className="space-y-4">
-                {dumpyAllReviews.map((review) => (
+                {reviews.map((review) => (
                   <ReviewItem key={review.id} review={review} />
                 ))}
               </div>
@@ -215,14 +234,6 @@ const ProfileOverviewPage = () => {
     </>
   );
 };
-
-interface Review {
-  id: number | string;
-  type: "positive" | "negative" | string; // Có thể để string nếu type trả về linh động
-  reviewer: string;
-  date: string;
-  comment: string;
-}
 
 const ReviewItem = ({ review }: { review: Review }) => {
   return (
