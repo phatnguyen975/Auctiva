@@ -10,9 +10,13 @@ const DashboardLayout = () => {
 
       <div className="min-h-screen">
         <div className="container mx-auto px-4 py-4 lg:py-8">
-          <MobileDashboardSidebar />
+          <div className="lg:hidden mb-4">
+            <MobileDashboardSidebar />
+          </div>
           <div className="flex gap-4 lg:gap-6">
-            <DesktopDashboardSidebar />
+            <aside className="hidden lg:block w-64 xl:w-80 shrink-0">
+              <DesktopDashboardSidebar />
+            </aside>
             <main className="flex-1 min-w-0">
               <Outlet />
             </main>

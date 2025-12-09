@@ -24,7 +24,13 @@ import {
 
 import type { RootState } from "../../store/store";
 
-const DesktopDashboardSidebar = () => {
+interface DesktopDashboardSidebarProps {
+  isDesktop?: boolean;
+}
+
+const DesktopDashboardSidebar = ({
+  isDesktop = true,
+}: DesktopDashboardSidebarProps) => {
   const authUser = useSelector((state: RootState) => state.auth.authUser);
   const userRole = authUser?.profile?.role;
 
@@ -135,17 +141,16 @@ const DesktopDashboardSidebar = () => {
     },
   ];
 
-  // Mock User Data
   const userData = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    address: "123 Main Street, New York, NY 10001",
-    dateOfBirth: "Jan 15, 1990",
-    avatar: avatarUrl,
-    rating: 98.5,
-    role: "bidder",
-    auctionsWon: 45,
-    bidsPlaced: 127,
+    name: authUser?.profile?.full_name,
+    email: authUser?.profile?.email,
+    address: authUser?.profile?.address,
+    dateOfBirth: authUser?.profile?.birth_date,
+    avatar: authUser?.profile?.avatar_url || "",
+    rating: authUser?.profile?.rating_positive,
+    role: "seller", // Mock
+    auctionsWon: 45, // Mock
+    bidsPlaced: 127, // Mock
   };
 
   const roleSpecificTabs =
@@ -156,9 +161,18 @@ const DesktopDashboardSidebar = () => {
       : [];
 
   return (
-    <aside className="hidden lg:block w-64 xl:w-80 shrink-0">
-      <div className="rounded-lg p-4 xl:p-6 sticky top-24">
-        <div className="space-y-4 xl:space-y-6">
+    <>
+      <div
+        className={`
+          rounded-lg sticky top-24
+          ${isDesktop ? "p-4 xl:p-6" : "p-2"} 
+        `}
+      >
+        <div
+          className={`
+            ${isDesktop ? "space-y-4 xl:space-y-6" : "space-y-2"}
+          `}
+        >
           {/* User Profile Summary */}
           <div className="text-center pb-6 border-b">
             <div className="relative inline-block mb-4">
@@ -199,7 +213,7 @@ const DesktopDashboardSidebar = () => {
           {/* Seller Status Widget */}
           {userData.role === "seller" && (
             <div
-              className={`p-3 lg:p-4 rounded-lg border-2 ${
+              className={`p-4 mt-4 lg:p-5 lg:mt-0 rounded-lg border-2 ${
                 isExpiryUrgent
                   ? "bg-destructive/10 border-destructive"
                   : "bg-primary/10 border-primary"
@@ -336,7 +350,7 @@ const DesktopDashboardSidebar = () => {
           )}
         </div>
       </div>
-    </aside>
+    </>
   );
 };
 
