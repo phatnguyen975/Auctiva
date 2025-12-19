@@ -8,6 +8,8 @@ import {
   notFoundHandler,
 } from "./middlewares/errorMiddleware.js";
 
+import categoryRouter from "./routes/categoryRoute.js";
+
 export const app = express();
 
 // Middlewares
@@ -22,7 +24,7 @@ app.use(logger);
 app.use(responseWrapper);
 
 // Routes
-
+app.use("/api/categories", categoryRouter);
 
 // Error Handler
 app.use(notFoundHandler);
