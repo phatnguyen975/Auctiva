@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum user_role {
+  bidder
+  seller
+  admin
+}
+
+model Profile {
+  id             String     @id @db.Uuid
+  username       String?    @map("user_name")
+  email          String     @unique
+  fullName       String     @map("full_name")
+  address        String?
+  birthDate      DateTime?  @map("birth_date") @db.Date
+  avatarUrl      String?    @map("avatar_url")
+  role           user_role? @default(bidder)
+  ratingPositive Int?       @default(0) @map("rating_positive")
+  ratingCount    Int?       @default(0) @map("rating_count")
+  createdAt      DateTime?  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt      DateTime?  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@map("profiles")
+}
