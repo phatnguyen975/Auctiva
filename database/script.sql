@@ -5,6 +5,7 @@ create type user_role as enum ('bidder', 'seller', 'admin');
 create type seller_request_status as enum ('pending', 'approved', 'rejected');
 create type product_status as enum ('active', 'sold', 'expired');
 create type bid_status as enum ('valid', 'rejected');
+create type transaction_status as enum ('pending', 'paid', 'shipped', 'completed', 'cancelled');
 
 -- BEGIN: Profiles table --
 create table if not exists profiles (
@@ -18,8 +19,8 @@ create table if not exists profiles (
   role                user_role default 'bidder',
   rating_positive     int default 0,
   rating_count        int default 0,
-  created_at          timestamptz default now(),
-  updated_at          timestamptz default now()
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now()
 );
 
 alter table profiles
@@ -57,7 +58,7 @@ create table if not exists ratings (
   from_user_id        uuid not null references profiles(id),
   score               int not null check (score in (1, -1)),
   comment             text not null,
-  created_at          timestamptz default now()
+  created_at          timestamptz not null default now()
 );
 
 -- Seller Upgrade Requests table
@@ -65,17 +66,17 @@ create table if not exists seller_upgrade_requests (
   id                  bigserial primary key,
   user_id             uuid not null references profiles(id),
   status              seller_request_status default 'pending',
-  created_at          timestamptz not null default now(),
-  updated_at          timestamptz not null
+  requested_at        timestamptz not null default now(),
+  reviewed_at         timestamptz not null
 );
 
 -- Categories table
 create table if not exists categories (
   id                  bigserial primary key,
   name                text not null,
+  slug                text unique,
   parent_id           bigint references categories(id) on delete set null,
-  slug                text unique not null,
-  created_at          timestamptz default now()
+  created_at          timestamptz not null default now()
 );
 
 alter table categories
@@ -90,10 +91,10 @@ create table if not exists products (
   id                  bigserial primary key,
   seller_id           uuid not null references profiles(id),
   category_id         bigint not null references categories(id) on delete restrict,
-  current_winner_id   uuid references profiles(id),
+  winner_id           uuid references profiles(id),
   name                text not null,
   description         text not null,
-  slug                text unique not null,
+  slug                text unique,
   start_price         numeric not null check (start_price >= 0),
   step_price          numeric not null check (step_price > 0),
   buy_now_price       numeric check (buy_now_price > start_price),
@@ -104,8 +105,8 @@ create table if not exists products (
   is_instant_purchase boolean not null default false,
   status              product_status default 'active',
   min_images          int default 3,
-  created_at          timestamptz default now(),
-  updated_at          timestamptz default now()
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now()
 );
 
 alter table products
@@ -121,23 +122,79 @@ create table if not exists product_images (
   product_id          bigint not null references products(id) on delete cascade,
   url                 text not null,
   is_primary          boolean not null default false,
-  created_at          timestamptz default now()
+  created_at          timestamptz not null default now()
 );
 
 -- Bids table
 create table if not exists bids (
   id                  bigserial primary key,
-  product_id          bigint not null references products(id) on delete cascade,
+  product_id          bigint not null references products(id),
   bidder_id           uuid not null references profiles(id),
+  amount              numeric not null,
   max_bid             numeric not null,
   status              bid_status default 'valid',
-  created_at          timestamptz default now()
+  created_at          timestamptz not null default now()
 );
 
 -- Watchlists table
 create table if not exists watchlists (
   user_id             uuid not null references profiles(id),
   product_id          bigint not null references products(id),
-  created_at          timestamptz default now(),
+  created_at          timestamptz not null default now(),
   primary key (user_id, product_id)
 );
+
+create table if not exists bid_rejections (
+  id                  bigserial primary key,
+  product_id          bigint not null references products(id),
+  bidder_id           uuid not null references profiles(id),
+  reason              text,
+  created_at          timestamptz not null default now()
+);
+
+create table if not exists product_questions (
+  id                  bigserial primary key,
+  product_id          bigint not null references products(id),
+  bidder_id           uuid not null references profiles(id),
+  question            text not null,
+  created_at          timestamptz not null default now()
+);
+
+create table if not exists product_answers (
+  id                  bigserial primary key,
+  question_id         bigint not null references product_questions(id),
+  seller_id           uuid not null references profiles(id),
+  answer              text not null,
+  created_at          timestamptz not null default now()
+);
+
+create table if not exists transactions (
+  id                  bigserial primary key,
+  product_id          bigint not null references products(id),
+  winner_id           uuid not null references profiles(id),
+  seller_id           uuid not null references profiles(id),
+  status              transaction_status default 'pending',
+  shipping_address    text,
+  created_at          timestamptz not null default now(),
+  updated_at          timestamptz not null default now()
+);
+
+create table if not exists transaction_messages (
+  id                  bigserial primary key,
+  transaction_id      bigint not null references transactions(id),
+  sender_id           uuid not null references profiles(id),
+  message             text not null,
+  created_at          timestamptz not null default now()
+);
+
+create table if not exists admin_settings (
+  key                 text primary key,
+  value               jsonb not null,
+  updated_at          timestamptz not null default now()
+);
+
+insert into admin_settings (key, value) values
+('auction.extend_window_minutes', '5'::jsonb),
+('auction.extend_duration_minutes', '10'::jsonb),
+('products.highlight_minutes','5'::jsonb),
+on conflict (key) do nothing;
