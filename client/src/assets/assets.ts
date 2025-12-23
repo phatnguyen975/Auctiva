@@ -822,3 +822,24 @@ export const dumpyAllReviews = [
     date: "2 months ago",
   },
 ];
+
+const dumpyWatchList = [
+  {
+    id: "1",
+    image:
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop",
+    title: "Premium Wireless Headphones",
+    currentBid: 245,
+    timeLeft: new Date(Date.now() + 2 * 60 * 60 * 1000),
+    totalBids: 23,
+  },
+  {
+    id: "2",
+    image:
+      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop",
+    title: "Luxury Watch Collection",
+    currentBid: 890,
+    timeLeft: new Date(Date.now() + 5 * 60 * 60 * 1000),
+    totalBids: 45,
+  },
+];
