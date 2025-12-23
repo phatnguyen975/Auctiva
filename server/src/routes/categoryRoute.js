@@ -19,7 +19,7 @@ router.post(
 
 router.get(
   "/",
-  // verifyToken,
+  verifyToken,
   CategoryController.getAll
 );
 
