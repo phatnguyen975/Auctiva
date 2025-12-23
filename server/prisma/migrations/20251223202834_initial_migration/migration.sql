@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "user_role" AS ENUM ('bidder', 'seller', 'admin');
+
+-- CreateEnum
 CREATE TYPE "seller_request_status" AS ENUM ('pending', 'approved', 'rejected');
 
 -- CreateEnum
@@ -11,8 +14,26 @@ CREATE TYPE "bid_status" AS ENUM ('valid', 'rejected');
 CREATE TYPE "transaction_status" AS ENUM ('pending', 'paid', 'shipped', 'completed', 'cancelled');
 
 -- CreateTable
+CREATE TABLE "profiles" (
+    "id" UUID NOT NULL,
+    "user_name" TEXT,
+    "email" TEXT NOT NULL,
+    "full_name" TEXT NOT NULL,
+    "address" TEXT,
+    "birth_date" DATE,
+    "avatar_url" TEXT,
+    "role" "user_role" DEFAULT 'bidder',
+    "rating_positive" INTEGER DEFAULT 0,
+    "rating_count" INTEGER DEFAULT 0,
+    "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ,
+
+    CONSTRAINT "profiles_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "ratings" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "target_user_id" UUID NOT NULL,
     "from_user_id" UUID NOT NULL,
     "score" INTEGER NOT NULL,
@@ -24,7 +45,7 @@ CREATE TABLE "ratings" (
 
 -- CreateTable
 CREATE TABLE "seller_upgrade_requests" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "user_id" UUID NOT NULL,
     "status" "seller_request_status" DEFAULT 'pending',
     "requested_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -35,10 +56,10 @@ CREATE TABLE "seller_upgrade_requests" (
 
 -- CreateTable
 CREATE TABLE "categories" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT,
-    "parent_id" BIGINT,
+    "parent_id" INTEGER,
     "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "categories_pkey" PRIMARY KEY ("id")
@@ -46,9 +67,9 @@ CREATE TABLE "categories" (
 
 -- CreateTable
 CREATE TABLE "products" (
-    "id" BIGSERIAL NOT NULL,
+    "id" SERIAL NOT NULL,
     "seller_id" UUID NOT NULL,
-    "category_id" BIGINT NOT NULL,
+    "category_id" INTEGER NOT NULL,
     "winner_id" UUID,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
@@ -71,8 +92,8 @@ CREATE TABLE "products" (
 
 -- CreateTable
 CREATE TABLE "product_images" (
-    "id" BIGSERIAL NOT NULL,
-    "product_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "product_id" INTEGER NOT NULL,
     "url" TEXT NOT NULL,
     "is_primary" BOOLEAN DEFAULT false,
     "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -82,8 +103,8 @@ CREATE TABLE "product_images" (
 
 -- CreateTable
 CREATE TABLE "bids" (
-    "id" BIGSERIAL NOT NULL,
-    "product_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "product_id" INTEGER NOT NULL,
     "bidder_id" UUID NOT NULL,
     "amount" DECIMAL(65,30),
     "max_bid" DECIMAL(65,30) NOT NULL,
@@ -96,7 +117,7 @@ CREATE TABLE "bids" (
 -- CreateTable
 CREATE TABLE "watchlists" (
     "user_id" UUID NOT NULL,
-    "product_id" BIGINT NOT NULL,
+    "product_id" INTEGER NOT NULL,
     "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "watchlists_pkey" PRIMARY KEY ("user_id","product_id")
@@ -104,8 +125,8 @@ CREATE TABLE "watchlists" (
 
 -- CreateTable
 CREATE TABLE "bid_rejections" (
-    "id" BIGSERIAL NOT NULL,
-    "product_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "product_id" INTEGER NOT NULL,
     "bidder_id" UUID NOT NULL,
     "reason" TEXT,
     "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -115,8 +136,8 @@ CREATE TABLE "bid_rejections" (
 
 -- CreateTable
 CREATE TABLE "product_questions" (
-    "id" BIGSERIAL NOT NULL,
-    "product_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "product_id" INTEGER NOT NULL,
     "bidder_id" UUID NOT NULL,
     "question" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -126,8 +147,8 @@ CREATE TABLE "product_questions" (
 
 -- CreateTable
 CREATE TABLE "product_answers" (
-    "id" BIGSERIAL NOT NULL,
-    "question_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "question_id" INTEGER NOT NULL,
     "seller_id" UUID NOT NULL,
     "answer" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -137,8 +158,8 @@ CREATE TABLE "product_answers" (
 
 -- CreateTable
 CREATE TABLE "transactions" (
-    "id" BIGSERIAL NOT NULL,
-    "product_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "product_id" INTEGER NOT NULL,
     "winner_id" UUID NOT NULL,
     "seller_id" UUID NOT NULL,
     "status" "transaction_status" DEFAULT 'pending',
@@ -151,8 +172,8 @@ CREATE TABLE "transactions" (
 
 -- CreateTable
 CREATE TABLE "transaction_messages" (
-    "id" BIGSERIAL NOT NULL,
-    "transaction_id" BIGINT NOT NULL,
+    "id" SERIAL NOT NULL,
+    "transaction_id" INTEGER NOT NULL,
     "sender_id" UUID NOT NULL,
     "message" TEXT NOT NULL,
     "created_at" TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -169,6 +190,9 @@ CREATE TABLE "admin_settings" (
 
     CONSTRAINT "admin_settings_pkey" PRIMARY KEY ("key")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "profiles_email_key" ON "profiles"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "categories_slug_key" ON "categories"("slug");

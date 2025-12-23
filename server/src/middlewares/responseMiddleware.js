@@ -2,7 +2,7 @@ export function responseWrapper(req, res, next) {
   // -------------------------
   // SUCCESS: 200 OK
   // -------------------------
-  res.ok = function (data, message = "Success") {
+  res.ok = function (message = "Success", data = null) {
     return res.status(200).json({
       success: true,
       message,

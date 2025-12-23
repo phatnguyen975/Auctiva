@@ -70,7 +70,7 @@ model Profile {
 }
 
 model Rating {
-  id           BigInt    @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   targetUserId String    @map("target_user_id") @db.Uuid
   fromUserId   String    @map("from_user_id") @db.Uuid
   score        Int
@@ -84,7 +84,7 @@ model Rating {
 }
 
 model SellerUpgradeRequest {
-  id          BigInt                 @id @default(autoincrement())
+  id          Int                    @id @default(autoincrement())
   userId      String                 @map("user_id") @db.Uuid
   status      seller_request_status? @default(pending)
   requestedAt DateTime?              @default(now()) @map("requested_at") @db.Timestamptz
@@ -96,10 +96,10 @@ model SellerUpgradeRequest {
 }
 
 model Category {
-  id        BigInt    @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
   slug      String?   @unique
-  parentId  BigInt?   @map("parent_id")
+  parentId  Int?      @map("parent_id")
   createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
 
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
@@ -110,9 +110,9 @@ model Category {
 }
 
 model Product {
-  id                BigInt          @id @default(autoincrement())
+  id                Int             @id @default(autoincrement())
   sellerId          String          @map("seller_id") @db.Uuid
-  categoryId        BigInt          @map("category_id")
+  categoryId        Int             @map("category_id")
   winnerId          String?         @map("winner_id") @db.Uuid
   name              String
   description       String
@@ -144,8 +144,8 @@ model Product {
 }
 
 model ProductImage {
-  id        BigInt    @id @default(autoincrement())
-  productId BigInt    @map("product_id")
+  id        Int       @id @default(autoincrement())
+  productId Int       @map("product_id")
   url       String
   isPrimary Boolean?  @default(false) @map("is_primary")
   createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
@@ -156,8 +156,8 @@ model ProductImage {
 }
 
 model Bid {
-  id        BigInt      @id @default(autoincrement())
-  productId BigInt      @map("product_id")
+  id        Int         @id @default(autoincrement())
+  productId Int         @map("product_id")
   bidderId  String      @map("bidder_id") @db.Uuid
   amount    Decimal?
   maxBid    Decimal     @map("max_bid")
@@ -172,7 +172,7 @@ model Bid {
 
 model Watchlist {
   userId    String    @map("user_id") @db.Uuid
-  productId BigInt    @map("product_id")
+  productId Int       @map("product_id")
   createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
 
   user    Profile @relation(fields: [userId], references: [id])
@@ -183,8 +183,8 @@ model Watchlist {
 }
 
 model BidRejection {
-  id        BigInt    @id @default(autoincrement())
-  productId BigInt    @map("product_id")
+  id        Int       @id @default(autoincrement())
+  productId Int       @map("product_id")
   bidderId  String    @map("bidder_id") @db.Uuid
   reason    String?
   createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
@@ -196,8 +196,8 @@ model BidRejection {
 }
 
 model ProductQuestion {
-  id        BigInt    @id @default(autoincrement())
-  productId BigInt    @map("product_id")
+  id        Int       @id @default(autoincrement())
+  productId Int       @map("product_id")
   bidderId  String    @map("bidder_id") @db.Uuid
   question  String
   createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
@@ -210,8 +210,8 @@ model ProductQuestion {
 }
 
 model ProductAnswer {
-  id         BigInt    @id @default(autoincrement())
-  questionId BigInt    @map("question_id")
+  id         Int       @id @default(autoincrement())
+  questionId Int       @map("question_id")
   sellerId   String    @map("seller_id") @db.Uuid
   answer     String
   createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamptz
@@ -223,8 +223,8 @@ model ProductAnswer {
 }
 
 model Transaction {
-  id              BigInt              @id @default(autoincrement())
-  productId       BigInt              @map("product_id")
+  id              Int                 @id @default(autoincrement())
+  productId       Int                 @map("product_id")
   winnerId        String              @map("winner_id") @db.Uuid
   sellerId        String              @map("seller_id") @db.Uuid
   status          transaction_status? @default(pending)
@@ -241,8 +241,8 @@ model Transaction {
 }
 
 model TransactionMessage {
-  id            BigInt    @id @default(autoincrement())
-  transactionId BigInt    @map("transaction_id")
+  id            Int       @id @default(autoincrement())
+  transactionId Int       @map("transaction_id")
   senderId      String    @map("sender_id") @db.Uuid
   message       String
   createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz

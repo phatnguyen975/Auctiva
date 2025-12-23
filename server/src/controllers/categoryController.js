@@ -11,6 +11,15 @@ const CategoryController = {
       res.error(error.message);
     }
   },
+
+  getAll: async (req, res) => {
+    try {
+      const categories = await CategoryService.getCategories();
+      res.ok(categories);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
 };
 
 export default CategoryController;
