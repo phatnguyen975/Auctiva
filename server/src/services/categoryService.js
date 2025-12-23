@@ -34,11 +34,19 @@ const CategoryService = {
 
   getCategories: async () => {
     const categories = await prisma.category.findMany({
-      
+      where: { parentId: null },
       include: {
-
-      }
+        children: {
+          omit: {
+            createdAt: true,
+          },
+        },
+      },
+      omit: {
+        createdAt: true,
+      },
     });
+
     return categories;
   },
 };
