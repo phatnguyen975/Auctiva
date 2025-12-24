@@ -19,7 +19,6 @@ router.post(
 
 router.get(
   "/",
-  verifyToken,
   CategoryController.getAll
 );
 
