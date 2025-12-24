@@ -3,7 +3,7 @@ import CategoryController from "../controllers/categoryController.js";
 import { validateApiKey } from "../middlewares/apiMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import { CategoryCreateSchema } from "../schemas/categorySchema.js";
-import { verifyToken, authorize } from "../middlewares/authMiddleware.js";
+import { verifyToken, authorize } from "../middlewares/userAuthMiddleware.js";
 
 const router = express.Router();
 
