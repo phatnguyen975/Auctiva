@@ -14,7 +14,9 @@ import ThemeToggle from "./ui/ThemeToggle";
 import ProfileMenu from "./ProfileMenu";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store/store";
-import { dummyAllCategories } from "../assets/assets";
+import { axiosInstance } from "../lib/axios";
+import type { Category } from "../types/category";
+import LoadingSpinner from "./ui/LoadingSpinner";
 
 const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const authUser = useSelector((state: RootState) => state.auth.authUser);
@@ -22,18 +24,38 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categorySidebarOpen, setCategorySidebarOpen] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
-  const toggleCategory = (name: string) => {
+  const toggleCategory = (categoryId: number) => {
     setExpandedCategories((prev) =>
-      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId]
     );
   };
 
   useEffect(() => {
+    const getCategories = async () => {
+      try {
+        const { data } = await axiosInstance.get("/categories", {
+          headers: { "x-api-key": import.meta.env.VITE_API_KEY },
+        });
+
+        if (data.success) {
+          setCategories(data.data);
+        }
+      } catch (error) {
+        console.error("Error loading categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     const handleClickOutside = (e: MouseEvent) => {
       if (
         sidebarRef.current &&
@@ -42,9 +64,12 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
         setCategorySidebarOpen(false);
       }
     };
+
     if (categorySidebarOpen) {
+      getCategories();
       document.addEventListener("mousedown", handleClickOutside);
     }
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [categorySidebarOpen]);
 
@@ -132,7 +157,10 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
 
               {/* User Avatar */}
               {authUser ? (
-                <ProfileMenu userProfile={authUser.profile} isDashboard={isDashboard} />
+                <ProfileMenu
+                  userProfile={authUser.profile}
+                  isDashboard={isDashboard}
+                />
               ) : (
                 <div className="flex items-center gap-2 shrink-0">
                   <button
@@ -160,23 +188,25 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
         </div>
 
         {/* Mobile Search Bar */}
-        {!isDashboard && <div className="border-t border-gray-300 md:hidden">
-          <div className="container mx-auto px-4 py-3">
-            <Input
-              icon={Search}
-              type="text"
-              placeholder="Search for anything..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  navigate(`/products?keyword=${searchQuery}`);
-                  setSearchQuery("");
-                }
-              }}
-            />
+        {!isDashboard && (
+          <div className="border-t border-gray-300 md:hidden">
+            <div className="container mx-auto px-4 py-3">
+              <Input
+                icon={Search}
+                type="text"
+                placeholder="Search for anything..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    navigate(`/products?keyword=${searchQuery}`);
+                    setSearchQuery("");
+                  }
+                }}
+              />
+            </div>
           </div>
-        </div>}
+        )}
       </header>
 
       {/* Category Side Bar */}
@@ -201,47 +231,51 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
               </button>
             </div>
 
-            {/* Categories */}
+            {/* Main Categories */}
             <div className="flex flex-col p-2">
-              {dummyAllCategories.map((category) => {
-                const isOpen = expandedCategories.includes(category.name);
-                return (
-                  <div key={category.name} className="border-b border-gray-300">
-                    <button
-                      className="w-full flex justify-between items-center px-3 py-2 hover:bg-gray-200 transition-colors rounded-md cursor-pointer"
-                      onClick={() => toggleCategory(category.name)}
-                    >
-                      <span className="font-semibold">{category.name}</span>
-                      <ChevronRight
-                        className={`size-4 ${
-                          isOpen && "rotate-90 transition-transform"
-                        }`}
-                      />
-                    </button>
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                categories.map((category) => {
+                  const isOpen = expandedCategories.includes(category.id);
+                  return (
+                    <div key={category.id} className="border-b border-gray-300">
+                      <button
+                        className="w-full flex justify-between items-center px-3 py-2 hover:bg-gray-200 transition-colors rounded-md cursor-pointer"
+                        onClick={() => toggleCategory(category.id)}
+                      >
+                        <span className="font-semibold">{category.name}</span>
+                        <ChevronRight
+                          className={`size-4 ${
+                            isOpen && "rotate-90 transition-transform"
+                          }`}
+                        />
+                      </button>
 
-                    {/* Subcategories */}
-                    {isOpen &&
-                      category.subcategories.map((subcategory) => (
-                        <div
-                          key={subcategory.name}
-                          className="w-full px-3 hover:bg-gray-200"
-                        >
-                          <button
-                            className="w-full py-2 text-sm text-left cursor-pointer"
-                            onClick={() => {
-                              navigate(
-                                `/products?category=${subcategory.slug}`
-                              );
-                              setCategorySidebarOpen(false);
-                            }}
+                      {/* Sub Categories */}
+                      {isOpen &&
+                        category.children.map((child) => (
+                          <div
+                            key={child.id}
+                            className="w-full px-3 hover:bg-gray-200"
                           >
-                            {subcategory.name}
-                          </button>
-                        </div>
-                      ))}
-                  </div>
-                );
-              })}
+                            <button
+                              className="w-full py-2 text-sm text-left cursor-pointer"
+                              onClick={() => {
+                                navigate(`/products?category=${child.slug}`);
+                                setCategorySidebarOpen(false);
+                              }}
+                            >
+                              {child.name}
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>
