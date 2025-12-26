@@ -193,8 +193,9 @@ create table if not exists admin_settings (
   updated_at          timestamptz not null default now()
 );
 
-insert into admin_settings (key, value) values
-('auction.extend_window_minutes', '5'::jsonb),
-('auction.extend_duration_minutes', '10'::jsonb),
-('products.highlight_minutes','5'::jsonb),
-on conflict (key) do nothing;
+insert into admin_settings (key, value)
+values
+('auction_extend_minutes', '5'::jsonb),
+('auction_duration_minutes', '10'::jsonb),
+('min_bid_step', '5'::jsonb),
+('highlight_minutes', '5'::jsonb)

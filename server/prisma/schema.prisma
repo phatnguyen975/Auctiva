@@ -125,6 +125,7 @@ model Product {
   endDate           DateTime        @map("end_date") @db.Timestamptz
   isAutoExtend      Boolean?        @default(true) @map("is_auto_extend")
   isInstantPurchase Boolean?        @default(false) @map("is_instant_purchase")
+  isNew             Boolean?        @default(false) @map("is_new")
   status            product_status? @default(active)
   minImages         Int?            @default(3) @map("min_images")
   createdAt         DateTime?       @default(now()) @map("created_at") @db.Timestamptz
