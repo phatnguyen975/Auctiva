@@ -23,7 +23,28 @@ export const ProductCreateSchema = z.object({
   minImages: z.number().positive().optional(),
   images: z
     .array(ProductImageCreateSchema)
-    .min(1, "Product must have at least one image")
+    .min(1, "Product must have at least one image"),
 });
 
 export const ProductUpdateSchema = ProductCreateSchema.partial();
+
+export const ProductQuerySchema = z.object({
+  page: z
+    .string()
+    .regex(/^\d+$/, "Page must be a number")
+    .transform(Number)
+    .default(1),
+  limit: z
+    .string()
+    .regex(/^\d+$/, "Page must be a number")
+    .transform(Number)
+    .default(9),
+  categoryId: z
+    .string()
+    .regex(/^\d+$/, "Category ID must be a number")
+    .transform(Number)
+    .optional(),
+  sortBy: z.enum(["endDate", "currentPrice"]).optional(),
+  order: z.enum(["asc", "desc"]).optional(),
+  keyword: z.string().trim().min(1).optional(),
+});

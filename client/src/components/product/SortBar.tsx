@@ -18,25 +18,25 @@ export const sortOptions: SortOption[] = [
   {
     label: "Time: Ending soonest",
     value: "time_asc",
-    sortBy: "end_date",
+    sortBy: "endDate",
     order: "asc",
   },
   {
     label: "Time: Newly listed",
     value: "time_desc",
-    sortBy: "end_date",
+    sortBy: "endDate",
     order: "desc",
   },
   {
     label: "Price: Lowest first",
     value: "price_asc",
-    sortBy: "current_price",
+    sortBy: "currentPrice",
     order: "asc",
   },
   {
     label: "Price: Highest first",
     value: "price_desc",
-    sortBy: "current_price",
+    sortBy: "currentPrice",
     order: "desc",
   },
 ];

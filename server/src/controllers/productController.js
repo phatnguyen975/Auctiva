@@ -12,6 +12,15 @@ const ProductController = {
       res.error(error.message);
     }
   },
+
+  getAll: async (req, res) => {
+    try {
+      const products = await ProductService.getProducts(req.validated.query);
+      res.ok("Product retrieved successfully", products);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
 };
 
 export default ProductController;

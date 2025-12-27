@@ -53,6 +53,7 @@ const ProductService = {
         startPrice: product.startPrice,
         stepPrice: product.stepPrice,
         buyNowPrice: product.buyNowPrice || null,
+        currentPrice: product.startPrice,
         endDate: product.endDate,
         isAutoExtend: product.isAutoExtend,
         isInstantPurchase: product.isInstantPurchase,
@@ -68,13 +69,127 @@ const ProductService = {
           },
         },
       },
-      omit: {
-        createdAt: true,
-        updatedAt: true,
-      },
     });
 
     return newProduct;
+  },
+
+  getProducts: async ({ page, limit, categoryId, sortBy, order, keyword }) => {
+    const skip = (page - 1) * limit;
+
+    if (keyword) {
+      let orderBy = "ORDER BY p.created_at DESC";
+      if (sortBy && order) {
+        if (sortBy === "endDate") {
+          orderBy = `ORDER BY p.end_date ${order.toUpperCase()}`;
+        }
+        if (sortBy === "currentPrice") {
+          orderBy = `ORDER BY p.current_price ${order.toUpperCase()}`;
+        }
+      }
+
+      const data = await prisma.$queryRawUnsafe(
+        `
+          SELECT
+            p.*,
+            COALESCE(
+              jsonb_agg(
+                jsonb_build_object(
+                  'id', i.id,
+                  'url', i.url,
+                  'isPrimary', i.is_primary,
+                  'createdAt', i.created_at
+                )
+                ORDER BY i.created_at DESC
+              ) FILTER (WHERE i.id IS NOT NULL),
+              '[]'
+            ) AS images
+          FROM products p
+          JOIN categories c ON c.id = p.category_id
+          LEFT JOIN product_images i ON i.product_id = p.id
+          WHERE
+            (${categoryId ? "p.category_id = $1" : "1 = 1"})
+            AND (
+              p.search_vector @@ plainto_tsquery('english', $2)
+              OR c.search_vector @@ plainto_tsquery('english', $2)
+              OR p.name ILIKE '%' || $2 || '%'
+              OR c.name ILIKE '%' || $2 || '%'
+            )
+          GROUP BY p.id
+          ${orderBy}
+          LIMIT $3
+          OFFSET $4
+        `,
+        categoryId,
+        keyword,
+        limit,
+        skip
+      );
+
+      const total = await prisma.$queryRawUnsafe(
+        `
+          SELECT COUNT(DISTINCT p.id)::int
+          FROM products p
+          JOIN categories c ON c.id = p.category_id
+          WHERE
+            (${categoryId ? "p.category_id = $1" : "1 = 1"})
+            AND (
+              p.search_vector @@ plainto_tsquery('english', $2)
+              OR c.search_vector @@ plainto_tsquery('english', $2)
+              OR p.name ILIKE '%' || $2 || '%'
+              OR c.name ILIKE '%' || $2 || '%'
+            )
+        `,
+        categoryId,
+        keyword
+      );
+
+      const totalCount = Number(total[0].count);
+
+      return {
+        products: data,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages: Math.ceil(totalCount / limit),
+        },
+      };
+    }
+
+    const where = {
+      ...(categoryId && { categoryId }),
+    };
+
+    const orderBy =
+      sortBy && order ? { [sortBy]: order } : { createdAt: "desc" };
+
+    const [data, total] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        orderBy,
+        skip,
+        take: limit,
+        include: {
+          images: {
+            omit: {
+              productId: true,
+            },
+          },
+        },
+      }),
+      prisma.product.count({ where }),
+    ]);
+
+    return {
+      products: data,
+      pagination: {
+        page,
+        limit,
+        totalCount: total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   },
 };
 
