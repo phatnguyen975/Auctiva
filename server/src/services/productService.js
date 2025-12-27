@@ -53,7 +53,6 @@ const ProductService = {
         startPrice: product.startPrice,
         stepPrice: product.stepPrice,
         buyNowPrice: product.buyNowPrice || null,
-        postDate: product.postDate,
         endDate: product.endDate,
         isAutoExtend: product.isAutoExtend,
         isInstantPurchase: product.isInstantPurchase,
@@ -64,9 +63,14 @@ const ProductService = {
       },
       include: {
         images: {
-          url: true,
-          isPrimary: true,
+          omit: {
+            productId: true,
+          },
         },
+      },
+      omit: {
+        createdAt: true,
+        updatedAt: true,
       },
     });
 

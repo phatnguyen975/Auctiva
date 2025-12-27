@@ -197,5 +197,4 @@ insert into admin_settings (key, value)
 values
 ('auction_extend_minutes', '5'::jsonb),
 ('auction_duration_minutes', '10'::jsonb),
-('min_bid_step', '5'::jsonb),
 ('highlight_minutes', '5'::jsonb)

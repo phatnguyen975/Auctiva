@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ProductImageCreateSchema } from "./productImageSchema";
+import { ProductImageCreateSchema } from "./productImageSchema.js";
 
 export const ProductIdSchema = z.object({
   id: z.string().regex(/^\d+$/, "ID must be a number").transform(Number),
@@ -16,11 +16,11 @@ export const ProductCreateSchema = z.object({
   startPrice: z.number().nonnegative(),
   stepPrice: z.number().positive(),
   buyNowPrice: z.number().positive().optional(),
-  postDate: z.string().datetime(),
+  postDate: z.string().datetime().optional(),
   endDate: z.string().datetime(),
   isAutoExtend: z.boolean().default(true),
   isInstantPurchase: z.boolean().default(false),
-  minImages: z.number().nonnegative().optional(),
+  minImages: z.number().positive().optional(),
   images: z
     .array(ProductImageCreateSchema)
     .min(1, "Product must have at least one image")
