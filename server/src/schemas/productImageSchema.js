@@ -6,6 +6,6 @@ export const ProductImageCreateSchema = z.object({
     .int("ID must be an integer")
     .positive("ID must be positive")
     .optional(),
-  url: z.string().url(),
-  isPrimary: z.boolean().default(false),
+  url: z.string().url("Image URL is invalid"),
+  isPrimary: z.boolean().default(false).optional(),
 });

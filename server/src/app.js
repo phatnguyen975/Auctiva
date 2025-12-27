@@ -9,6 +9,7 @@ import {
 } from "./middlewares/errorMiddleware.js";
 
 import categoryRouter from "./routes/categoryRoute.js";
+import productRouter from "./routes/productRoute.js";
 
 export const app = express();
 
@@ -25,6 +26,7 @@ app.use(responseWrapper);
 
 // Routes
 app.use("/api/categories", categoryRouter);
+app.use("/api/products", productRouter);
 
 // Error Handler
 app.use(notFoundHandler);

@@ -13,7 +13,7 @@ const CategoryService = {
       }
     }
 
-    if (!category.slug) {
+    if (category.slug === undefined || category.slug === null) {
       const baseSlug = createSlug(category.name);
       let slug = baseSlug;
       let count = 1;
