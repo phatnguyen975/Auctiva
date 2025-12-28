@@ -20,6 +20,16 @@ const CategoryController = {
       res.error(error.message);
     }
   },
+
+  delete: async (req, res) => {
+    try {
+      const id = Number(req.validated.params.id);
+      await CategoryService.deleteCategory(id);
+      res.ok("Category deleted successfully", null);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
 };
 
 export default CategoryController;

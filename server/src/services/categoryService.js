@@ -49,6 +49,40 @@ const CategoryService = {
 
     return categories;
   },
+
+  deleteCategory: async (id) => {
+    const category = await prisma.category.findUnique({
+      where: { id },
+    });
+
+    if (!category) {
+      throw new Error("Category not found");
+    }
+
+    const productCount = await prisma.product.count({
+      where: { categoryId: id },
+    });
+
+    if (productCount > 0) {
+      throw new Error(
+        `Category ${id} is being used in ${productCount} product(s)`
+      );
+    }
+
+    const categoryCount = await prisma.category.count({
+      where: { parentId: id },
+    });
+
+    if (categoryCount > 0) {
+      throw new Error(
+        `Category ${id} is being used in ${categoryCount} category(s)`
+      );
+    }
+
+    await prisma.category.delete({
+      where: { id },
+    });
+  },
 };
 
 export default CategoryService;
