@@ -21,6 +21,33 @@ const ProductController = {
       res.error(error.message);
     }
   },
+
+  getEndingSoon: async (req, res) => {
+    try {
+      const products = await ProductService.getEndingSoonProducts();
+      res.ok("Product retrieved successfully", products);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
+  getMostBids: async (req, res) => {
+    try {
+      const products = await ProductService.getMostBidsProducts();
+      res.ok("Product retrieved successfully", products);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
+  getHighestPrice: async (req, res) => {
+    try {
+      const products = await ProductService.getHighestPriceProducts();
+      res.ok("Product retrieved successfully", products);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
 };
 
 export default ProductController;

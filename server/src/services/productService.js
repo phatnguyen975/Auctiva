@@ -79,19 +79,39 @@ const ProductService = {
 
     if (keyword) {
       let orderBy = "ORDER BY p.created_at DESC";
-      if (sortBy && order) {
-        if (sortBy === "endDate") {
-          orderBy = `ORDER BY p.end_date ${order.toUpperCase()}`;
-        }
-        if (sortBy === "currentPrice") {
-          orderBy = `ORDER BY p.current_price ${order.toUpperCase()}`;
-        }
+
+      if (sortBy === "endDate") {
+        orderBy = `ORDER BY p.end_date ${order?.toUpperCase() ?? "ASC"}`;
+      }
+
+      if (sortBy === "currentPrice") {
+        orderBy = `ORDER BY p.current_price ${order?.toUpperCase() ?? "DESC"}`;
       }
 
       const data = await prisma.$queryRawUnsafe(
         `
           SELECT
-            p.*,
+            p.id,
+            p.seller_id,
+            p.category_id,
+            p.winner_id,
+            p.name,
+            p.description,
+            p.slug,
+            p.start_price,
+            p.step_price,
+            p.buy_now_price,
+            p.current_price,
+            p.post_date,
+            p.end_date,
+            p.is_auto_extend,
+            p.is_instant_purchase,
+            p.is_new,
+            p.status,
+            p.min_images,
+            p.created_at,
+            p.updated_at,
+            COUNT(b.id)::int AS bid_count,
             COALESCE(
               jsonb_agg(
                 jsonb_build_object(
@@ -106,21 +126,42 @@ const ProductService = {
             ) AS images
           FROM products p
           JOIN categories c ON c.id = p.category_id
+          LEFT JOIN bids b ON b.product_id = p.id
           LEFT JOIN product_images i ON i.product_id = p.id
           WHERE
-            (${categoryId ? "p.category_id = $1" : "1 = 1"})
+            ($1::int IS NULL OR p.category_id = $1)
             AND (
               p.search_vector @@ plainto_tsquery('english', $2)
               OR c.search_vector @@ plainto_tsquery('english', $2)
               OR p.name ILIKE '%' || $2 || '%'
               OR c.name ILIKE '%' || $2 || '%'
             )
-          GROUP BY p.id
+          GROUP BY
+            p.id,
+            p.seller_id,
+            p.category_id,
+            p.winner_id,
+            p.name,
+            p.description,
+            p.slug,
+            p.start_price,
+            p.step_price,
+            p.buy_now_price,
+            p.current_price,
+            p.post_date,
+            p.end_date,
+            p.is_auto_extend,
+            p.is_instant_purchase,
+            p.is_new,
+            p.status,
+            p.min_images,
+            p.created_at,
+            p.updated_at
           ${orderBy}
           LIMIT $3
           OFFSET $4
         `,
-        categoryId,
+        categoryId ?? null,
         keyword,
         limit,
         skip
@@ -128,11 +169,11 @@ const ProductService = {
 
       const total = await prisma.$queryRawUnsafe(
         `
-          SELECT COUNT(DISTINCT p.id)::int
+          SELECT COUNT(DISTINCT p.id)::int AS count
           FROM products p
           JOIN categories c ON c.id = p.category_id
           WHERE
-            (${categoryId ? "p.category_id = $1" : "1 = 1"})
+            ($1::int IS NULL OR p.category_id = $1)
             AND (
               p.search_vector @@ plainto_tsquery('english', $2)
               OR c.search_vector @@ plainto_tsquery('english', $2)
@@ -140,14 +181,48 @@ const ProductService = {
               OR c.name ILIKE '%' || $2 || '%'
             )
         `,
-        categoryId,
+        categoryId ?? null,
         keyword
       );
 
       const totalCount = Number(total[0].count);
+      const formattedData = data.map((p) => ({
+        id: p.id,
+        sellerId: p.seller_id,
+        categoryId: p.category_id,
+        winnerId: p.winner_id,
+
+        name: p.name,
+        description: p.description,
+        slug: p.slug,
+
+        startPrice: p.start_price,
+        stepPrice: p.step_price,
+        buyNowPrice: p.buy_now_price,
+        currentPrice: p.current_price,
+
+        postDate: p.post_date,
+        endDate: p.end_date,
+
+        isAutoExtend: p.is_auto_extend,
+        isInstantPurchase: p.is_instant_purchase,
+        isNew: p.is_new,
+
+        status: p.status,
+        minImages: p.min_images,
+
+        createdAt: p.created_at,
+        updatedAt: p.updated_at,
+
+        _count: {
+          bids: p.bid_count,
+        },
+
+        images: p.images ?? [],
+      }));
 
       return {
-        products: data,
+        products: formattedData,
         pagination: {
           page,
           limit,
@@ -171,6 +246,11 @@ const ProductService = {
         skip,
         take: limit,
         include: {
+          _count: {
+            select: {
+              bids: true,
+            },
+          },
           images: {
             omit: {
               productId: true,
@@ -190,6 +270,76 @@ const ProductService = {
         totalPages: Math.ceil(total / limit),
       },
     };
+  },
+
+  getEndingSoonProducts: async () => {
+    return prisma.product.findMany({
+      where: {
+        endDate: {
+          gt: new Date(),
+        },
+      },
+      orderBy: {
+        endDate: "asc",
+      },
+      take: 5,
+      include: {
+        _count: {
+          select: {
+            bids: true,
+          },
+        },
+        images: {
+          omit: {
+            productId: true,
+          },
+        },
+      },
+    });
+  },
+
+  getMostBidsProducts: async () => {
+    return prisma.product.findMany({
+      orderBy: {
+        bids: {
+          _count: "desc",
+        },
+      },
+      take: 5,
+      include: {
+        _count: {
+          select: {
+            bids: true,
+          },
+        },
+        images: {
+          omit: {
+            productId: true,
+          },
+        },
+      },
+    });
+  },
+
+  getHighestPriceProducts: async () => {
+    return prisma.product.findMany({
+      orderBy: {
+        currentPrice: "desc",
+      },
+      take: 5,
+      include: {
+        _count: {
+          select: {
+            bids: true,
+          },
+        },
+        images: {
+          omit: {
+            productId: true,
+          },
+        },
+      },
+    });
   },
 };
 
