@@ -48,6 +48,7 @@ const MyBidsPage = () => {
             {myBids.length} active
           </span>
         </div>
+
         {myBids.length === 0 ? (
           <div className="text-center py-16">
             <Gavel className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-20" />
