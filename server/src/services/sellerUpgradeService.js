@@ -1,9 +1,9 @@
 import { prisma } from "../configs/prisma.js";
 
 const CategoryService = {
-  createSellerUpgrade: async (data) => {
+  createSellerUpgrade: async (userId) => {
     const user = await prisma.profile.findUnique({
-      where: { id: data.userId },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -11,7 +11,7 @@ const CategoryService = {
     }
 
     return await prisma.sellerUpgradeRequest.create({
-      data: { userId: data.userId },
+      data: { userId },
     });
   },
 
@@ -29,25 +29,25 @@ const CategoryService = {
     });
   },
 
-  updateSellerUpgrade: async (id, data) => {
+  updateSellerUpgrade: async ({ id, userId, status }) => {
     const user = await prisma.profile.findUnique({
-      where: { id: data.userId },
+      where: { id: userId },
     });
 
     if (!user) {
       throw new Error("User not found");
     }
 
-    if (data.status === "approved") {
+    if (status === "approved") {
       await prisma.profile.update({
-        where: { id: data.userId },
+        where: { id: userId },
         data: { role: "seller" },
-      })
+      });
     }
 
     return await prisma.sellerUpgradeRequest.update({
       where: { id },
-      data: { status: data.status },
+      data: { status },
     });
   },
 };

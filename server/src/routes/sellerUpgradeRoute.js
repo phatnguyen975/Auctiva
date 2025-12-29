@@ -3,7 +3,6 @@ import SellerUpgradeController from "../controllers/sellerUpgradeController.js";
 import { validateApiKey } from "../middlewares/apiMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import {
-  SellerUpgradeCreateSchema,
   SellerUpgradeIdSchema,
   SellerUpgradeUpdateSchema,
 } from "../schemas/sellerUpgradeSchema.js";
@@ -17,7 +16,6 @@ router.post(
   "/",
   verifyToken,
   authorize(["bidder"]),
-  validate({ body: SellerUpgradeCreateSchema }),
   SellerUpgradeController.create
 );
 
