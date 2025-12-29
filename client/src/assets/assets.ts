@@ -743,6 +743,32 @@ export const dumpyMyBids = [
   },
 ];
 
+// Mock Won Auctions
+export const dumpyWonAuctions = [
+  {
+    id: "1",
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=100&h=100&fit=crop",
+    title: "MacBook Pro 16-inch",
+    winningPrice: 1850,
+    seller: "****TechStore",
+    sellerRating: 99.2,
+    rated: false,
+    wonDate: "3 days ago",
+  },
+  {
+    id: "2",
+    image:
+      "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=100&h=100&fit=crop",
+    title: "Nike Air Jordan Sneakers",
+    winningPrice: 320,
+    seller: "****SneakerHub",
+    sellerRating: 96.5,
+    rated: true,
+    wonDate: "1 week ago",
+  },
+];
+
 export const dumpyActiveListings = [
   {
     id: "1",
@@ -820,26 +846,5 @@ export const dumpyAllReviews = [
     type: "positive",
     comment: "Amazing transaction, highly recommend",
     date: "2 months ago",
-  },
-];
-
-const dumpyWatchList = [
-  {
-    id: "1",
-    image:
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop",
-    title: "Premium Wireless Headphones",
-    currentBid: 245,
-    timeLeft: new Date(Date.now() + 2 * 60 * 60 * 1000),
-    totalBids: 23,
-  },
-  {
-    id: "2",
-    image:
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop",
-    title: "Luxury Watch Collection",
-    currentBid: 890,
-    timeLeft: new Date(Date.now() + 5 * 60 * 60 * 1000),
-    totalBids: 45,
   },
 ];
