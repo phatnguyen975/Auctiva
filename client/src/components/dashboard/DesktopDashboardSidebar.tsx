@@ -155,7 +155,7 @@ const DesktopDashboardSidebar = ({
     dateOfBirth: authUser?.profile?.birth_date,
     avatar: authUser?.profile?.avatar_url || "",
     rating: authUser?.profile?.rating_positive,
-    role: "seller", // Mock
+    role: "bidder", // Mock
     auctionsWon: 45, // Mock
     bidsPlaced: 127, // Mock
   };
