@@ -4,7 +4,7 @@ const SellerUpgradeController = {
   create: async (req, res) => {
     try {
       const newSellerUpgrade = await SellerUpgradeService.createSellerUpgrade(
-        req.validated.body
+        req.user.id
       );
       res.created("Seller upgrade created successfully", newSellerUpgrade);
     } catch (error) {
@@ -24,9 +24,10 @@ const SellerUpgradeController = {
   update: async (req, res) => {
     try {
       const id = req.validated.params.id;
-      const data = req.validated.body;
+      const userId = req.user.id;
+      const status = req.validated.body.status;
       const updatedSellerUpgrade =
-        await SellerUpgradeService.updateSellerUpgrade(id, data);
+        await SellerUpgradeService.updateSellerUpgrade({id, userId, status});
       res.ok("Seller upgrade updated successfully", updatedSellerUpgrade);
     } catch (error) {
       res.error(error.message);
