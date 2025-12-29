@@ -1,6 +1,7 @@
+import sanitizeHtml from "sanitize-html";
 import { prisma } from "../configs/prisma.js";
 import { createSlug } from "../utils/slugUtil.js";
-import sanitizeHtml from "sanitize-html";
+import { enrichProductWithFlags } from "../utils/adminSettingUtil.js";
 
 const ProductService = {
   createProduct: async ({ userId, product }) => {
@@ -64,9 +65,7 @@ const ProductService = {
       },
       include: {
         images: {
-          omit: {
-            productId: true,
-          },
+          omit: { productId: true },
         },
       },
     });
@@ -95,6 +94,8 @@ const ProductService = {
             p.seller_id,
             p.category_id,
             p.winner_id,
+            pf.user_name,
+            pf.full_name,
             p.name,
             p.description,
             p.slug,
@@ -126,6 +127,7 @@ const ProductService = {
             ) AS images
           FROM products p
           JOIN categories c ON c.id = p.category_id
+          LEFT JOIN profiles pf ON pf.id = p.winner_id
           LEFT JOIN bids b ON b.product_id = p.id
           LEFT JOIN product_images i ON i.product_id = p.id
           WHERE
@@ -141,6 +143,8 @@ const ProductService = {
             p.seller_id,
             p.category_id,
             p.winner_id,
+            pf.user_name,
+            pf.full_name,
             p.name,
             p.description,
             p.slug,
@@ -214,6 +218,11 @@ const ProductService = {
         createdAt: p.created_at,
         updatedAt: p.updated_at,
 
+        winner: (p.user_name !== null || p.full_name !== null) ? {
+          username: p.user_name,
+          fullName: p.full_name,
+        } : null,
+
         _count: {
           bids: p.bid_count,
         },
@@ -221,8 +230,10 @@ const ProductService = {
         images: p.images ?? [],
       }));
 
+      const enrichedData = await Promise.all(formattedData.map(enrichProductWithFlags));
+
       return {
-        products: formattedData,
+        products: enrichedData,
         pagination: {
           page,
           limit,
@@ -246,23 +257,29 @@ const ProductService = {
         skip,
         take: limit,
         include: {
+          winner: {
+            select: {
+              username: true,
+              fullName: true,
+            },
+          },
           _count: {
             select: {
               bids: true,
             },
           },
           images: {
-            omit: {
-              productId: true,
-            },
+            omit: { productId: true },
           },
         },
       }),
       prisma.product.count({ where }),
     ]);
 
+    const enrichedData = await Promise.all(data.map(enrichProductWithFlags));
+
     return {
-      products: data,
+      products: enrichedData,
       pagination: {
         page,
         limit,
@@ -273,72 +290,103 @@ const ProductService = {
   },
 
   getEndingSoonProducts: async () => {
-    return prisma.product.findMany({
+    const products = await prisma.product.findMany({
       where: {
-        endDate: {
-          gt: new Date(),
-        },
+        endDate: { gt: new Date() },
       },
       orderBy: {
         endDate: "asc",
       },
       take: 5,
       include: {
+        winner: {
+          select: {
+            username: true,
+            fullName: true,
+          },
+        },
         _count: {
           select: {
             bids: true,
           },
         },
         images: {
-          omit: {
-            productId: true,
-          },
+          where: { isPrimary: true },
+          omit: { productId: true },
         },
       },
     });
+
+    return Promise.all(products.map(enrichProductWithFlags));
   },
 
   getMostBidsProducts: async () => {
-    return prisma.product.findMany({
+    const products = await prisma.product.findMany({
       orderBy: {
-        bids: {
-          _count: "desc",
-        },
+        bids: { _count: "desc" },
       },
       take: 5,
       include: {
+        winner: {
+          select: {
+            username: true,
+            fullName: true,
+          },
+        },
         _count: {
           select: {
             bids: true,
           },
         },
         images: {
-          omit: {
-            productId: true,
-          },
+          where: { isPrimary: true },
+          omit: { productId: true },
         },
       },
     });
+
+    return Promise.all(products.map(enrichProductWithFlags));
   },
 
   getHighestPriceProducts: async () => {
-    return prisma.product.findMany({
+    const products = await prisma.product.findMany({
       orderBy: {
         currentPrice: "desc",
       },
       take: 5,
       include: {
+        winner: {
+          select: {
+            username: true,
+            fullName: true,
+          },
+        },
         _count: {
           select: {
             bids: true,
           },
         },
         images: {
-          omit: {
-            productId: true,
-          },
+          where: { isPrimary: true },
+          omit: { productId: true },
         },
       },
+    });
+
+    return Promise.all(products.map(enrichProductWithFlags));
+  },
+
+  deleteProduct: async (id) => {
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    await prisma.product.delete({
+      where: { id },
     });
   },
 };

@@ -16,7 +16,7 @@ const ProductController = {
   getAll: async (req, res) => {
     try {
       const products = await ProductService.getProducts(req.validated.query);
-      res.ok("Product retrieved successfully", products);
+      res.ok("Products retrieved successfully", products);
     } catch (error) {
       res.error(error.message);
     }
@@ -25,7 +25,7 @@ const ProductController = {
   getEndingSoon: async (req, res) => {
     try {
       const products = await ProductService.getEndingSoonProducts();
-      res.ok("Product retrieved successfully", products);
+      res.ok("Products retrieved successfully", products);
     } catch (error) {
       res.error(error.message);
     }
@@ -34,7 +34,7 @@ const ProductController = {
   getMostBids: async (req, res) => {
     try {
       const products = await ProductService.getMostBidsProducts();
-      res.ok("Product retrieved successfully", products);
+      res.ok("Products retrieved successfully", products);
     } catch (error) {
       res.error(error.message);
     }
@@ -43,7 +43,17 @@ const ProductController = {
   getHighestPrice: async (req, res) => {
     try {
       const products = await ProductService.getHighestPriceProducts();
-      res.ok("Product retrieved successfully", products);
+      res.ok("Products retrieved successfully", products);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
+  delete: async (req, res) => {
+    try {
+      const id = Number(req.validated.params.id);
+      await ProductService.deleteProduct(id);
+      res.ok("Product deleted successfully", null);
     } catch (error) {
       res.error(error.message);
     }

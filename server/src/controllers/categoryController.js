@@ -15,7 +15,7 @@ const CategoryController = {
   getAll: async (req, res) => {
     try {
       const categories = await CategoryService.getCategories();
-      res.ok("Category retrieved successfully", categories);
+      res.ok("Categories retrieved successfully", categories);
     } catch (error) {
       res.error(error.message);
     }

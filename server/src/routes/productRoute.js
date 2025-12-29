@@ -4,6 +4,7 @@ import { validateApiKey } from "../middlewares/apiMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import {
   ProductCreateSchema,
+  ProductIdSchema,
   ProductQuerySchema,
 } from "../schemas/productSchema.js";
 import { verifyToken, authorize } from "../middlewares/userAuthMiddleware.js";
@@ -31,5 +32,13 @@ router.get("/ending-soon", ProductController.getEndingSoon);
 router.get("/most-bids", ProductController.getMostBids);
 
 router.get("/highest-price", ProductController.getHighestPrice);
+
+router.delete(
+  "/:id",
+  verifyToken,
+  authorize(["admin"]),
+  validate({ params: ProductIdSchema }),
+  ProductController.delete
+);
 
 export default router;
