@@ -58,7 +58,7 @@ model Profile {
   products              Product[]              @relation("SellerProducts")
   productsWon           Product[]              @relation("ProductWinner")
   bids                  Bid[]
-  watchlists            Watchlist[]
+  watchlist             Watchlist[]
   bidRejections         BidRejection[]
   questions             ProductQuestion[]
   answers               ProductAnswer[]
@@ -136,7 +136,7 @@ model Product {
   winner        Profile?          @relation("ProductWinner", fields: [winnerId], references: [id])
   images        ProductImage[]
   bids          Bid[]
-  watchlists    Watchlist[]
+  watchlist     Watchlist[]
   bidRejections BidRejection[]
   questions     ProductQuestion[]
   transactions  Transaction[]
