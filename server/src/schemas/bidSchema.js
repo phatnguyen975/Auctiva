@@ -5,9 +5,7 @@ export const BidIdSchema = z.object({
 });
 
 export const BidCreateSchema = z.object({
-  amount: z.number().positive().optional(),
   maxBid: z.number().positive(),
+  amount: z.number().positive().optional(),
   status: z.enum(["valid", "rejected"]).optional(),
 });
-
-export const BidUpdateSchema = BidCreateSchema.partial();

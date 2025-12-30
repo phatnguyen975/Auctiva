@@ -103,6 +103,7 @@ create table if not exists products (
   end_date            timestamptz not null,
   is_auto_extend      boolean not null default true,
   is_instant_purchase boolean not null default false,
+  is_new              boolean default false,
   status              product_status default 'active',
   min_images          int default 3,
   created_at          timestamptz not null default now(),
