@@ -25,6 +25,7 @@ import SellerUpgradePage from "../pages/dashboard/user/SellerUpgradePage";
 
 import SellerOverviewPage from "../pages/dashboard/seller/SellerOverviewPage";
 import CreateListingPage from "../pages/dashboard/seller/CreateListingPage";
+import UpdateListingPage from "../pages/dashboard/seller/UpdateListingPage";
 import ActiveListingsPage from "../pages/dashboard/seller/ActiveListingsPage";
 import SoldItemsPage from "../pages/dashboard/seller/SoldItemsPage";
 
@@ -83,6 +84,7 @@ const AppRoutes = () => {
           <Route index element={<SellerOverviewPage />} />
           <Route path="overview" element={<SellerOverviewPage />} />
           <Route path="create" element={<CreateListingPage />} />
+          <Route path="update/:id" element={<UpdateListingPage />} />
           <Route path="active" element={<ActiveListingsPage />} />
           <Route path="sold" element={<SoldItemsPage />} />
         </Route>

@@ -1,12 +1,39 @@
 import { useState, useRef, useEffect } from "react";
 import { Upload, XCircle, HelpCircle } from "lucide-react";
 
-const CreateListingPage = () => {
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [description, setDescription] = useState("");
-  const [additionalInfo, setAdditionalInfo] = useState("");
-  const [autoExtension, setAutoExtension] = useState(false);
-  const [allowInstantPurchase, setAllowInstantPurchase] = useState(false);
+const UpdateListingPage = () => {
+  // Mock data - sản phẩm hiện tại từ database
+  const currentProduct = {
+    name: "Vintage Camera 1960s Collectible",
+    images: [
+      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400",
+      "https://images.unsplash.com/photo-1495121553079-4c61bcce1894?w=400",
+      "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400",
+    ],
+    startingPrice: 150.0,
+    stepPrice: 10.0,
+    buyNowPrice: 500.0,
+    description:
+      "Original vintage camera from the 1960s in excellent working condition. This camera has been well-maintained and comes with original leather case. Perfect for collectors and photography enthusiasts.\n\nKey Features:\n• Fully functional mechanical shutter\n• Clean lens with no fungus or scratches\n• Original leather case included\n• Tested and working perfectly",
+    additionalInfo:
+      "Item location: New York, USA\nShipping: Worldwide\nPayment: PayPal, Credit Card accepted",
+    autoExtension: true,
+    allowInstantPurchase: true,
+  };
+
+  const [uploadedImages, setUploadedImages] = useState<string[]>(
+    currentProduct.images
+  );
+  const [additionalDescription, setAdditionalDescription] = useState("");
+  const [additionalInfo, setAdditionalInfo] = useState(
+    currentProduct.additionalInfo
+  );
+  const [autoExtension, setAutoExtension] = useState(
+    currentProduct.autoExtension
+  );
+  const [allowInstantPurchase, setAllowInstantPurchase] = useState(
+    currentProduct.allowInstantPurchase
+  );
 
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +71,7 @@ const CreateListingPage = () => {
 
   const handleEditorInput = () => {
     if (editorRef.current) {
-      setDescription(editorRef.current.innerHTML);
+      setAdditionalDescription(editorRef.current.innerHTML);
     }
   };
 
@@ -81,19 +108,35 @@ const CreateListingPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Form submitted");
+    // Concatenate descriptions: original + new
+    const finalDescription = additionalDescription.trim()
+      ? `${currentProduct.description}\n\n--- Updated Information ---\n${additionalDescription}`
+      : currentProduct.description;
+
+    console.log("Updated product:", {
+      ...currentProduct,
+      images: uploadedImages,
+      description: finalDescription,
+      additionalInfo,
+      autoExtension,
+      allowInstantPurchase,
+    });
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <h2 className="text-3xl font-bold">Create New Listing</h2>
+      <div>
+        <h2 className="text-3xl font-bold">Update Listing</h2>
+        <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
+          Modify and enhance your existing product listing
+        </p>
+      </div>
 
       {/* Form Card */}
       <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Product Name */}
+          {/* Product Name - Read Only */}
           <div className="space-y-2">
             <label htmlFor="productName" className="text-sm font-medium block">
               Product Name
@@ -101,9 +144,13 @@ const CreateListingPage = () => {
             <input
               id="productName"
               type="text"
-              placeholder="Enter product name"
-              className="w-full text-lg rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+              value={currentProduct.name}
+              disabled
+              className="w-full text-lg rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.3)] px-3 py-2 cursor-not-allowed opacity-70"
             />
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              Product name cannot be changed after listing
+            </p>
           </div>
 
           {/* Image Upload */}
@@ -120,12 +167,9 @@ const CreateListingPage = () => {
               />
               <label htmlFor="image-upload" className="cursor-pointer">
                 <Upload className="h-12 w-12 mx-auto mb-3 text-[hsl(var(--muted-foreground))]" />
-                <p className="font-medium mb-1">Drag & drop images here</p>
+                <p className="font-medium mb-1">Add more images</p>
                 <p className="text-sm text-[hsl(var(--muted-foreground))] mb-2">
                   or click to browse
-                </p>
-                <p className="text-xs text-[hsl(var(--destructive))] font-medium">
-                  Minimum 3 photos required
                 </p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
                   PNG, JPG, WEBP up to 5MB each
@@ -163,7 +207,7 @@ const CreateListingPage = () => {
             )}
           </div>
 
-          {/* Pricing */}
+          {/* Pricing - Read Only */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label
@@ -175,10 +219,9 @@ const CreateListingPage = () => {
               <input
                 id="startingPrice"
                 type="number"
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+                value={currentProduct.startingPrice}
+                disabled
+                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.3)] px-3 py-2 cursor-not-allowed opacity-70"
               />
             </div>
             <div className="space-y-2">
@@ -188,10 +231,9 @@ const CreateListingPage = () => {
               <input
                 id="stepPrice"
                 type="number"
-                placeholder="5.00"
-                min="0"
-                step="0.01"
-                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+                value={currentProduct.stepPrice}
+                disabled
+                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.3)] px-3 py-2 cursor-not-allowed opacity-70"
               />
             </div>
             <div className="space-y-2">
@@ -204,18 +246,35 @@ const CreateListingPage = () => {
               <input
                 id="buyNowPrice"
                 type="number"
-                placeholder="0.00"
-                min="0"
-                step="0.01"
-                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+                value={currentProduct.buyNowPrice}
+                disabled
+                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.3)] px-3 py-2 cursor-not-allowed opacity-70"
               />
             </div>
           </div>
+          <p className="text-xs text-[hsl(var(--muted-foreground))] -mt-2">
+            Pricing cannot be changed after auction has started
+          </p>
 
-          {/* Description - WYSIWYG Editor */}
+          {/* Current Description - Read Only */}
           <div className="space-y-2">
             <label className="text-sm font-medium block">
-              Product Description
+              Current Description
+            </label>
+            <div className="border border-[hsl(var(--border))] rounded-lg bg-[hsl(var(--muted)/0.2)] p-4 max-h-[200px] overflow-y-auto">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                {currentProduct.description}
+              </p>
+            </div>
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              Original description (cannot be modified)
+            </p>
+          </div>
+
+          {/* Additional Description */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium block">
+              Additional Description
             </label>
             <div className="border border-[hsl(var(--border))] rounded-lg overflow-hidden">
               {/* Toolbar */}
@@ -331,11 +390,11 @@ const CreateListingPage = () => {
                 className="w-full min-h-[200px] border-0 rounded-none px-3 py-2 focus:outline-none bg-[hsl(var(--background))] overflow-y-auto"
                 style={{ whiteSpace: "pre-wrap" }}
                 suppressContentEditableWarning
-                data-placeholder="Describe your product in detail..."
+                data-placeholder="Add new information about the product here... (This will be appended to the original description)"
               />
             </div>
             <p className="text-xs text-[hsl(var(--muted-foreground))]">
-              Rich text editor for detailed product descriptions
+              New description will be added below the current description
             </p>
             <style>{`
               [contentEditable][data-placeholder]:empty:before {
@@ -389,13 +448,13 @@ const CreateListingPage = () => {
               Additional Information
             </label>
             <textarea
-              placeholder="Enter any additional information about the product..."
+              placeholder="Update any additional information about the product..."
               className="w-full min-h-[100px] rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] resize-none"
               value={additionalInfo}
               onChange={(e) => setAdditionalInfo(e.target.value)}
             />
             <p className="text-xs text-[hsl(var(--muted-foreground))]">
-              Provide any extra details that might be helpful for buyers
+              You can modify shipping, payment, or location details
             </p>
           </div>
 
@@ -481,13 +540,13 @@ const CreateListingPage = () => {
               type="submit"
               className="flex-1 inline-flex items-center justify-center bg-slate-900 text-white shadow-sm rounded-md text-sm font-medium transition-all hover:bg-[hsl(var(--primary)/0.9)] hover:cursor-pointer h-10 px-4"
             >
-              Create Listing
+              Update Listing
             </button>
             <button
               type="button"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-all border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--primary)/0.9)] hover:text-[hsl(var(--primary-foreground))] hover:cursor-pointer h-10 px-4"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-all border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--primary)/0.9)] hover:cursor-pointer h-10 px-4"
             >
-              Save as Draft
+              Cancel
             </button>
           </div>
         </form>
@@ -496,4 +555,4 @@ const CreateListingPage = () => {
   );
 };
 
-export default CreateListingPage;
+export default UpdateListingPage;
