@@ -790,6 +790,31 @@ export const dumpyActiveListings = [
   },
 ];
 
+export const dumpySoldItems = [
+  {
+    id: "1",
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=100&h=100&fit=crop",
+    title: "MacBook Pro 16-inch",
+    winner: "****Alex",
+    winnerRating: 94.5,
+    soldPrice: 1850,
+    paymentStatus: "paid",
+    rated: false,
+  },
+  {
+    id: "2",
+    image:
+      "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=100&h=100&fit=crop",
+    title: "Nike Air Jordan",
+    winner: "****Sarah",
+    winnerRating: 98.0,
+    soldPrice: 320,
+    paymentStatus: "pending",
+    rated: false,
+  },
+];
+
 export const dumpyAllReviews = [
   {
     id: "1",

@@ -70,7 +70,7 @@ const ActiveListingsPage = () => {
             Create your first listing to start selling
           </p>
           <button
-            onClick={() => navigate("/dashboard/seller/create-listing")}
+            onClick={() => navigate("/seller/create")}
             className="inline-flex items-center justify-center gap-2 bg-slate-900 text-white shadow-sm whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] hover:bg-[hsl(var(--primary)/0.9)] h-9 px-4 py-2 hover:cursor-pointer"
           >
             <Plus className="h-4 w-4" />
