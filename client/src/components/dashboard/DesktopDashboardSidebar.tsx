@@ -138,7 +138,7 @@ const DesktopDashboardSidebar = ({
       isSeller: true,
     },
     {
-      id: "active-listings",
+      id: "active",
       label: "Active Listings",
       icon: Package,
       count: activeListingsCount,
