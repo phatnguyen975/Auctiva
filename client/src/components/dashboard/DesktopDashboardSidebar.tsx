@@ -145,7 +145,7 @@ const DesktopDashboardSidebar = ({
       isSeller: true,
     },
     {
-      id: "sold-items",
+      id: "sold",
       label: "Sold Items",
       icon: PackageCheck,
       count: undefined,
