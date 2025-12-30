@@ -49,6 +49,17 @@ const ProductController = {
     }
   },
 
+  update: async (req, res) => {
+    try {
+      const id = Number(req.validated.params.id);
+      const description = req.validated.body.description;
+      const updatedProduct = await ProductService.updateProduct({ id, description });
+      res.ok("Product updated successfully", updatedProduct);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
   delete: async (req, res) => {
     try {
       const id = Number(req.validated.params.id);

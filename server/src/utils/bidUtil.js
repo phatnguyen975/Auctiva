@@ -21,3 +21,30 @@ export const calculateProxyBidding = (bids, startPrice, stepPrice) => {
     currentPrice,
   };
 };
+
+export const checkBidderRating = async ({
+  tx,
+  bidderId,
+  isInstantPurchase,
+}) => {
+  const ratings = await tx.rating.findMany({
+    where: { targetUserId: bidderId },
+    select: {
+      score: true,
+    },
+  });
+
+  if (ratings.length === 0) {
+    if (!isInstantPurchase) {
+      throw new Error("This product does not allow unrated bidders");
+    }
+    return;
+  }
+
+  const positiveCount = ratings.filter((r) => r.score > 0).length;
+  const ratio = positiveCount / ratings.length;
+
+  if (ratio < 0.8) {
+    throw new Error("Your rating score is too low to place a bid");
+  }
+};

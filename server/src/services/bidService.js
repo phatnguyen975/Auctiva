@@ -1,12 +1,11 @@
 import { prisma } from "../configs/prisma.js";
-import { calculateProxyBidding } from "../utils/bidUtil.js";
+import { calculateProxyBidding, checkBidderRating } from "../utils/bidUtil.js";
 
 const BidService = {
   createBid: async ({ productId, userId, maxBid }) => {
     return prisma.$transaction(async (tx) => {
       const product = await tx.product.findUnique({
         where: { id: productId },
-        include: { bids: true },
       });
 
       if (!product) {
@@ -15,8 +14,14 @@ const BidService = {
 
       const now = new Date();
       if (new Date(product.endDate) < now) {
-        throw new Error("Auction is ended");
+        throw new Error("Auction already ended");
       }
+
+      await checkBidderRating({
+        tx,
+        bidderId,
+        isInstantPurchase: product.isInstantPurchase,
+      });
 
       await tx.bid.create({
         data: {
@@ -46,9 +51,9 @@ const BidService = {
       });
 
       return {
-        leader: leader.bidderId,
+        leaderId: leader.bidderId,
+        leaderMaxBid: leader.maxBid,
         currentPrice,
-        maxBid: leader.maxBid,
       };
     });
   },

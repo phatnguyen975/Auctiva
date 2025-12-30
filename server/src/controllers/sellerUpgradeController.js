@@ -23,7 +23,7 @@ const SellerUpgradeController = {
 
   update: async (req, res) => {
     try {
-      const id = req.validated.params.id;
+      const id = Number(req.validated.params.id);
       const userId = req.user.id;
       const status = req.validated.body.status;
       const updatedSellerUpgrade =

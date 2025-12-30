@@ -7,6 +7,7 @@ import {
   ProductCreateSchema,
   ProductIdSchema,
   ProductQuerySchema,
+  ProductUpdateSchema,
 } from "../schemas/productSchema.js";
 import { BidCreateSchema } from "../schemas/bidSchema.js";
 import { verifyToken, authorize } from "../middlewares/userAuthMiddleware.js";
@@ -44,6 +45,14 @@ router.get("/ending-soon", ProductController.getEndingSoon);
 router.get("/most-bids", ProductController.getMostBids);
 
 router.get("/highest-price", ProductController.getHighestPrice);
+
+router.put(
+  "/:id",
+  verifyToken,
+  authorize(["seller"]),
+  validate({ body: ProductUpdateSchema, params: ProductIdSchema }),
+  ProductController.update
+);
 
 router.delete(
   "/:id",

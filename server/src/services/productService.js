@@ -194,7 +194,6 @@ const ProductService = {
         id: p.id,
         sellerId: p.seller_id,
         categoryId: p.category_id,
-        winnerId: p.winner_id,
 
         name: p.name,
         description: p.description,
@@ -218,10 +217,14 @@ const ProductService = {
         createdAt: p.created_at,
         updatedAt: p.updated_at,
 
-        winner: (p.user_name !== null || p.full_name !== null) ? {
-          username: p.user_name,
-          fullName: p.full_name,
-        } : null,
+        winner:
+          p.user_name !== null || p.full_name !== null
+            ? {
+                id: p.winner_id,
+                username: p.user_name,
+                fullName: p.full_name,
+              }
+            : null,
 
         _count: {
           bids: p.bid_count,
@@ -230,7 +233,9 @@ const ProductService = {
         images: p.images ?? [],
       }));
 
-      const enrichedData = await Promise.all(formattedData.map(enrichProductWithFlags));
+      const enrichedData = await Promise.all(
+        formattedData.map(enrichProductWithFlags)
+      );
 
       return {
         products: enrichedData,
@@ -259,6 +264,7 @@ const ProductService = {
         include: {
           winner: {
             select: {
+              id: true,
               username: true,
               fullName: true,
             },
@@ -272,6 +278,7 @@ const ProductService = {
             omit: { productId: true },
           },
         },
+        omit: { winnerId: true },
       }),
       prisma.product.count({ where }),
     ]);
@@ -294,13 +301,12 @@ const ProductService = {
       where: {
         endDate: { gt: new Date() },
       },
-      orderBy: {
-        endDate: "asc",
-      },
+      orderBy: { endDate: "asc" },
       take: 5,
       include: {
         winner: {
           select: {
+            id: true,
             username: true,
             fullName: true,
           },
@@ -315,6 +321,7 @@ const ProductService = {
           omit: { productId: true },
         },
       },
+      omit: { winnerId: true },
     });
 
     return Promise.all(products.map(enrichProductWithFlags));
@@ -329,6 +336,7 @@ const ProductService = {
       include: {
         winner: {
           select: {
+            id: true,
             username: true,
             fullName: true,
           },
@@ -343,6 +351,7 @@ const ProductService = {
           omit: { productId: true },
         },
       },
+      omit: { winnerId: true },
     });
 
     return Promise.all(products.map(enrichProductWithFlags));
@@ -350,13 +359,12 @@ const ProductService = {
 
   getHighestPriceProducts: async () => {
     const products = await prisma.product.findMany({
-      orderBy: {
-        currentPrice: "desc",
-      },
+      orderBy: { currentPrice: "desc" },
       take: 5,
       include: {
         winner: {
           select: {
+            id: true,
             username: true,
             fullName: true,
           },
@@ -371,9 +379,27 @@ const ProductService = {
           omit: { productId: true },
         },
       },
+      omit: { winnerId: true },
     });
 
     return Promise.all(products.map(enrichProductWithFlags));
+  },
+
+  updateProduct: async ({ id, description }) => {
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    const newDescription = product.description + " " + description;
+
+    return await prisma.product.update({
+      where: { id },
+      data: { description: newDescription },
+    });
   },
 
   deleteProduct: async (id) => {

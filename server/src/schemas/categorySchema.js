@@ -13,5 +13,3 @@ export const CategoryCreateSchema = z.object({
     .positive("ID must be positive")
     .optional(),
 });
-
-export const CategoryUpdateSchema = CategoryCreateSchema.partial();

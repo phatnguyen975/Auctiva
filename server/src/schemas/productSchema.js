@@ -26,7 +26,9 @@ export const ProductCreateSchema = z.object({
     .min(1, "Product must have at least one image"),
 });
 
-export const ProductUpdateSchema = ProductCreateSchema.partial();
+export const ProductUpdateSchema = z.object({
+  description: z.string().min(10),
+});
 
 export const ProductQuerySchema = z.object({
   page: z

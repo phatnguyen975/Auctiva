@@ -33,21 +33,10 @@ const CategoryService = {
   },
 
   getCategories: async () => {
-    const categories = await prisma.category.findMany({
+    return await prisma.category.findMany({
       where: { parentId: null },
-      include: {
-        children: {
-          omit: {
-            createdAt: true,
-          },
-        },
-      },
-      omit: {
-        createdAt: true,
-      },
+      include: { children: true },
     });
-
-    return categories;
   },
 
   deleteCategory: async (id) => {

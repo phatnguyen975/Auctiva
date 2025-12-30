@@ -1,15 +1,7 @@
 import { prisma } from "../configs/prisma.js";
 
-const CategoryService = {
+const SellerUpgradeService = {
   createSellerUpgrade: async (userId) => {
-    const user = await prisma.profile.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     return await prisma.sellerUpgradeRequest.create({
       data: { userId },
     });
@@ -20,22 +12,24 @@ const CategoryService = {
       include: {
         user: {
           select: {
+            id: true,
             username: true,
             fullName: true,
             email: true,
           },
         },
       },
+      omit: { userId: true },
     });
   },
 
   updateSellerUpgrade: async ({ id, userId, status }) => {
-    const user = await prisma.profile.findUnique({
-      where: { id: userId },
+    const sellerUpgrade = await prisma.sellerUpgradeRequest.findUnique({
+      where: { id },
     });
 
-    if (!user) {
-      throw new Error("User not found");
+    if (!sellerUpgrade) {
+      throw new Error("Seller upgrade not found");
     }
 
     if (status === "approved") {
@@ -52,4 +46,4 @@ const CategoryService = {
   },
 };
 
-export default CategoryService;
+export default SellerUpgradeService;
