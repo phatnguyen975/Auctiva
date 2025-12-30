@@ -15,6 +15,11 @@ import {
   ShoppingBag,
   Package,
   PackageCheck,
+  LayoutDashboard,
+  FolderTree,
+  Users,
+  CheckCircle,
+  UserCog,
 } from "lucide-react";
 
 import {
@@ -59,12 +64,18 @@ const DesktopDashboardSidebar = ({
 
   const navigate = useNavigate();
 
-  // Detect if we're in seller studio or user dashboard
+  // Detect current context: admin panel, seller studio, or user dashboard
+  const isAdminPanel = location.pathname.startsWith("/admin");
   const isSellerStudio = location.pathname.startsWith("/seller");
 
-  const handleTabClick = (tab: string, goToSellerStudio: boolean = false) => {
+  const handleTabClick = (
+    tab: string,
+    context: "admin" | "seller" | "user" = "user"
+  ) => {
     setActiveTab(tab);
-    if (goToSellerStudio) {
+    if (context === "admin") {
+      navigate(`/admin/${tab}`);
+    } else if (context === "seller") {
       navigate(`/seller/${tab}`);
     } else {
       navigate(`/dashboard/${tab}`);
@@ -160,6 +171,41 @@ const DesktopDashboardSidebar = ({
     },
   ];
 
+  // Admin Panel tabs (only on /admin/*)
+  const adminPanelTabs = [
+    {
+      id: "categories",
+      label: "Categories",
+      icon: FolderTree,
+    },
+    {
+      id: "users",
+      label: "Manage Users",
+      icon: Users,
+    },
+    {
+      id: "products",
+      label: "All Products",
+      icon: Package,
+    },
+    {
+      id: "approvals",
+      label: "Seller Approvals",
+      icon: CheckCircle,
+      count: 3, // Mock pending approvals count
+    },
+    {
+      id: "settings",
+      label: "System Settings",
+      icon: UserCog,
+    },
+    {
+      id: "profile",
+      label: "Profile",
+      icon: User,
+    },
+  ];
+
   const userData = {
     name: authUser?.profile?.full_name,
     email: authUser?.profile?.email,
@@ -173,10 +219,15 @@ const DesktopDashboardSidebar = ({
   };
 
   // Determine which tabs to show based on current route
-  const mainTabs = isSellerStudio ? sellerStudioTabs : userDashboardTabs;
+  const mainTabs = isAdminPanel
+    ? adminPanelTabs
+    : isSellerStudio
+    ? sellerStudioTabs
+    : userDashboardTabs;
 
   // Show "Upgrade to Seller" only for bidders on user dashboard
-  const shouldShowUpgradeTab = !isSellerStudio && userData.role === "bidder";
+  const shouldShowUpgradeTab =
+    !isSellerStudio && !isAdminPanel && userData.role === "bidder";
   const additionalTabs = shouldShowUpgradeTab ? [upgradeToSellerTab] : [];
 
   return (
@@ -192,6 +243,19 @@ const DesktopDashboardSidebar = ({
             ${isDesktop ? "space-y-4 xl:space-y-6" : "space-y-2"}
           `}
         >
+          {/* Admin Panel Header (only for /admin/*) */}
+          {isAdminPanel && (
+            <div className="mb-6">
+              <h3 className="font-bold flex items-center gap-2 mb-2">
+                <LayoutDashboard className="h-5 w-5 text-primary" />
+                Admin Panel
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Manage platform settings and users
+              </p>
+            </div>
+          )}
+
           {/* Seller Studio Header (only for /seller/*) */}
           {isSellerStudio && (
             <div className="mb-6">
@@ -206,7 +270,7 @@ const DesktopDashboardSidebar = ({
           )}
 
           {/* User Profile Summary (only for /dashboard/*) */}
-          {!isSellerStudio && (
+          {!isSellerStudio && !isAdminPanel && (
             <>
               <div className="text-center pb-6 border-b">
                 <div className="relative inline-block mb-4">
@@ -302,7 +366,16 @@ const DesktopDashboardSidebar = ({
                 return (
                   <button
                     key={item.id}
-                    onClick={() => handleTabClick(item.id, isSellerStudio)}
+                    onClick={() =>
+                      handleTabClick(
+                        item.id,
+                        isAdminPanel
+                          ? "admin"
+                          : isSellerStudio
+                          ? "seller"
+                          : "user"
+                      )
+                    }
                     className={`
                       group flex w-full items-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-200 hover:cursor-pointer
                       ${
@@ -323,6 +396,8 @@ const DesktopDashboardSidebar = ({
                           ${
                             isActive
                               ? "bg-white/20 text-white"
+                              : item.id === "approvals" && isAdminPanel
+                              ? "bg-red-500 text-white"
                               : "bg-slate-200 text-slate-900"
                           }
                         `}
@@ -349,7 +424,7 @@ const DesktopDashboardSidebar = ({
                   return (
                     <button
                       key={item.id}
-                      onClick={() => handleTabClick(item.id, false)}
+                      onClick={() => handleTabClick(item.id, "user")}
                       className={`
                         group flex w-full items-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-200 hover:cursor-pointer
                         ${
