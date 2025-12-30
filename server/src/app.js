@@ -11,7 +11,6 @@ import {
 import categoryRouter from "./routes/categoryRoute.js";
 import productRouter from "./routes/productRoute.js";
 import sellerUpgradeRouter from "./routes/sellerUpgradeRoute.js";
-import bidRouter from "./routes/bidRoute.js";
 
 export const app = express();
 
@@ -30,7 +29,6 @@ app.use(responseWrapper);
 app.use("/api/categories", categoryRouter);
 app.use("/api/products", productRouter);
 app.use("/api/seller-upgrade-requests", sellerUpgradeRouter);
-app.use("/api/bids", bidRouter);
 
 // Error Handler
 app.use(notFoundHandler);
