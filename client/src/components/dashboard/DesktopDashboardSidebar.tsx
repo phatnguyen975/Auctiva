@@ -58,9 +58,10 @@ const DesktopDashboardSidebar = ({
 
   const navigate = useNavigate();
 
-  const handleTabClick = (tab: string) => {
+  const handleTabClick = (tab: string, isSeller: boolean = false) => {
     setActiveTab(tab);
-    navigate(`/dashboard/${tab}`);
+    const basePath = isSeller ? "/seller" : "/dashboard";
+    navigate(`${basePath}/${tab}`);
     //onMobileClose?.();
   };
 
@@ -120,31 +121,35 @@ const DesktopDashboardSidebar = ({
 
   const bidderTabs = [
     {
-      id: "upgrade",
+      id: "seller-upgrade",
       label: "Upgrade to Seller",
       icon: TrendingUp,
       count: undefined,
+      isSeller: false,
     },
   ];
 
   const sellerTabs = [
     {
-      id: "studio",
+      id: "overview",
       label: "Seller Studio",
       icon: ShoppingBag,
       count: undefined,
+      isSeller: true,
     },
     {
-      id: "active",
+      id: "active-listings",
       label: "Active Listings",
       icon: Package,
       count: activeListingsCount,
+      isSeller: true,
     },
     {
-      id: "sold",
+      id: "sold-items",
       label: "Sold Items",
       icon: PackageCheck,
       count: undefined,
+      isSeller: true,
     },
   ];
 
@@ -155,7 +160,7 @@ const DesktopDashboardSidebar = ({
     dateOfBirth: authUser?.profile?.birth_date,
     avatar: authUser?.profile?.avatar_url || "",
     rating: authUser?.profile?.rating_positive,
-    role: "bidder", // Mock
+    role: "seller", // Mock
     auctionsWon: 45, // Mock
     bidsPlaced: 127, // Mock
   };
@@ -320,7 +325,7 @@ const DesktopDashboardSidebar = ({
                   return (
                     <button
                       key={item.id}
-                      onClick={() => handleTabClick(item.id)}
+                      onClick={() => handleTabClick(item.id, item.isSeller)}
                       className={`
                         group flex w-full items-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-200 hover:cursor-pointer
                         ${
