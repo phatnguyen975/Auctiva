@@ -21,6 +21,7 @@ import {
   dumpyWatchist,
   dumpyMyBids,
   dumpyActiveListings,
+  dumpySoldItems,
 } from "../../assets/assets";
 
 import type { RootState } from "../../store/store";
@@ -58,11 +59,16 @@ const DesktopDashboardSidebar = ({
 
   const navigate = useNavigate();
 
-  const handleTabClick = (tab: string, isSeller: boolean = false) => {
+  // Detect if we're in seller studio or user dashboard
+  const isSellerStudio = location.pathname.startsWith("/seller");
+
+  const handleTabClick = (tab: string, goToSellerStudio: boolean = false) => {
     setActiveTab(tab);
-    const basePath = isSeller ? "/seller" : "/dashboard";
-    navigate(`${basePath}/${tab}`);
-    //onMobileClose?.();
+    if (goToSellerStudio) {
+      navigate(`/seller/${tab}`);
+    } else {
+      navigate(`/dashboard/${tab}`);
+    }
   };
 
   const formatExpiryTime = () => {
@@ -84,12 +90,14 @@ const DesktopDashboardSidebar = ({
   const watchlistCount = dumpyWatchist.length;
   const myBidsCount = dumpyMyBids.length;
   const activeListingsCount = dumpyActiveListings.length;
+  const soldItemsCount = dumpySoldItems.length;
 
   const sellerPrivilegesExpiry = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days remaining
   const isExpiryUrgent =
     sellerPrivilegesExpiry.getTime() - Date.now() < 24 * 60 * 60 * 1000;
 
-  const sidebarTabs = [
+  // User Dashboard tabs (for both bidder and seller when on /dashboard/*)
+  const userDashboardTabs = [
     {
       id: "profile",
       label: "Profile Overview",
@@ -104,7 +112,7 @@ const DesktopDashboardSidebar = ({
       id: "watchlist",
       label: "Watchlist",
       icon: Heart,
-      count: watchlistCount, // Biến này lấy từ props hoặc state của bạn
+      count: watchlistCount,
     },
     {
       id: "my-bids",
@@ -119,37 +127,36 @@ const DesktopDashboardSidebar = ({
     },
   ];
 
-  const bidderTabs = [
-    {
-      id: "seller-upgrade",
-      label: "Upgrade to Seller",
-      icon: TrendingUp,
-      count: undefined,
-      isSeller: false,
-    },
-  ];
+  // Upgrade to Seller tab (only for bidders on /dashboard/*)
+  const upgradeToSellerTab = {
+    id: "upgrade",
+    label: "Upgrade to Seller",
+    icon: TrendingUp,
+  };
 
-  const sellerTabs = [
+  // Seller Studio tabs (only on /seller/*)
+  const sellerStudioTabs = [
     {
       id: "overview",
-      label: "Seller Studio",
+      label: "Dashboard",
       icon: ShoppingBag,
-      count: undefined,
-      isSeller: true,
+    },
+    {
+      id: "create",
+      label: "Create Listing",
+      icon: Package,
     },
     {
       id: "active",
       label: "Active Listings",
       icon: Package,
       count: activeListingsCount,
-      isSeller: true,
     },
     {
       id: "sold",
       label: "Sold Items",
       icon: PackageCheck,
-      count: undefined,
-      isSeller: true,
+      count: soldItemsCount,
     },
   ];
 
@@ -165,12 +172,12 @@ const DesktopDashboardSidebar = ({
     bidsPlaced: 127, // Mock
   };
 
-  const roleSpecificTabs =
-    userData.role === "bidder"
-      ? bidderTabs
-      : userData.role === "seller"
-      ? sellerTabs
-      : [];
+  // Determine which tabs to show based on current route
+  const mainTabs = isSellerStudio ? sellerStudioTabs : userDashboardTabs;
+
+  // Show "Upgrade to Seller" only for bidders on user dashboard
+  const shouldShowUpgradeTab = !isSellerStudio && userData.role === "bidder";
+  const additionalTabs = shouldShowUpgradeTab ? [upgradeToSellerTab] : [];
 
   return (
     <>
@@ -185,98 +192,117 @@ const DesktopDashboardSidebar = ({
             ${isDesktop ? "space-y-4 xl:space-y-6" : "space-y-2"}
           `}
         >
-          {/* User Profile Summary */}
-          <div className="text-center pb-6 border-b">
-            <div className="relative inline-block mb-4">
-              <img
-                src={userData.avatar}
-                alt="Avatar"
-                className="w-20 h-20 lg:w-24 lg:h-24 rounded-full object-cover mx-auto border-4 border-black/10"
-              />
-              <label
-                htmlFor="avatar-upload"
-                className="absolute bottom-0 right-0 bg-black text-white rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors shadow-lg"
-              >
-                <Pencil className="h-3 w-3 lg:h-3.5 lg:w-3.5" />
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-              </label>
+          {/* Seller Studio Header (only for /seller/*) */}
+          {isSellerStudio && (
+            <div className="mb-6">
+              <h3 className="font-bold flex items-center gap-2 mb-2">
+                <ShoppingBag className="h-5 w-5 text-primary" />
+                Seller Studio
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Manage your listings and sales
+              </p>
             </div>
-            <h3 className="font-bold mb-1">{userData.name}</h3>
-            <div className="flex items-center justify-center gap-2 mb-3">
-              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-              <span className="font-semibold text-lg text-amber-600">
-                {userData.rating}%
-              </span>
-            </div>
-            <span
-              className="inline-flex items-center bg-gray-200 justify-center rounded-lg px-2 py-1 text-xm font-medium w-fit whitespace-nowrap 
-                  text-primary border-primary shrink-0 gap-1"
-            >
-              {userData.role === "seller" ? "Seller" : "Bidder"}
-            </span>
-          </div>
+          )}
 
-          {/* Seller Status Widget */}
-          {userData.role === "seller" && (
-            <div
-              className={`p-4 mt-4 lg:p-5 lg:mt-0 rounded-lg border-2 ${
-                isExpiryUrgent
-                  ? "bg-destructive/10 border-destructive"
-                  : "bg-primary/10 border-primary"
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Clock
-                  className={`h-4 w-4 ${
-                    isExpiryUrgent ? "text-destructive" : "text-primary"
+          {/* User Profile Summary (only for /dashboard/*) */}
+          {!isSellerStudio && (
+            <>
+              <div className="text-center pb-6 border-b">
+                <div className="relative inline-block mb-4">
+                  <img
+                    src={userData.avatar}
+                    alt="Avatar"
+                    className="w-20 h-20 lg:w-24 lg:h-24 rounded-full object-cover mx-auto border-4 border-black/10"
+                  />
+                  <label
+                    htmlFor="avatar-upload"
+                    className="absolute bottom-0 right-0 bg-black text-white rounded-full p-2 cursor-pointer hover:bg-primary/90 transition-colors shadow-lg"
+                  >
+                    <Pencil className="h-3 w-3 lg:h-3.5 lg:w-3.5" />
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <h3 className="font-bold mb-1">{userData.name}</h3>
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                  <span className="font-semibold text-lg text-amber-600">
+                    {userData.rating}%
+                  </span>
+                </div>
+                <span
+                  className="inline-flex items-center bg-gray-200 justify-center rounded-lg px-2 py-1 text-xm font-medium w-fit whitespace-nowrap 
+                  text-primary border-primary shrink-0 gap-1"
+                >
+                  {userData.role === "seller" ? "Seller" : "Bidder"}
+                </span>
+              </div>
+
+              {/* Seller Status Widget (only for sellers on /dashboard/*) */}
+              {userData.role === "seller" && (
+                <div
+                  className={`p-4 mt-4 lg:p-5 lg:mt-0 rounded-lg border-2 ${
+                    isExpiryUrgent
+                      ? "bg-destructive/10 border-destructive"
+                      : "bg-primary/10 border-primary"
                   }`}
-                />
-                <span className="text-xs font-medium">Seller Privileges</span>
-                <div className="group relative ml-auto flex items-center justify-center">
-                  <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
-                  <div
-                    className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-max max-w-xs 
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Clock
+                      className={`h-4 w-4 ${
+                        isExpiryUrgent ? "text-destructive" : "text-primary"
+                      }`}
+                    />
+                    <span className="text-xs font-medium">
+                      Seller Privileges
+                    </span>
+                    <div className="group relative ml-auto flex items-center justify-center">
+                      <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                      <div
+                        className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 w-max max-w-xs 
                   scale-0 opacity-0 transition-all duration-200 
                   group-hover:scale-100 group-hover:opacity-100 origin-bottom"
-                  >
-                    <div className="bg-black text-white rounded-md px-3 py-1.5 text-xs shadow-md text-center">
-                      <p>
-                        You can manage existing listings after expiry, but
-                        cannot create new ones.
-                      </p>
-                    </div>
+                      >
+                        <div className="bg-black text-white rounded-md px-3 py-1.5 text-xs shadow-md text-center">
+                          <p>
+                            You can manage existing listings after expiry, but
+                            cannot create new ones.
+                          </p>
+                        </div>
 
-                    <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-primary rotate-45"></div>
+                        <div className="absolute left-1/2 -bottom-1 -translate-x-1/2 w-2 h-2 bg-primary rotate-45"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className={`text-base lg:text-lg font-bold ${
+                      isExpiryUrgent ? "text-destructive" : "text-primary"
+                    }`}
+                  >
+                    {formatExpiryTime()}
                   </div>
                 </div>
-              </div>
-              <div
-                className={`text-base lg:text-lg font-bold ${
-                  isExpiryUrgent ? "text-destructive" : "text-primary"
-                }`}
-              >
-                {formatExpiryTime()}
-              </div>
-            </div>
+              )}
+            </>
           )}
 
           {/* Navigation Menu */}
           <nav className="space-y-1">
             <div className="flex flex-col gap-1 w-full">
-              {sidebarTabs.map((item) => {
+              {mainTabs.map((item) => {
                 const isActive = activeTab === item.id;
                 const Icon = item.icon;
 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => handleTabClick(item.id)}
+                    onClick={() => handleTabClick(item.id, isSellerStudio)}
                     className={`
                       group flex w-full items-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-200 hover:cursor-pointer
                       ${
@@ -310,22 +336,20 @@ const DesktopDashboardSidebar = ({
             </div>
           </nav>
 
-          {/* Role-Specific Menu Items */}
-          {roleSpecificTabs.length > 0 && (
+          {/* Additional Tabs (Upgrade to Seller for bidders) */}
+          {additionalTabs.length > 0 && (
             <>
-              {/* Đường kẻ phân cách (Divider) */}
               <div className="my-2 border-t pt-2" />
 
-              {/* Map qua danh sách item của Role */}
               <div className="flex flex-col gap-1 w-full">
-                {roleSpecificTabs.map((item) => {
+                {additionalTabs.map((item) => {
                   const isActive = activeTab === item.id;
                   const Icon = item.icon;
 
                   return (
                     <button
                       key={item.id}
-                      onClick={() => handleTabClick(item.id, item.isSeller)}
+                      onClick={() => handleTabClick(item.id, false)}
                       className={`
                         group flex w-full items-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-200 hover:cursor-pointer
                         ${
@@ -336,24 +360,7 @@ const DesktopDashboardSidebar = ({
                       `}
                     >
                       <Icon className="mr-2 h-4 w-4" />
-
                       {item.label}
-
-                      {/* Badge hiển thị số lượng (nếu có) */}
-                      {item.count !== undefined && (
-                        <span
-                          className={`
-                            ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs
-                            ${
-                              isActive
-                                ? "bg-white/20 text-white"
-                                : "bg-slate-200 text-slate-900"
-                            }
-                          `}
-                        >
-                          {item.count}
-                        </span>
-                      )}
                     </button>
                   );
                 })}

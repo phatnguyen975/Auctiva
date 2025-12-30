@@ -8,6 +8,7 @@ import {
   XCircle,
   AlertTriangle,
 } from "lucide-react";
+import { dumpySoldItems } from "../../../assets/assets";
 
 const SoldItemsPage = () => {
   const [showRateDialog, setShowRateDialog] = useState(false);
@@ -15,31 +16,8 @@ const SoldItemsPage = () => {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [ratingComment, setRatingComment] = useState("");
 
-  // Mock data
-  const soldItems = [
-    {
-      id: "1",
-      image:
-        "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=100&h=100&fit=crop",
-      title: "MacBook Pro 16-inch",
-      winner: "****Alex",
-      winnerRating: 94.5,
-      soldPrice: 1850,
-      paymentStatus: "paid",
-      rated: false,
-    },
-    {
-      id: "2",
-      image:
-        "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=100&h=100&fit=crop",
-      title: "Nike Air Jordan",
-      winner: "****Sarah",
-      winnerRating: 98.0,
-      soldPrice: 320,
-      paymentStatus: "pending",
-      rated: false,
-    },
-  ];
+  // Use mock data from assets
+  const soldItems = dumpySoldItems;
 
   return (
     <div className="space-y-6">

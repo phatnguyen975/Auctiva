@@ -1,8 +1,17 @@
-import { useNavigate } from "react-router-dom";
-import { Package, PackageCheck, Star, Clock, Plus } from "lucide-react";
+import {
+  Package,
+  TrendingUp,
+  DollarSign,
+  ThumbsUp,
+  Eye,
+  Heart,
+  Gavel,
+} from "lucide-react";
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -12,188 +21,267 @@ import {
 } from "recharts";
 
 const SellerOverviewPage = () => {
-  const navigate = useNavigate();
-
-  // Mock data
-  const userData = {
-    rating: 98.5,
+  // Mock data - Stats
+  const stats = {
+    activeListings: 12,
+    totalSales: 156,
+    revenue: 45230,
+    avgRating: 4.8,
   };
 
-  const activeListings = [{ id: "1" }, { id: "2" }];
-
-  const soldItems = [{ id: "1" }, { id: "2" }];
-
-  const sellerPrivilegesExpiry = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days remaining
-
-  const last7DaysData = [
-    { day: "Mon", activeListings: 8, soldItems: 3, rating: 97.5 },
-    { day: "Tue", activeListings: 10, soldItems: 2, rating: 97.8 },
-    { day: "Wed", activeListings: 7, soldItems: 4, rating: 98.0 },
-    { day: "Thu", activeListings: 9, soldItems: 3, rating: 98.2 },
-    { day: "Fri", activeListings: 11, soldItems: 5, rating: 98.5 },
-    { day: "Sat", activeListings: 6, soldItems: 2, rating: 98.3 },
-    {
-      day: "Sun",
-      activeListings: activeListings.length,
-      soldItems: soldItems.length,
-      rating: userData.rating,
-    },
+  // Mock data - Performance over 7 days
+  const performanceData = [
+    { day: "Mon", views: 245, bids: 34, revenue: 1200, watchers: 89 },
+    { day: "Tue", views: 312, bids: 45, revenue: 1850, watchers: 102 },
+    { day: "Wed", views: 189, bids: 28, revenue: 980, watchers: 76 },
+    { day: "Thu", views: 401, bids: 56, revenue: 2340, watchers: 134 },
+    { day: "Fri", views: 278, bids: 41, revenue: 1560, watchers: 95 },
+    { day: "Sat", views: 356, bids: 52, revenue: 2100, watchers: 118 },
+    { day: "Sun", views: 298, bids: 38, revenue: 1420, watchers: 104 },
   ];
-
-  const formatExpiryTime = () => {
-    const diff = sellerPrivilegesExpiry.getTime() - Date.now();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (days > 0) {
-      return `${days} Day${days > 1 ? "s" : ""} Remaining`;
-    } else {
-      const hours = Math.floor(
-        (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-      );
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      return `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-    }
-  };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-bold mb-2">Seller Studio</h2>
-        <p className="text-[hsl(var(--muted-foreground))]">
-          Manage your seller account
-        </p>
+        <h2 className="text-3xl font-bold">Dashboard Overview</h2>
       </div>
 
-      {/* Stats Cards */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Active Listings Card */}
-        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] flex flex-col gap-6 rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+                Active Listings
+              </p>
+              <p className="text-3xl font-bold mt-1">{stats.activeListings}</p>
+            </div>
             <div className="bg-[hsl(var(--primary)/0.1)] p-3 rounded-lg">
               <Package className="h-6 w-6 text-[hsl(var(--primary))]" />
             </div>
           </div>
-          <p className="text-3xl font-bold mb-1">{activeListings.length}</p>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">
-            Active Listings
-          </p>
         </div>
 
-        {/* Sold Items Card */}
-        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] flex flex-col gap-6 rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
-          <div className="flex items-center justify-between mb-4">
+        {/* Total Sales Card */}
+        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+                Total Sales
+              </p>
+              <p className="text-3xl font-bold mt-1">{stats.totalSales}</p>
+            </div>
             <div className="bg-green-500/10 p-3 rounded-lg">
-              <PackageCheck className="h-6 w-6 text-green-600 dark:text-green-500" />
+              <TrendingUp className="h-6 w-6 text-green-500" />
             </div>
           </div>
-          <p className="text-3xl font-bold mb-1">{soldItems.length}</p>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">
-            Sold Items
-          </p>
         </div>
 
-        {/* Seller Rating Card */}
-        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] flex flex-col gap-6 rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
-          <div className="flex items-center justify-between mb-4">
+        {/* Revenue Card */}
+        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+                Revenue
+              </p>
+              <p className="text-3xl font-bold mt-1">
+                ${stats.revenue.toLocaleString()}
+              </p>
+            </div>
             <div className="bg-amber-500/10 p-3 rounded-lg">
-              <Star className="h-6 w-6 text-amber-500" />
+              <DollarSign className="h-6 w-6 text-amber-500" />
             </div>
           </div>
-          <p className="text-3xl font-bold mb-1">{userData.rating}%</p>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">
-            Seller Rating
-          </p>
         </div>
 
-        {/* Days Remaining Card */}
-        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] flex flex-col gap-6 rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
-          <div className="flex items-center justify-between mb-4">
+        {/* Avg Rating Card */}
+        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-[hsl(var(--muted-foreground))]">
+                Avg Rating
+              </p>
+              <p className="text-3xl font-bold mt-1">{stats.avgRating}/5</p>
+            </div>
             <div className="bg-[hsl(var(--secondary)/0.1)] p-3 rounded-lg">
-              <Clock className="h-6 w-6 text-[hsl(var(--secondary-foreground))]" />
+              <ThumbsUp className="h-6 w-6 text-[hsl(var(--secondary-foreground))]" />
             </div>
           </div>
-          <p className="text-xl font-bold mb-1">
-            {formatExpiryTime().split(" ")[0]}
-          </p>
-          <p className="text-sm text-[hsl(var(--muted-foreground))]">
-            Days Remaining
-          </p>
         </div>
       </div>
 
       {/* 7-Day Performance Chart */}
-      <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] flex flex-col gap-6 rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
-        <h3 className="text-xl font-semibold mb-6">7-Day Performance</h3>
+      <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
+        <h3 className="font-semibold mb-4">7-Day Performance</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={last7DaysData}>
+          <LineChart
+            data={performanceData}
+            margin={{
+              top: 5,
+              right: 30,
+              left: 20,
+              bottom: 5,
+            }}
+          >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="day" />
-            <YAxis yAxisId="left" />
-            <YAxis yAxisId="right" orientation="right" />
+            <YAxis />
             <Tooltip />
             <Legend />
             <Line
-              yAxisId="left"
               type="monotone"
-              dataKey="activeListings"
-              stroke="#2563EB"
-              strokeWidth={2}
-              name="Active Listings"
+              dataKey="views"
+              stroke="#8884d8"
+              activeDot={{ r: 8 }}
             />
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="soldItems"
-              stroke="#16A34A"
-              strokeWidth={2}
-              name="Sold Items"
-            />
-            <Line
-              yAxisId="right"
-              type="monotone"
-              dataKey="rating"
-              stroke="#F59E0B"
-              strokeWidth={2}
-              name="Rating %"
-            />
+            <Line type="monotone" dataKey="bids" stroke="#82ca9d" />
+            <Line type="monotone" dataKey="revenue" stroke="#FF8C00" />
+            <Line type="monotone" dataKey="watchers" stroke="#FF00FF" />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Quick Actions */}
-      <div>
-        <h3 className="text-xl font-semibold mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Create New Listing Button */}
-          <button
-            onClick={() => navigate("/seller/create-listing")}
-            className="h-16 flex flex-col items-center justify-center py-3 gap-2 bg-slate-900 text-white shadow-sm whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] hover:bg-[hsl(var(--primary)/0.9)] hover:cursor-pointer"
-          >
-            <Plus className="h-5 w-5 mb-1" />
-            Create New Listing
-          </button>
+      {/* 7-Day Performance Charts - Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Views & Watchers Chart */}
+        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Views & Watchers</h3>
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4 text-[#2563EB]" />
+              <Heart className="h-4 w-4 text-[#EC4899]" />
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart
+              data={performanceData}
+              margin={{
+                top: 10,
+                right: 10,
+                left: 0,
+                bottom: 0,
+              }}
+            >
+              <defs>
+                <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0.1} />
+                </linearGradient>
+                <linearGradient id="colorWatchers" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#EC4899" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#EC4899" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="stroke-[hsl(var(--muted))]"
+              />
+              <XAxis
+                dataKey="day"
+                className="text-xs"
+                tick={{ fill: "hsl(var(--muted-foreground))" }}
+              />
+              <YAxis
+                className="text-xs"
+                tick={{ fill: "hsl(var(--muted-foreground))" }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Area
+                type="monotone"
+                dataKey="views"
+                stroke="#2563EB"
+                fillOpacity={1}
+                fill="url(#colorViews)"
+                strokeWidth={2}
+              />
+              <Area
+                type="monotone"
+                dataKey="watchers"
+                stroke="#EC4899"
+                fillOpacity={1}
+                fill="url(#colorWatchers)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
 
-          {/* View Active Listings Button */}
-          <button
-            onClick={() => navigate("/dashboard/seller/active-listings")}
-            className="h-16 flex flex-col items-center justify-center py-3 gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--primary)/0.9)] hover:text-[hsl(var(--accent-foreground))] dark:bg-[hsl(var(--input)/0.3)] dark:border-[hsl(var(--input))] dark:hover:bg-[hsl(var(--input)/0.5)] hover:cursor-pointer"
-          >
-            <Package className="h-5 w-5 mb-1" />
-            View Active Listings
-          </button>
-
-          {/* Manage Sold Items Button */}
-          <button
-            onClick={() => navigate("/dashboard/seller/sold-items")}
-            className="h-16 flex flex-col items-center justify-center py-3 gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] border border-[hsl(var(--border))] bg-[hsl(var(--background))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--primary)/0.9)] hover:text-[hsl(var(--accent-foreground))] dark:bg-[hsl(var(--input)/0.3)] dark:border-[hsl(var(--input))] dark:hover:bg-[hsl(var(--input)/0.5)] hover:cursor-pointer"
-          >
-            <PackageCheck className="h-5 w-5 mb-1" />
-            Manage Sold Items
-          </button>
+        {/* Bids & Revenue Chart */}
+        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Bids & Revenue</h3>
+            <div className="flex items-center gap-2">
+              <Gavel className="h-4 w-4 text-[#10B981]" />
+              <DollarSign className="h-4 w-4 text-[#F59E0B]" />
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart
+              data={performanceData}
+              margin={{
+                top: 10,
+                right: 10,
+                left: 0,
+                bottom: 0,
+              }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="stroke-[hsl(var(--muted))]"
+              />
+              <XAxis
+                dataKey="day"
+                className="text-xs"
+                tick={{ fill: "hsl(var(--muted-foreground))" }}
+              />
+              <YAxis
+                yAxisId="left"
+                className="text-xs"
+                tick={{ fill: "hsl(var(--muted-foreground))" }}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                className="text-xs"
+                tick={{ fill: "hsl(var(--muted-foreground))" }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Legend />
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="bids"
+                stroke="#10B981"
+                strokeWidth={3}
+                dot={{ fill: "#10B981", r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+              <Line
+                yAxisId="right"
+                type="monotone"
+                dataKey="revenue"
+                stroke="#F59E0B"
+                strokeWidth={3}
+                dot={{ fill: "#F59E0B", r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>
