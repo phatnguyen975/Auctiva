@@ -12,6 +12,7 @@ import userRouter from "./routes/userRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import productRouter from "./routes/productRoute.js";
 import sellerUpgradeRouter from "./routes/sellerUpgradeRoute.js";
+import ratingRouter from "./routes/ratingRoute.js";
 
 export const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/users", userRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/products", productRouter);
 app.use("/api/seller-upgrade-requests", sellerUpgradeRouter);
+app.use("/api/ratings", ratingRouter);
 
 // Error Handler
 app.use(notFoundHandler);
