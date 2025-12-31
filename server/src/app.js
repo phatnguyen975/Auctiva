@@ -8,6 +8,7 @@ import {
   notFoundHandler,
 } from "./middlewares/errorMiddleware.js";
 
+import userRouter from "./routes/userRoute.js";
 import categoryRouter from "./routes/categoryRoute.js";
 import productRouter from "./routes/productRoute.js";
 import sellerUpgradeRouter from "./routes/sellerUpgradeRoute.js";
@@ -26,6 +27,7 @@ app.use(logger);
 app.use(responseWrapper);
 
 // Routes
+app.use("/api/users", userRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/products", productRouter);
 app.use("/api/seller-upgrade-requests", sellerUpgradeRouter);

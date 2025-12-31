@@ -1,6 +1,7 @@
 import express from "express";
 import ProductController from "../controllers/productController.js";
 import BidController from "../controllers/bidController.js";
+import WatchlistController from "../controllers/watchlistController.js";
 import { validateApiKey } from "../middlewares/apiMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import {
@@ -32,6 +33,14 @@ router.post(
   BidController.create
 );
 
+router.post(
+  "/:id/watchlist",
+  verifyToken,
+  authorize(["bidder", "seller"]),
+  validate({ params: ProductIdSchema }),
+  WatchlistController.create
+);
+
 router.get(
   "/",
   validate({ query: ProductQuerySchema }),
@@ -60,6 +69,14 @@ router.delete(
   authorize(["admin"]),
   validate({ params: ProductIdSchema }),
   ProductController.delete
+);
+
+router.delete(
+  "/:id/watchlist",
+  verifyToken,
+  authorize(["bidder", "seller"]),
+  validate({ params: ProductIdSchema }),
+  WatchlistController.delete
 );
 
 export default router;
