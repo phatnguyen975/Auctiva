@@ -6,6 +6,9 @@ export const ProfileUpdateSchema = z.object({
   address: z.string().max(255).optional(),
   birthDate: z.string().date().optional(),
   avatarUrl: z.string().url().optional(),
-  ratingPositive: z.number().positive().optional(),
-  ratingCount: z.number().positive().optional(),
+});
+
+export const AuthUpdateSchema = z.object({
+  email: z.string().email().optional(),
+  password: z.string().min(1).optional(),
 });
