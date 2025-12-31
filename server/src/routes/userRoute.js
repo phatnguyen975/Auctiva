@@ -8,7 +8,7 @@ const router = express.Router();
 router.use(validateApiKey);
 
 router.get(
-  "/me/watchlist",
+  "/watchlist",
   verifyToken,
   authorize(["bidder", "seller"]),
   WatchlistController.getByUserId

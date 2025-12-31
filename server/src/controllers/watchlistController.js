@@ -28,7 +28,8 @@ const WatchlistController = {
   delete: async (req, res) => {
     try {
       const productId = Number(req.validated.params.id);
-      await WatchlistService.deleteProductFromWatchlist(productId);
+      const userId = req.user.id;
+      await WatchlistService.deleteProductFromWatchlist({ productId, userId });
       res.ok("Product deleted from watchlist successfully", null);
     } catch (error) {
       res.error(error.message);
