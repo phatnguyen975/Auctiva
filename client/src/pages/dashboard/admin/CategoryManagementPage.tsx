@@ -24,13 +24,21 @@ interface Category {
   subcategories: Subcategory[];
 }
 
+interface ParentCategory {
+  id: number;
+  name: string;
+}
+
 const CategoryManagementPage = () => {
   const [categories, setCategories] = useState<Category[]>(dummyAllCategories);
+  const [parentCategories, setParentCategories] = useState<ParentCategory[]>(
+    []
+  );
   const [expandedCategories, setExpandedCategories] = useState<string[]>([
     "electronics",
   ]);
   const [categoryName, setCategoryName] = useState("");
-  const [parentCategory, setParentCategory] = useState("");
+  const [parentCategoryId, setParentCategoryId] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +86,35 @@ const CategoryManagementPage = () => {
 
   // ============ API CALLS ============
 
+  // Fetch parent categories (for dropdown in Add Category dialog)
+  const fetchParentCategories = async () => {
+    // Mock data (remove when API is ready)
+    const mockParentCategories: ParentCategory[] = [
+      { id: 1, name: "Electronics" },
+      { id: 2, name: "Sports & Outdoors" },
+      { id: 3, name: "Fashion" },
+      { id: 4, name: "Health & Beauty" },
+      { id: 5, name: "Toys & Hobbies" },
+    ];
+
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    setParentCategories(mockParentCategories);
+
+    /* TODO: Uncomment when API is ready
+    try {
+      const response = await axiosInstance.get("/api/categories/parent");
+
+      if (response.data.success) {
+        setParentCategories(response.data.data);
+      }
+    } catch (err: any) {
+      console.error("Error fetching parent categories:", err);
+      setError(err.response?.data?.message || "Failed to fetch parent categories");
+    }
+    */
+  };
+
   // Fetch all categories
   const fetchCategories = async () => {
     try {
@@ -112,13 +149,13 @@ const CategoryManagementPage = () => {
 
       const response = await axiosInstance.post("/api/admin/categories", {
         name: categoryName,
-        parentSlug: parentCategory || null,
+        parentId: parentCategoryId,
       });
 
       if (response.data.success) {
         alert("Category created successfully!");
         setCategoryName("");
-        setParentCategory("");
+        setParentCategoryId(null);
         setIsDialogOpen(false);
         // Refresh categories list
         await fetchCategories();
@@ -213,6 +250,8 @@ const CategoryManagementPage = () => {
 
   // Fetch categories on component mount
   useEffect(() => {
+    // Fetch parent categories list for the dropdown
+    fetchParentCategories();
     // Uncomment when API is ready
     // fetchCategories();
   }, []);
@@ -233,7 +272,8 @@ const CategoryManagementPage = () => {
       parentSlug,
     });
     setCategoryName(category.name);
-    setParentCategory(parentSlug || "");
+    // Note: If editing, you may need to map parentSlug to parentId from the API
+    setParentCategoryId(null);
     setIsDialogOpen(true);
   };
 
@@ -247,14 +287,19 @@ const CategoryManagementPage = () => {
   const handleDialogClose = () => {
     setIsDialogOpen(false);
     setCategoryName("");
-    setParentCategory("");
+    setParentCategoryId(null);
     setEditingCategory(null);
     setError(null);
   };
 
   const handleDialogSubmit = () => {
     if (editingCategory) {
-      updateCategory(editingCategory.slug, categoryName, parentCategory);
+      // For editing, you may need to convert parentCategoryId back to slug or handle differently
+      updateCategory(
+        editingCategory.slug,
+        categoryName,
+        editingCategory.parentSlug
+      );
     } else {
       createCategory();
     }
@@ -433,14 +478,26 @@ const CategoryManagementPage = () => {
                   >
                     Parent Category (Optional)
                   </label>
-                  <input
+                  <select
                     id="parent-category"
-                    type="text"
-                    placeholder="Leave empty for top-level category"
-                    value={parentCategory}
-                    onChange={(e) => setParentCategory(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
+                    value={parentCategoryId === null ? "" : parentCategoryId}
+                    onChange={(e) =>
+                      setParentCategoryId(
+                        e.target.value === "" ? null : Number(e.target.value)
+                      )
+                    }
+                    className="flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                  >
+                    <option value="">None (Top-level category)</option>
+                    {parentCategories.map((parent) => (
+                      <option key={parent.id} value={parent.id}>
+                        {parent.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
+                    Select a parent category to create a subcategory
+                  </p>
                 </div>
               </div>
 
