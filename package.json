@@ -1,7 +1,7 @@
 {
   "name": "auctiva",
   "version": "1.0.0",
-  "description": "Online Auction",
+  "description": "Online Auction Website",
   "main": "index.js",
   "license": "ISC",
   "engines": {

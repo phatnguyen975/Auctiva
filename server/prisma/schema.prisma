@@ -13,10 +13,20 @@ enum user_role {
   admin
 }
 
+enum account_status {
+  active
+  locked
+}
+
 enum seller_request_status {
   pending
   approved
   rejected
+}
+
+enum seller_permission_status {
+  active
+  expired
 }
 
 enum product_status {
@@ -39,22 +49,24 @@ enum transaction_status {
 }
 
 model Profile {
-  id             String     @id @db.Uuid
-  username       String?    @map("user_name")
-  email          String     @unique
-  fullName       String     @map("full_name")
+  id             String         @id @db.Uuid
+  username       String?        @map("user_name")
+  email          String         @unique
+  fullName       String         @map("full_name")
   address        String?
-  birthDate      DateTime?  @map("birth_date") @db.Date
-  avatarUrl      String?    @map("avatar_url")
-  role           user_role? @default(bidder)
-  ratingPositive Int?       @default(0) @map("rating_positive")
-  ratingCount    Int?       @default(0) @map("rating_count")
-  createdAt      DateTime?  @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt      DateTime?  @updatedAt @map("updated_at") @db.Timestamptz
+  birthDate      DateTime?      @map("birth_date") @db.Date
+  avatarUrl      String?        @map("avatar_url")
+  role           user_role      @default(bidder)
+  status         account_status @default(active)
+  ratingPositive Int?           @default(0) @map("rating_positive")
+  ratingCount    Int?           @default(0) @map("rating_count")
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime?      @updatedAt @map("updated_at") @db.Timestamptz
 
   ratingsGiven          Rating[]               @relation("RatingFrom")
   ratingsReceived       Rating[]               @relation("RatingTo")
   sellerUpgradeRequests SellerUpgradeRequest[]
+  sellerPermissions     SellerPermission[]
   products              Product[]              @relation("SellerProducts")
   productsWon           Product[]              @relation("ProductWinner")
   bids                  Bid[]
@@ -70,12 +82,12 @@ model Profile {
 }
 
 model Rating {
-  id           Int       @id @default(autoincrement())
-  targetUserId String    @map("target_user_id") @db.Uuid
-  fromUserId   String    @map("from_user_id") @db.Uuid
+  id           Int      @id @default(autoincrement())
+  targetUserId String   @map("target_user_id") @db.Uuid
+  fromUserId   String   @map("from_user_id") @db.Uuid
   score        Int
   comment      String
-  createdAt    DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   fromUser   Profile @relation("RatingFrom", fields: [fromUserId], references: [id])
   targetUser Profile @relation("RatingTo", fields: [targetUserId], references: [id])
@@ -84,23 +96,35 @@ model Rating {
 }
 
 model SellerUpgradeRequest {
-  id          Int                    @id @default(autoincrement())
-  userId      String                 @map("user_id") @db.Uuid
-  status      seller_request_status? @default(pending)
-  requestedAt DateTime?              @default(now()) @map("requested_at") @db.Timestamptz
-  reviewedAt  DateTime?              @updatedAt @map("reviewed_at") @db.Timestamptz
+  id          Int                   @id @default(autoincrement())
+  userId      String                @map("user_id") @db.Uuid
+  status      seller_request_status @default(pending)
+  requestedAt DateTime              @default(now()) @map("requested_at") @db.Timestamptz
+  reviewedAt  DateTime?             @updatedAt @map("reviewed_at") @db.Timestamptz
 
   user Profile @relation(fields: [userId], references: [id])
 
   @@map("seller_upgrade_requests")
 }
 
+model SellerPermission {
+  id         Int                      @id @default(autoincrement())
+  userId     String                   @map("user_id") @db.Uuid
+  status     seller_permission_status @default(active)
+  approvedAt DateTime                 @default(now()) @map("approved_at") @db.Timestamptz
+  expiredAt  DateTime                 @map("expired_at") @db.Timestamptz
+
+  user Profile @relation(fields: [userId], references: [id])
+
+  @@map("seller_permissions")
+}
+
 model Category {
-  id        Int       @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
-  slug      String?   @unique
-  parentId  Int?      @map("parent_id")
-  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  slug      String?  @unique
+  parentId  Int?     @map("parent_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
   children Category[] @relation("CategoryTree")
@@ -110,26 +134,25 @@ model Category {
 }
 
 model Product {
-  id                Int             @id @default(autoincrement())
-  sellerId          String          @map("seller_id") @db.Uuid
-  categoryId        Int             @map("category_id")
-  winnerId          String?         @map("winner_id") @db.Uuid
+  id                Int            @id @default(autoincrement())
+  sellerId          String         @map("seller_id") @db.Uuid
+  categoryId        Int            @map("category_id")
+  winnerId          String?        @map("winner_id") @db.Uuid
   name              String
   description       String
-  slug              String?         @unique
-  startPrice        Decimal         @map("start_price")
-  stepPrice         Decimal         @map("step_price")
-  buyNowPrice       Decimal?        @map("buy_now_price")
-  currentPrice      Decimal?        @map("current_price")
-  postDate          DateTime        @default(now()) @map("post_date") @db.Timestamptz
-  endDate           DateTime        @map("end_date") @db.Timestamptz
-  isAutoExtend      Boolean?        @default(true) @map("is_auto_extend")
-  isInstantPurchase Boolean?        @default(false) @map("is_instant_purchase")
-  isNew             Boolean?        @default(false) @map("is_new")
-  status            product_status? @default(active)
-  minImages         Int?            @default(3) @map("min_images")
-  createdAt         DateTime?       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt         DateTime?       @updatedAt @map("updated_at") @db.Timestamptz
+  slug              String?        @unique
+  startPrice        Decimal        @map("start_price")
+  stepPrice         Decimal        @map("step_price")
+  buyNowPrice       Decimal?       @map("buy_now_price")
+  currentPrice      Decimal        @map("current_price")
+  postDate          DateTime       @default(now()) @map("post_date") @db.Timestamptz
+  endDate           DateTime       @map("end_date") @db.Timestamptz
+  isAutoExtend      Boolean        @default(true) @map("is_auto_extend")
+  isInstantPurchase Boolean        @default(false) @map("is_instant_purchase")
+  status            product_status @default(active)
+  minImages         Int?           @default(3) @map("min_images")
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime?      @updatedAt @map("updated_at") @db.Timestamptz
 
   seller        Profile           @relation("SellerProducts", fields: [sellerId], references: [id])
   category      Category          @relation(fields: [categoryId], references: [id])
@@ -145,11 +168,11 @@ model Product {
 }
 
 model ProductImage {
-  id        Int       @id @default(autoincrement())
-  productId Int       @map("product_id")
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
   url       String
-  isPrimary Boolean?  @default(false) @map("is_primary")
-  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   product Product @relation(fields: [productId], references: [id])
 
@@ -157,13 +180,12 @@ model ProductImage {
 }
 
 model Bid {
-  id        Int         @id @default(autoincrement())
-  productId Int         @map("product_id")
-  bidderId  String      @map("bidder_id") @db.Uuid
-  amount    Decimal?
-  maxBid    Decimal     @map("max_bid")
-  status    bid_status? @default(valid)
-  createdAt DateTime?   @default(now()) @map("created_at") @db.Timestamptz
+  id        Int        @id @default(autoincrement())
+  productId Int        @map("product_id")
+  bidderId  String     @map("bidder_id") @db.Uuid
+  maxBid    Decimal    @map("max_bid")
+  status    bid_status @default(valid)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
 
   product Product @relation(fields: [productId], references: [id])
   bidder  Profile @relation(fields: [bidderId], references: [id])
@@ -172,23 +194,22 @@ model Bid {
 }
 
 model Watchlist {
-  userId    String    @map("user_id") @db.Uuid
-  productId Int       @map("product_id")
-  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  userId    String   @map("user_id") @db.Uuid
+  productId Int      @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   user    Profile @relation(fields: [userId], references: [id])
   product Product @relation(fields: [productId], references: [id])
 
   @@id([userId, productId])
-  @@map("watchlists")
+  @@map("watchlist")
 }
 
 model BidRejection {
-  id        Int       @id @default(autoincrement())
-  productId Int       @map("product_id")
-  bidderId  String    @map("bidder_id") @db.Uuid
-  reason    String?
-  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  bidderId  String   @map("bidder_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   product Product @relation(fields: [productId], references: [id])
   bidder  Profile @relation(fields: [bidderId], references: [id])
@@ -197,11 +218,11 @@ model BidRejection {
 }
 
 model ProductQuestion {
-  id        Int       @id @default(autoincrement())
-  productId Int       @map("product_id")
-  bidderId  String    @map("bidder_id") @db.Uuid
+  id        Int      @id @default(autoincrement())
+  productId Int      @map("product_id")
+  bidderId  String   @map("bidder_id") @db.Uuid
   question  String
-  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   product Product         @relation(fields: [productId], references: [id])
   bidder  Profile         @relation(fields: [bidderId], references: [id])
@@ -211,11 +232,11 @@ model ProductQuestion {
 }
 
 model ProductAnswer {
-  id         Int       @id @default(autoincrement())
-  questionId Int       @map("question_id")
-  sellerId   String    @map("seller_id") @db.Uuid
+  id         Int      @id @default(autoincrement())
+  questionId Int      @map("question_id")
+  sellerId   String   @map("seller_id") @db.Uuid
   answer     String
-  createdAt  DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   question ProductQuestion @relation(fields: [questionId], references: [id])
   seller   Profile         @relation(fields: [sellerId], references: [id])
@@ -224,14 +245,14 @@ model ProductAnswer {
 }
 
 model Transaction {
-  id              Int                 @id @default(autoincrement())
-  productId       Int                 @map("product_id")
-  winnerId        String              @map("winner_id") @db.Uuid
-  sellerId        String              @map("seller_id") @db.Uuid
-  status          transaction_status? @default(pending)
-  shippingAddress String?             @map("shipping_address")
-  createdAt       DateTime?           @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt       DateTime?           @updatedAt @map("updated_at") @db.Timestamptz
+  id              Int                @id @default(autoincrement())
+  productId       Int                @map("product_id")
+  winnerId        String             @map("winner_id") @db.Uuid
+  sellerId        String             @map("seller_id") @db.Uuid
+  status          transaction_status @default(pending)
+  shippingAddress String             @map("shipping_address")
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime?          @updatedAt @map("updated_at") @db.Timestamptz
 
   product  Product              @relation(fields: [productId], references: [id])
   winner   Profile              @relation("WinnerTransactions", fields: [winnerId], references: [id])
@@ -242,11 +263,11 @@ model Transaction {
 }
 
 model TransactionMessage {
-  id            Int       @id @default(autoincrement())
-  transactionId Int       @map("transaction_id")
-  senderId      String    @map("sender_id") @db.Uuid
+  id            Int      @id @default(autoincrement())
+  transactionId Int      @map("transaction_id")
+  senderId      String   @map("sender_id") @db.Uuid
   message       String
-  createdAt     DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   transaction Transaction @relation(fields: [transactionId], references: [id])
   sender      Profile     @relation(fields: [senderId], references: [id])
@@ -257,7 +278,7 @@ model TransactionMessage {
 model AdminSetting {
   key       String    @id
   value     Json
-  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz
 
   @@map("admin_settings")

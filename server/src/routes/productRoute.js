@@ -1,6 +1,7 @@
 import express from "express";
 import ProductController from "../controllers/productController.js";
 import BidController from "../controllers/bidController.js";
+import BidRejectionController from "../controllers/bidRejectionController.js";
 import WatchlistController from "../controllers/watchlistController.js";
 import { validateApiKey } from "../middlewares/apiMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
@@ -31,6 +32,14 @@ router.post(
   authorize(["bidder", "seller"]),
   validate({ body: BidCreateSchema, params: ProductIdSchema }),
   BidController.create
+);
+
+router.post(
+  "/:id/bid-rejections",
+  verifyToken,
+  authorize(["seller"]),
+  validate({ params: ProductIdSchema }),
+  BidRejectionController.create
 );
 
 router.post(

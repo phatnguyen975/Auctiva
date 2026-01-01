@@ -16,7 +16,6 @@ export const ProductCreateSchema = z.object({
   startPrice: z.number().nonnegative(),
   stepPrice: z.number().positive(),
   buyNowPrice: z.number().positive().optional(),
-  postDate: z.string().datetime().optional(),
   endDate: z.string().datetime(),
   isAutoExtend: z.boolean().default(true),
   isInstantPurchase: z.boolean().default(false),

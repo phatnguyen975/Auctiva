@@ -1,5 +1,9 @@
 import { prisma } from "../configs/prisma.js";
-import { calculateProxyBidding, checkBidderRating } from "../utils/bidUtil.js";
+import {
+  calculateProxyBidding,
+  checkBidderRating,
+  checkBidRejection,
+} from "../utils/bidUtil.js";
 
 const BidService = {
   createBid: async ({ productId, userId, maxBid }) => {
@@ -19,8 +23,14 @@ const BidService = {
 
       await checkBidderRating({
         tx,
-        bidderId,
+        bidderId: userId,
         isInstantPurchase: product.isInstantPurchase,
+      });
+
+      await checkBidRejection({
+        tx,
+        productId,
+        bidderId: userId,
       });
 
       await tx.bid.create({
@@ -31,13 +41,25 @@ const BidService = {
         },
       });
 
-      const bids = await tx.bid.findMany({
+      const rejectedBidderIds = await tx.bidRejection.findMany({
         where: { productId },
+        select: { bidderId: true },
+      });
+
+      const rejectedSet = new Set(rejectedBidderIds.map((r) => r.bidderId));
+
+      const validBids = await tx.bid.findMany({
+        where: {
+          productId,
+          bidderId: {
+            notIn: [...rejectedSet],
+          },
+        },
         orderBy: { createdAt: "asc" },
       });
 
       const { leader, currentPrice } = calculateProxyBidding(
-        bids,
+        validBids,
         product.startPrice,
         product.stepPrice
       );
@@ -45,14 +67,14 @@ const BidService = {
       await tx.product.update({
         where: { id: productId },
         data: {
-          winnerId: leader.bidderId,
+          winnerId: leader?.bidderId ?? null,
           currentPrice,
         },
       });
 
       return {
-        leaderId: leader.bidderId,
-        leaderMaxBid: leader.maxBid,
+        leaderId: leader?.bidderId ?? null,
+        leaderMaxBid: leader?.maxBid ?? null,
         currentPrice,
       };
     });

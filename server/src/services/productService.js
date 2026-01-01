@@ -1,7 +1,7 @@
 import sanitizeHtml from "sanitize-html";
 import { prisma } from "../configs/prisma.js";
 import { createSlug } from "../utils/slugUtil.js";
-import { enrichProductWithFlags } from "../utils/adminSettingUtil.js";
+import { enrichProductWithFlags } from "../utils/productUtil.js";
 
 const ProductService = {
   createProduct: async ({ userId, product }) => {

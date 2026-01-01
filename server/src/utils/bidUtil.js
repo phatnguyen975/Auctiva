@@ -48,3 +48,16 @@ export const checkBidderRating = async ({
     throw new Error("Your rating score is too low to place a bid");
   }
 };
+
+export const checkBidRejection = async ({ tx, productId, bidderId }) => {
+  const rejected = await tx.bidRejection.findFirst({
+    where: {
+      productId,
+      bidderId,
+    },
+  });
+
+  if (rejected) {
+    throw new Error("You are rejected from bidding this product");
+  }
+};
