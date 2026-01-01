@@ -55,7 +55,7 @@ const App = () => {
     );
 
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, [dispatch]);
 
   if (isCheckingAuth) {
     return (

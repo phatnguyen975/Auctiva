@@ -1,43 +1,34 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
-import { axiosInstance } from "../lib/axios";
 import LoadingSpinner from "./ui/LoadingSpinner";
-import type { Category } from "../types/category";
+import type { AppDispatch, RootState } from "../store/store";
+import { useDispatch, useSelector } from "react-redux";
+import { getCategories } from "../store/slices/categorySlice";
 
 const CategoryBar = () => {
-  const [categoryOpen, setCategoryOpen] = useState<number | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    data: categories,
+    loaded,
+    loading,
+  } = useSelector((state: RootState) => state.categories);
 
+  const [categoryOpen, setCategoryOpen] = useState<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const getCategories = async () => {
-      try {
-        const { data } = await axiosInstance.get("/categories", {
-          headers: { "x-api-key": import.meta.env.VITE_API_KEY },
-        });
-
-        if (data.success) {
-          setCategories(data.data);
-        }
-      } catch (error) {
-        console.error("Error loading categories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getCategories();
-  }, []);
+    if (!loaded) {
+      dispatch(getCategories());
+    }
+  }, [loaded, dispatch]);
 
   return (
     <div className="w-full p-2 hidden md:flex items-center justify-center border-b border-gray-300 transition-colors duration-300">
       <div className="flex items-center justify-center gap-2 lg:gap-8">
         {loading ? (
           <LoadingSpinner />
-        ) : (
+        ) : categories.length > 0 ? (
           categories.map((category) => (
             <div
               key={category.id}
@@ -48,13 +39,13 @@ const CategoryBar = () => {
               {/* Main Categories */}
               <button
                 className={`
-                text-sm font-medium px-3 py-2 rounded-t-lg flex items-center gap-1 whitespace-nowrap
-                transition-all duration-200 border-b-2 cursor-pointer
-                ${
-                  categoryOpen === category.id
-                    ? "bg-gray-200"
-                    : "border-transparent"
-                }
+                  text-sm font-medium px-3 py-2 rounded-t-lg flex items-center gap-1 whitespace-nowrap
+                  transition-all duration-200 border-b-2 cursor-pointer
+                  ${
+                    categoryOpen === category.id
+                      ? "bg-gray-200"
+                      : "border-transparent"
+                  }
                 `}
                 onClick={() => navigate(`/products?category=${category.slug}`)}
               >
@@ -110,6 +101,8 @@ const CategoryBar = () => {
               )}
             </div>
           ))
+        ) : (
+          <div>No categories</div>
         )}
       </div>
     </div>

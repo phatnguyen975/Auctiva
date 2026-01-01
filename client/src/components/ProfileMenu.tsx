@@ -1,7 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { LogOut, LayoutDashboard, ShoppingBag, Shield, Home } from "lucide-react";
+import {
+  LogOut,
+  LayoutDashboard,
+  ShoppingBag,
+  Shield,
+  Home,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import type { AppDispatch } from "../store/store";
 import { logoutThunk } from "../store/slices/authSlice";
@@ -68,7 +74,7 @@ const ProfileMenu = ({ userProfile, isDashboard }: ProfileMenuProps) => {
             />
             <div>
               <p className="font-semibold max-w-[150px] truncate">
-                {userProfile?.user_name || userProfile?.full_name}
+                {userProfile?.full_name || userProfile?.user_name}
               </p>
               <p className="text-gray-600 text-sm max-w-[150px] truncate">
                 {userProfile?.email}
