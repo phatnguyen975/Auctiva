@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Upload, XCircle, HelpCircle } from "lucide-react";
+import { dummyAllCategories } from "../../../assets/assets";
 
 const CreateListingPage = () => {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -7,6 +8,10 @@ const CreateListingPage = () => {
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [autoExtension, setAutoExtension] = useState(false);
   const [allowInstantPurchase, setAllowInstantPurchase] = useState(false);
+
+  // Category selection
+  const [selectedParentCategory, setSelectedParentCategory] = useState("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("");
 
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -104,6 +109,66 @@ const CreateListingPage = () => {
               placeholder="Enter product name"
               className="w-full text-lg rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
             />
+          </div>
+
+          {/* Category Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label
+                htmlFor="parentCategory"
+                className="text-sm font-medium block"
+              >
+                Category{" "}
+                <span className="text-[hsl(var(--destructive))]">*</span>
+              </label>
+              <select
+                id="parentCategory"
+                value={selectedParentCategory}
+                onChange={(e) => {
+                  setSelectedParentCategory(e.target.value);
+                  setSelectedSubcategory(""); // Reset subcategory when parent changes
+                }}
+                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] cursor-pointer"
+              >
+                <option value="">Select a category</option>
+                {dummyAllCategories.map((category) => (
+                  <option key={category.slug} value={category.slug}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label
+                htmlFor="subcategory"
+                className="text-sm font-medium block"
+              >
+                Subcategory{" "}
+                <span className="text-[hsl(var(--destructive))]">*</span>
+              </label>
+              <select
+                id="subcategory"
+                value={selectedSubcategory}
+                onChange={(e) => setSelectedSubcategory(e.target.value)}
+                disabled={!selectedParentCategory}
+                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">
+                  {selectedParentCategory
+                    ? "Select a subcategory"
+                    : "Select category first"}
+                </option>
+                {selectedParentCategory &&
+                  dummyAllCategories
+                    .find((cat) => cat.slug === selectedParentCategory)
+                    ?.subcategories.map((sub) => (
+                      <option key={sub.slug} value={sub.slug}>
+                        {sub.name}
+                      </option>
+                    ))}
+              </select>
+            </div>
           </div>
 
           {/* Image Upload */}
