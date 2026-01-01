@@ -250,7 +250,9 @@ model Transaction {
   winnerId        String             @map("winner_id") @db.Uuid
   sellerId        String             @map("seller_id") @db.Uuid
   status          transaction_status @default(pending)
-  shippingAddress String             @map("shipping_address")
+  shippingAddress String?            @map("shipping_address")
+  paymentProof    String?            @map("payment_proof")
+  shippingReceipt String?            @map("shipping_receipt")
   createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime?          @updatedAt @map("updated_at") @db.Timestamptz
 
