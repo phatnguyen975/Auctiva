@@ -5,6 +5,7 @@ import { validate } from "../middlewares/validateMiddleware.js";
 import {
   CategoryCreateSchema,
   CategoryIdSchema,
+  CategoryUpdateSchema,
 } from "../schemas/categorySchema.js";
 import { verifyToken, authorize } from "../middlewares/userAuthMiddleware.js";
 
@@ -21,6 +22,14 @@ router.post(
 );
 
 router.get("/", CategoryController.getAll);
+
+router.put(
+  "/:id",
+  verifyToken,
+  authorize(["admin"]),
+  validate({ body: CategoryUpdateSchema, params: CategoryIdSchema }),
+  CategoryController.update
+);
 
 router.delete(
   "/:id",

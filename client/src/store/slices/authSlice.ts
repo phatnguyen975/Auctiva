@@ -207,6 +207,8 @@ interface AuthUser {
 
 interface AuthState {
   authUser: AuthUser | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   loading: boolean;
   error: string | null;
   isPasswordReset: boolean;
@@ -215,6 +217,8 @@ interface AuthState {
 
 const initialState: AuthState = {
   authUser: null,
+  accessToken: null,
+  refreshToken: null,
   loading: false,
   error: null,
   isPasswordReset: false,
@@ -227,6 +231,11 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action: PayloadAction<AuthUser | null>) => {
       state.authUser = action.payload;
+    },
+    setSession(state, action) {
+      const session = action.payload;
+      state.accessToken = session?.access_token ?? null;
+      state.refreshToken = session?.refresh_token ?? null;
     },
     setIsPasswordReset(state, action: PayloadAction<boolean>) {
       state.isPasswordReset = action.payload;
@@ -277,9 +286,12 @@ const authSlice = createSlice({
       // --- Logout ---
       .addCase(logoutThunk.fulfilled, (state) => {
         state.authUser = null;
+        state.accessToken = null;
+        state.refreshToken = null;
         state.loading = false;
         state.error = null;
         state.isPasswordReset = false;
+        state.isCheckingAuth = true;
       })
       // --- Fetch Profile ---
       .addCase(fetchProfileThunk.pending, (state) => {
@@ -320,7 +332,11 @@ const authSlice = createSlice({
   },
 });
 
-export const { setUser, setIsPasswordReset, setIsCheckingAuth } =
-  authSlice.actions;
+export const {
+  setUser,
+  setSession,
+  setIsPasswordReset,
+  setIsCheckingAuth,
+} = authSlice.actions;
 
 export default authSlice.reducer;

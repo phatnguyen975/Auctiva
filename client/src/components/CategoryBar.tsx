@@ -17,9 +17,17 @@ const CategoryBar = () => {
   const [categoryOpen, setCategoryOpen] = useState<number | null>(null);
   const navigate = useNavigate();
 
+  const fetchCategories = async () => {
+    try {
+      await dispatch(getCategories()).unwrap();
+    } catch (error: any) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
   useEffect(() => {
     if (!loaded) {
-      dispatch(getCategories());
+      fetchCategories();
     }
   }, [loaded, dispatch]);
 

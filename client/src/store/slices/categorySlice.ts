@@ -11,7 +11,7 @@ export const getCategories = createAsyncThunk(
       });
 
       if (!data.success) {
-        return rejectWithValue("Get categories failed: " + data.message);
+        return rejectWithValue(data.message);
       }
 
       return data.data;
