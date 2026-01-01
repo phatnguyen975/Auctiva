@@ -6,6 +6,7 @@ import { supabase } from "./lib/supabaseClient";
 import {
   fetchProfileThunk,
   setIsCheckingAuth,
+  setSession,
   setUser,
 } from "./store/slices/authSlice";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
@@ -20,6 +21,8 @@ const App = () => {
   useEffect(() => {
     // Get current session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      dispatch(setSession(session));
+
       if (session?.user) {
         dispatch(
           setUser({
@@ -38,6 +41,8 @@ const App = () => {
     // Listen auth state change
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
+        dispatch(setSession(session));
+
         if (session?.user) {
           dispatch(
             setUser({
