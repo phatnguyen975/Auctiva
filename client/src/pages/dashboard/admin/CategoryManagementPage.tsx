@@ -110,7 +110,7 @@ const CategoryManagementPage = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await axiosInstance.post("/api/admin/categories", {
+      const response = await axiosInstance.post("/categories", {
         name: categoryName,
         parentSlug: parentCategory || null,
       });

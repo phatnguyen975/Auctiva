@@ -42,7 +42,13 @@ const DesktopDashboardSidebar = ({
 
   const location = useLocation();
   const pathSegments = location.pathname.split("/").filter(Boolean);
-  const currentTabId = pathSegments[pathSegments.length - 1] || "profile";
+  let currentTabId = pathSegments[pathSegments.length - 1] || "profile";
+
+  if (currentTabId === "admin" || currentTabId === "dashboard") {
+    currentTabId = "profile"
+  } else if (currentTabId === "seller") {
+    currentTabId = "overview"
+  }
 
   const [activeTab, setActiveTab] = useState(currentTabId);
 
@@ -174,6 +180,11 @@ const DesktopDashboardSidebar = ({
   // Admin Panel tabs (only on /admin/*)
   const adminPanelTabs = [
     {
+      id: "profile",
+      label: "Profile",
+      icon: User,
+    },
+    {
       id: "categories",
       label: "Categories",
       icon: FolderTree,
@@ -198,11 +209,6 @@ const DesktopDashboardSidebar = ({
       id: "settings",
       label: "System Settings",
       icon: UserCog,
-    },
-    {
-      id: "profile",
-      label: "Profile",
-      icon: User,
     },
   ];
 
