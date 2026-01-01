@@ -12,21 +12,24 @@ import {
 import Input from "./ui/Input";
 import ThemeToggle from "./ui/ThemeToggle";
 import ProfileMenu from "./ProfileMenu";
-import { useSelector } from "react-redux";
-import type { RootState } from "../store/store";
-import { axiosInstance } from "../lib/axios";
-import type { Category } from "../types/category";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../store/store";
 import LoadingSpinner from "./ui/LoadingSpinner";
+import { getCategories } from "../store/slices/categorySlice";
 
 const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    data: categories,
+    loaded,
+    loading,
+  } = useSelector((state: RootState) => state.categories);
   const authUser = useSelector((state: RootState) => state.auth.authUser);
   const role = authUser?.profile?.role;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [categorySidebarOpen, setCategorySidebarOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -40,22 +43,12 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   };
 
   useEffect(() => {
-    const getCategories = async () => {
-      try {
-        const { data } = await axiosInstance.get("/categories", {
-          headers: { "x-api-key": import.meta.env.VITE_API_KEY },
-        });
+    if (!loaded) {
+      dispatch(getCategories());
+    }
+  }, [loaded, dispatch]);
 
-        if (data.success) {
-          setCategories(data.data);
-        }
-      } catch (error) {
-        console.error("Error loading categories:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
         sidebarRef.current &&
@@ -66,7 +59,6 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
     };
 
     if (categorySidebarOpen) {
-      getCategories();
       document.addEventListener("mousedown", handleClickOutside);
     }
 
@@ -237,7 +229,7 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                 <div className="flex items-center justify-center">
                   <LoadingSpinner />
                 </div>
-              ) : (
+              ) : categories.length > 0 ? (
                 categories.map((category) => {
                   const isOpen = expandedCategories.includes(category.id);
                   return (
@@ -275,6 +267,8 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                     </div>
                   );
                 })
+              ) : (
+                <div>No categories</div>
               )}
             </div>
           </div>
