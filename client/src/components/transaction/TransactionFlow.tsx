@@ -27,7 +27,7 @@ const TransactionFlow = ({
   productTitle,
   winningBid,
 }: TransactionFlowProps) => {
-  const [currentStep, setCurrentStep] = useState<TransactionStep>(4);
+  const [currentStep, setCurrentStep] = useState<TransactionStep>(1);
   const [shippingAddress, setShippingAddress] = useState("");
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [shippingReceipt, setShippingReceipt] = useState<File | null>(null);
