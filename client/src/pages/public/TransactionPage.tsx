@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { axiosInstance } from "../../lib/axios";
-import { getHeaders } from "../../lib/getHeaders";
+import { getHeaders } from "../../utils/getHeaders";
 import type { RootState } from "../../store/store";
 import TransactionFlow from "../../components/transaction/TransactionFlow";
 import AuctionEndedOverlay from "../../components/transaction/AuctionEndedOverlay";

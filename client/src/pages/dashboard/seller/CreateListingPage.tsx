@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect, type FormEvent } from "react";
 import { Upload, X, HelpCircle, Loader2 } from "lucide-react";
-import { uploadImage } from "../../../utils/image";
+import { uploadProductImage } from "../../../utils/product";
 import { convertLocalToISOString } from "../../../utils/date";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../store/store";
 import { getCategories } from "../../../store/slices/categorySlice";
 import { axiosInstance } from "../../../lib/axios";
+import { getCategoryNamesByIds } from "../../../utils/category";
 
 const CreateListingPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -147,6 +148,7 @@ const CreateListingPage = () => {
 
     if (
       !productName ||
+      !selectedParentCategory ||
       !selectedSubcategory ||
       !endDate ||
       !startPrice ||
@@ -165,10 +167,23 @@ const CreateListingPage = () => {
     try {
       setIsLoading(true);
 
+      const result = getCategoryNamesByIds(
+        categories,
+        selectedParentCategory,
+        selectedSubcategory
+      );
+      if (!result) {
+        toast.error("Category not found");
+        return;
+      }
+
       // Upload images to Supabase
-      const bucketName = "product-images";
       const uploadPromises = selectedFiles.map((file) =>
-        uploadImage(file, bucketName)
+        uploadProductImage({
+          file,
+          parentCategory: result.parentName,
+          subCategory: result.childName,
+        })
       );
       const uploadedUrls = await Promise.all(uploadPromises);
 

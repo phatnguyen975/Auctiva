@@ -4,8 +4,8 @@ import { Send, MessageCircle, AlertTriangle, Loader2 } from "lucide-react";
 
 import toast from "react-hot-toast";
 import { axiosInstance } from "../../lib/axios";
-import { getHeaders } from "../../lib/getHeaders";
-import { uploadTransactionFile } from "../../lib/uploadFile";
+import { getHeaders } from "../../utils/getHeaders";
+import { uploadTransactionFile } from "../../utils/uploadFile";
 
 import Progress from "./Progress";
 import PaymentShippingStep from "./steps/PaymentShippingStep";

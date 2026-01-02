@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient";
+import { supabase } from "../lib/supabaseClient";
 
 export const uploadTransactionFile = async (
   file: File,
@@ -13,7 +13,7 @@ export const uploadTransactionFile = async (
     const filePath = `${folder}/${fileName}`;
 
     // Upload file to Supabase Storage
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("transaction-files")
       .upload(filePath, file, {
         cacheControl: "3600",
