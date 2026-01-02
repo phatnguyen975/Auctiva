@@ -5,6 +5,7 @@ import type { AppDispatch, RootState } from "./store/store";
 import { supabase } from "./lib/supabaseClient";
 import {
   fetchProfileThunk,
+  setHasCheckedAuth,
   setIsCheckingAuth,
   setSession,
   setUser,
@@ -13,12 +14,16 @@ import LoadingSpinner from "./components/ui/LoadingSpinner";
 import AppRoutes from "./routes/AppRoutes";
 
 const App = () => {
-  const isCheckingAuth = useSelector(
-    (state: RootState) => state.auth.isCheckingAuth
+  const { hasCheckedAuth, isCheckingAuth } = useSelector(
+    (s: RootState) => s.auth
   );
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
+    if (hasCheckedAuth) {
+      return;
+    }
+
     // Get current session
     supabase.auth.getSession().then(({ data: { session } }) => {
       dispatch(setSession(session));
@@ -30,12 +35,13 @@ const App = () => {
             profile: null,
           })
         );
-
         dispatch(fetchProfileThunk(session.user.id));
       } else {
         dispatch(setUser(null));
-        dispatch(setIsCheckingAuth(false));
       }
+
+      dispatch(setIsCheckingAuth(false));
+      dispatch(setHasCheckedAuth(true));
     });
 
     // Listen auth state change
@@ -50,19 +56,17 @@ const App = () => {
               profile: null,
             })
           );
-
           dispatch(fetchProfileThunk(session.user.id));
         } else {
           dispatch(setUser(null));
-          dispatch(setIsCheckingAuth(false));
         }
       }
     );
 
     return () => listener.subscription.unsubscribe();
-  }, [dispatch]);
+  }, [hasCheckedAuth, dispatch]);
 
-  if (isCheckingAuth) {
+  if (!hasCheckedAuth || isCheckingAuth) {
     return (
       <div className="flex items-center justify-center h-screen">
         <LoadingSpinner />

@@ -213,6 +213,7 @@ interface AuthState {
   error: string | null;
   isPasswordReset: boolean;
   isCheckingAuth: boolean;
+  hasCheckedAuth: boolean;
 }
 
 const initialState: AuthState = {
@@ -223,6 +224,7 @@ const initialState: AuthState = {
   error: null,
   isPasswordReset: false,
   isCheckingAuth: true,
+  hasCheckedAuth: false,
 };
 
 const authSlice = createSlice({
@@ -243,6 +245,9 @@ const authSlice = createSlice({
     },
     setIsCheckingAuth(state, action: PayloadAction<boolean>) {
       state.isCheckingAuth = action.payload;
+    },
+    setHasCheckedAuth(state, action: PayloadAction<boolean>) {
+      state.hasCheckedAuth = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -337,6 +342,7 @@ export const {
   setSession,
   setIsPasswordReset,
   setIsCheckingAuth,
+  setHasCheckedAuth,
 } = authSlice.actions;
 
 export default authSlice.reducer;

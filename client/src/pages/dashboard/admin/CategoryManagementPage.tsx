@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../store/store";
 import type { Category } from "../../../types/category";
-import { getCategories } from "../../../store/slices/categorySlice";
+import { getCategories, resetCategories } from "../../../store/slices/categorySlice";
 import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 
 const CategoryManagementPage = () => {
@@ -84,6 +84,7 @@ const CategoryManagementPage = () => {
         setParentCategoryId(null);
         setIsDialogOpen(false);
         toast.success(data.message);
+        dispatch(resetCategories());
         await fetchCategories();
       } else {
         toast.error(data.message);
@@ -130,6 +131,7 @@ const CategoryManagementPage = () => {
         setEditingCategory(null);
         setIsDialogOpen(false);
         toast.success(data.message);
+        dispatch(resetCategories());
         await fetchCategories();
       } else {
         toast.error(data.message);
@@ -167,6 +169,7 @@ const CategoryManagementPage = () => {
 
       if (data.success) {
         toast.success(data.message);
+        dispatch(resetCategories());
         await fetchCategories();
       } else {
         toast.error(data.message);
