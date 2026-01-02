@@ -18,8 +18,6 @@ const Progress = ({ currentStep, className = "" }: ProgressProps) => {
     Math.max(0, (currentStep / STEPS.length) * 100)
   );
 
-  console.log(progressPercentage);
-
   return (
     <div className={`w-full ${className}`}>
       {/* 1. Thanh Progress Bar */}

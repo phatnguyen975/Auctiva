@@ -1,4 +1,4 @@
-import { ThumbsUp, ThumbsDown, Edit } from "lucide-react";
+import { ThumbsUp, ThumbsDown, Edit, Loader2 } from "lucide-react";
 
 interface RatingStepProps {
   rating: "up" | "down" | null;
@@ -8,6 +8,7 @@ interface RatingStepProps {
   isEditingReview: boolean;
   setIsEditingReview: (value: boolean) => void;
   onSubmit: () => void;
+  isLoading?: boolean;
 }
 
 const RatingStep = ({
@@ -18,6 +19,7 @@ const RatingStep = ({
   isEditingReview,
   setIsEditingReview,
   onSubmit,
+  isLoading = false,
 }: RatingStepProps) => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -86,26 +88,31 @@ const RatingStep = ({
           // Trạng thái đã chọn rating -> Hiện nút Edit & Confirm
           <div className="grid grid-cols-2 gap-2">
             <button
-              className="flex justify-center items-center p-2 rounded-xl bg-gray-400/30 text-black font-semibold hover:cursor-pointer hover:bg-gray-400/60"
+              className="flex justify-center items-center p-2 rounded-xl bg-gray-400/30 text-black font-semibold hover:cursor-pointer hover:bg-gray-400/60 disabled:opacity-50"
               onClick={() => setIsEditingReview(true)}
+              disabled={isLoading}
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit Review
             </button>
             <button
-              className="flex-1 p-2 rounded-xl bg-black text-white font-semibold hover:cursor-pointer hover:bg-black/80"
+              className="flex-1 p-2 rounded-xl bg-black text-white font-semibold hover:cursor-pointer hover:bg-black/80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               onClick={onSubmit}
+              disabled={isLoading}
             >
-              Confirm Rating
+              {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isLoading ? "Submitting..." : "Confirm Rating"}
             </button>
           </div>
         ) : (
           // Trạng thái chưa chọn hoặc đang edit -> Hiện nút Submit
           <button
-            className="w-full flex-1 p-2 rounded-xl bg-black text-white font-semibold hover:cursor-pointer hover:bg-black/80"
+            className="w-full flex-1 p-2 rounded-xl bg-black text-white font-semibold hover:cursor-pointer hover:bg-black/80 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             onClick={onSubmit}
+            disabled={isLoading || !rating}
           >
-            Submit Rating
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading ? "Submitting..." : "Submit Rating"}
           </button>
         )}
       </div>

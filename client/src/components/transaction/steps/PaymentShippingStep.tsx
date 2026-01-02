@@ -1,13 +1,14 @@
 import React from "react";
-import { Upload, Package } from "lucide-react";
+import { Upload, Package, Loader2 } from "lucide-react";
 
 interface PaymentShippingStepProps {
-  userRole: "winner" | "seller" | string; // Type string cho an toàn nếu có role khác
+  userRole: "winner" | "seller" | string;
   shippingAddress: string;
   setShippingAddress: (value: string) => void;
   paymentProof: File | null;
-  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void; // Hàm upload cụ thể
+  onFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: () => void;
+  isLoading?: boolean;
 }
 
 const PaymentShippingStep = ({
@@ -17,6 +18,7 @@ const PaymentShippingStep = ({
   paymentProof,
   onFileUpload,
   onSubmit,
+  isLoading = false,
 }: PaymentShippingStepProps) => {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -77,9 +79,11 @@ const PaymentShippingStep = ({
           {/* 3. Nút Submit */}
           <button
             onClick={onSubmit}
-            className="w-full p-2 rounded-xl bg-black text-white font-semibold"
+            disabled={isLoading || !shippingAddress || !paymentProof}
+            className="w-full p-2 rounded-xl bg-black text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Submit Payment
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {isLoading ? "Submitting..." : "Submit Payment"}
           </button>
         </div>
       ) : (

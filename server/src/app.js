@@ -13,11 +13,17 @@ import categoryRouter from "./routes/categoryRoute.js";
 import productRouter from "./routes/productRoute.js";
 import sellerUpgradeRouter from "./routes/sellerUpgradeRoute.js";
 import ratingRouter from "./routes/ratingRoute.js";
+import transactionRouter from "./routes/transactionRoute.js";
 
 export const app = express();
 
 // Middlewares
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(
+  cors({
+    origin: [process.env.CLIENT_URL, "http://localhost:5174"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -33,6 +39,7 @@ app.use("/api/categories", categoryRouter);
 app.use("/api/products", productRouter);
 app.use("/api/seller-upgrade-requests", sellerUpgradeRouter);
 app.use("/api/ratings", ratingRouter);
+app.use("/api/transactions", transactionRouter);
 
 // Error Handler
 app.use(notFoundHandler);
