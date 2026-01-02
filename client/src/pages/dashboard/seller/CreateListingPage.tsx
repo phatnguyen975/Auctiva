@@ -1,24 +1,59 @@
-import { useState, useRef, useEffect } from "react";
-import { Upload, XCircle, HelpCircle } from "lucide-react";
-import { dummyAllCategories } from "../../../assets/assets";
+import { useState, useRef, useEffect, type FormEvent } from "react";
+import { Upload, X, HelpCircle, Loader2 } from "lucide-react";
+import { uploadImage } from "../../../utils/image";
+import { convertLocalToISOString } from "../../../utils/date";
+import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../../store/store";
+import { getCategories } from "../../../store/slices/categorySlice";
+import { axiosInstance } from "../../../lib/axios";
 
 const CreateListingPage = () => {
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const [description, setDescription] = useState("");
-  const [additionalInfo, setAdditionalInfo] = useState("");
-  const [autoExtension, setAutoExtension] = useState(false);
-  const [allowInstantPurchase, setAllowInstantPurchase] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { data: categories, loaded } = useSelector(
+    (state: RootState) => state.categories
+  );
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
-  // Category selection
-  const [selectedParentCategory, setSelectedParentCategory] = useState("");
-  const [selectedSubcategory, setSelectedSubcategory] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]); // URLs for preview
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]); // Real files for upload
+
+  const [description, setDescription] = useState("");
+  const [autoExtension, setAutoExtension] = useState(true);
+  const [allowInstantPurchase, setAllowInstantPurchase] = useState(false);
+  const [endDate, setEndDate] = useState("");
+
+  const [selectedParentCategory, setSelectedParentCategory] = useState<
+    number | null
+  >(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(
+    null
+  );
 
   const editorRef = useRef<HTMLDivElement>(null);
+
+  const fetchCategories = async () => {
+    try {
+      await dispatch(getCategories()).unwrap();
+    } catch (error: any) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!loaded) {
+      fetchCategories();
+    }
+  }, [loaded, dispatch]);
 
   // Setup keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!editorRef.current?.contains(document.activeElement)) return;
+      if (!editorRef.current?.contains(document.activeElement)) {
+        return;
+      }
 
       if (e.ctrlKey || e.metaKey) {
         switch (e.key.toLowerCase()) {
@@ -70,13 +105,19 @@ const CreateListingPage = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
+      const newFiles = Array.from(files);
       const newImages: string[] = [];
-      Array.from(files).forEach((file) => {
+
+      // Update File state
+      setSelectedFiles((prev) => [...prev, ...newFiles]);
+
+      // Create Preview URLs
+      newFiles.forEach((file) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           newImages.push(reader.result as string);
-          if (newImages.length === files.length) {
-            setUploadedImages([...uploadedImages, ...newImages]);
+          if (newImages.length === newFiles.length) {
+            setUploadedImages((prev) => [...prev, ...newImages]);
           }
         };
         reader.readAsDataURL(file);
@@ -84,10 +125,124 @@ const CreateListingPage = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleRemoveImage = (idx: number) => {
+    setUploadedImages(uploadedImages.filter((_, i) => i !== idx));
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== idx));
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Form submitted");
+
+    const productName = (
+      document.getElementById("productName") as HTMLInputElement
+    ).value;
+    const startPrice = (
+      document.getElementById("startingPrice") as HTMLInputElement
+    ).value;
+    const stepPrice = (document.getElementById("stepPrice") as HTMLInputElement)
+      .value;
+    const buyNowPrice = (
+      document.getElementById("buyNowPrice") as HTMLInputElement
+    ).value;
+
+    if (
+      !productName ||
+      !selectedSubcategory ||
+      !endDate ||
+      !startPrice ||
+      !stepPrice ||
+      !description
+    ) {
+      toast.error("Missing required fields");
+      return;
+    }
+
+    if (selectedFiles.length < 3) {
+      toast.error("Please upload at least 3 images");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Upload images to Supabase
+      const bucketName = "product-images";
+      const uploadPromises = selectedFiles.map((file) =>
+        uploadImage(file, bucketName)
+      );
+      const uploadedUrls = await Promise.all(uploadPromises);
+
+      const validImageUrls = uploadedUrls.filter((url) => url !== null);
+
+      if (validImageUrls.length < 3) {
+        toast.error("Some images failed to upload. Please try again.");
+        return;
+      }
+
+      // Construct payload
+      const payload = {
+        name: productName,
+        description: description, // HTML string from Editor
+        categoryId: Number(selectedSubcategory),
+        startPrice: Number(startPrice),
+        stepPrice: Number(stepPrice),
+        ...(buyNowPrice !== "" && { buyNowPrice: Number(buyNowPrice) }),
+        endDate: convertLocalToISOString(endDate),
+        isAutoExtend: autoExtension,
+        isInstantPurchase: allowInstantPurchase,
+        minImages: 3,
+        images: validImageUrls.map((url, index) => ({
+          url: url,
+          isPrimary: index === 0,
+        })),
+      };
+
+      // Call API to create product
+      const { data } = await axiosInstance.post("/products", payload, {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        setUploadedImages([]);
+        setSelectedFiles([]);
+        setDescription("");
+        setAutoExtension(true);
+        setAllowInstantPurchase(false);
+        setEndDate("");
+        setSelectedParentCategory(null);
+        setSelectedSubcategory(null);
+
+        if (editorRef.current) {
+          editorRef.current.innerHTML = "";
+        }
+
+        const idsToReset = [
+          "productName",
+          "startingPrice",
+          "stepPrice",
+          "buyNowPrice",
+          "image-upload",
+        ];
+
+        idsToReset.forEach((id) => {
+          const element = document.getElementById(id) as HTMLInputElement;
+          if (element) {
+            element.value = "";
+          }
+        });
+
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      console.error("Error creating listing:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -101,13 +256,15 @@ const CreateListingPage = () => {
           {/* Product Name */}
           <div className="space-y-2">
             <label htmlFor="productName" className="text-sm font-medium block">
-              Product Name
+              Product Name{" "}
+              <span className="text-[hsl(var(--destructive))]">*</span>
             </label>
             <input
               id="productName"
               type="text"
+              required
               placeholder="Enter product name"
-              className="w-full text-lg rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+              className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
             />
           </div>
 
@@ -123,17 +280,21 @@ const CreateListingPage = () => {
               </label>
               <select
                 id="parentCategory"
-                value={selectedParentCategory}
+                value={
+                  selectedParentCategory === null ? "" : selectedParentCategory
+                }
                 onChange={(e) => {
-                  setSelectedParentCategory(e.target.value);
-                  setSelectedSubcategory(""); // Reset subcategory when parent changes
+                  setSelectedParentCategory(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  );
+                  setSelectedSubcategory(null); // Reset subcategory when parent changes
                 }}
                 className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] cursor-pointer"
               >
                 <option value="">Select a category</option>
-                {dummyAllCategories.map((category) => (
-                  <option key={category.slug} value={category.slug}>
-                    {category.name}
+                {categories.map((parent) => (
+                  <option key={parent.id} value={parent.id}>
+                    {parent.name}
                   </option>
                 ))}
               </select>
@@ -149,8 +310,12 @@ const CreateListingPage = () => {
               </label>
               <select
                 id="subcategory"
-                value={selectedSubcategory}
-                onChange={(e) => setSelectedSubcategory(e.target.value)}
+                value={selectedSubcategory === null ? "" : selectedSubcategory}
+                onChange={(e) =>
+                  setSelectedSubcategory(
+                    e.target.value === "" ? null : Number(e.target.value)
+                  )
+                }
                 disabled={!selectedParentCategory}
                 className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -160,20 +325,41 @@ const CreateListingPage = () => {
                     : "Select category first"}
                 </option>
                 {selectedParentCategory &&
-                  dummyAllCategories
-                    .find((cat) => cat.slug === selectedParentCategory)
-                    ?.subcategories.map((sub) => (
-                      <option key={sub.slug} value={sub.slug}>
-                        {sub.name}
+                  categories
+                    .find((category) => category.id === selectedParentCategory)
+                    ?.children.map((child) => (
+                      <option key={child.id} value={child.id}>
+                        {child.name}
                       </option>
                     ))}
               </select>
             </div>
           </div>
 
+          {/* End Date Selection */}
+          <div className="space-y-2">
+            <label htmlFor="endDate" className="text-sm font-medium block">
+              End Date <span className="text-[hsl(var(--destructive))]">*</span>
+            </label>
+            <input
+              id="endDate"
+              type="datetime-local"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              required
+              className="w-full md:w-1/2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+            />
+            <p className="text-xs text-[hsl(var(--muted-foreground))]">
+              Select the date and time when the auction ends (Local Time)
+            </p>
+          </div>
+
           {/* Image Upload */}
           <div className="space-y-2">
-            <label className="text-sm font-medium block">Product Images</label>
+            <label className="text-sm font-medium block">
+              Product Images{" "}
+              <span className="text-[hsl(var(--destructive))]">*</span>
+            </label>
             <div className="border-2 border-dashed border-[hsl(var(--border))] rounded-lg p-8 text-center bg-[hsl(var(--muted)/0.1)] hover:bg-[hsl(var(--muted)/0.2)] transition-colors">
               <input
                 type="file"
@@ -190,7 +376,7 @@ const CreateListingPage = () => {
                   or click to browse
                 </p>
                 <p className="text-xs text-[hsl(var(--destructive))] font-medium">
-                  Minimum 3 photos required
+                  Minimum 3 images required
                 </p>
                 <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
                   PNG, JPG, WEBP up to 5MB each
@@ -213,15 +399,16 @@ const CreateListingPage = () => {
                     />
                     <button
                       type="button"
-                      onClick={() =>
-                        setUploadedImages(
-                          uploadedImages.filter((_, i) => i !== idx)
-                        )
-                      }
+                      onClick={() => handleRemoveImage(idx)}
                       className="absolute top-2 right-2 bg-[hsl(var(--destructive))] text-white rounded-full p-1 hover:bg-[hsl(var(--destructive)/0.9)] hover:cursor-pointer"
                     >
-                      <XCircle className="h-4 w-4" />
+                      <X className="h-4 w-4" />
                     </button>
+                    {idx === 0 && (
+                      <div className="absolute bottom-0 left-0 w-full bg-black/60 text-white text-[10px] text-center py-1">
+                        Primary
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -230,35 +417,42 @@ const CreateListingPage = () => {
 
           {/* Pricing */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Start Price */}
             <div className="space-y-2">
               <label
                 htmlFor="startingPrice"
                 className="text-sm font-medium block"
               >
-                Starting Price ($)
+                Starting Price ($){" "}
+                <span className="text-[hsl(var(--destructive))]">*</span>
               </label>
               <input
                 id="startingPrice"
                 type="number"
-                placeholder="0.00"
+                placeholder="0.0"
                 min="0"
-                step="0.01"
+                step="0.1"
+                required
                 className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
               />
             </div>
+            {/* Step Price */}
             <div className="space-y-2">
               <label htmlFor="stepPrice" className="text-sm font-medium block">
-                Bid Step ($)
+                Bid Step ($){" "}
+                <span className="text-[hsl(var(--destructive))]">*</span>
               </label>
               <input
                 id="stepPrice"
                 type="number"
-                placeholder="5.00"
+                placeholder="0.0"
                 min="0"
-                step="0.01"
+                step="0.1"
+                required
                 className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
               />
             </div>
+            {/* Buy Now Price */}
             <div className="space-y-2">
               <label
                 htmlFor="buyNowPrice"
@@ -269,9 +463,9 @@ const CreateListingPage = () => {
               <input
                 id="buyNowPrice"
                 type="number"
-                placeholder="0.00"
+                placeholder="0.0"
                 min="0"
-                step="0.01"
+                step="0.1"
                 className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
               />
             </div>
@@ -280,7 +474,8 @@ const CreateListingPage = () => {
           {/* Description - WYSIWYG Editor */}
           <div className="space-y-2">
             <label className="text-sm font-medium block">
-              Product Description
+              Product Description{" "}
+              <span className="text-[hsl(var(--destructive))]">*</span>
             </label>
             <div className="border border-[hsl(var(--border))] rounded-lg overflow-hidden">
               {/* Toolbar */}
@@ -448,22 +643,6 @@ const CreateListingPage = () => {
             `}</style>
           </div>
 
-          {/* Additional Information */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium block">
-              Additional Information
-            </label>
-            <textarea
-              placeholder="Enter any additional information about the product..."
-              className="w-full min-h-[100px] rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] resize-none"
-              value={additionalInfo}
-              onChange={(e) => setAdditionalInfo(e.target.value)}
-            />
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">
-              Provide any extra details that might be helpful for buyers
-            </p>
-          </div>
-
           {/* Auto-Extension Setting */}
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-[hsl(var(--muted)/0.5)] rounded-lg">
@@ -541,18 +720,20 @@ const CreateListingPage = () => {
           </div>
 
           {/* Submit Buttons */}
-          <div className="flex gap-3">
+          <div className="flex">
             <button
               type="submit"
-              className="flex-1 inline-flex items-center justify-center bg-slate-900 text-white shadow-sm rounded-md text-sm font-medium transition-all hover:bg-[hsl(var(--primary)/0.9)] hover:cursor-pointer h-10 px-4"
+              disabled={isLoading}
+              className="flex-1 inline-flex items-center justify-center bg-slate-900 text-white shadow-sm rounded-md font-medium transition-all hover:bg-[hsl(var(--primary)/0.9)] hover:cursor-pointer h-10 p-5"
             >
-              Create Listing
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-all border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--primary)/0.9)] hover:text-[hsl(var(--primary-foreground))] hover:cursor-pointer h-10 px-4"
-            >
-              Save as Draft
+              {isLoading ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Listing"
+              )}
             </button>
           </div>
         </form>

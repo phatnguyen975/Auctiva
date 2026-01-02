@@ -1,0 +1,47 @@
+import sanitizeHtml from "sanitize-html";
+
+export const cleanProductDescription = (dirtyHtml) => {
+  return sanitizeHtml(dirtyHtml, {
+    allowedTags: [
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "blockquote",
+      "p",
+      "a",
+      "ul",
+      "ol",
+      "nl",
+      "li",
+      "b",
+      "i",
+      "strong",
+      "em",
+      "strike",
+      "code",
+      "hr",
+      "br",
+      "div",
+      "table",
+      "thead",
+      "caption",
+      "tbody",
+      "tr",
+      "th",
+      "td",
+      "pre",
+      "iframe",
+      "img",
+      "u",
+      "span",
+    ],
+    allowedAttributes: {
+      a: ["href", "name", "target"],
+      img: ["src", "alt", "title"],
+      "*": ["style", "class"],
+    },
+  });
+};

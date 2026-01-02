@@ -2,6 +2,7 @@ import sanitizeHtml from "sanitize-html";
 import { prisma } from "../configs/prisma.js";
 import { createSlug } from "../utils/slugUtil.js";
 import { enrichProductWithFlags } from "../utils/productUtil.js";
+import { cleanProductDescription } from "../utils/sanitizerUtil.js";
 
 const ProductService = {
   createProduct: async ({ userId, product }) => {
@@ -39,10 +40,7 @@ const ProductService = {
       product.slug = slug;
     }
 
-    const cleanDescription = sanitizeHtml(product.description, {
-      allowedTags: sanitizeHtml.defaults.allowedTags,
-      allowedAttributes: false,
-    });
+    const cleanDescription = cleanProductDescription(product.description);
 
     const newProduct = await prisma.product.create({
       data: {

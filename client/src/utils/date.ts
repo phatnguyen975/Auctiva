@@ -5,7 +5,7 @@ import {
   isPast,
 } from "date-fns";
 
-export const formatPostDate = (date?: Date) => {
+export const formatPostDate = (date?: Date): string | null => {
   if (!date) {
     return null;
   }
@@ -38,4 +38,29 @@ export const formatPostDate = (date?: Date) => {
     const diffMinutes = differenceInMinutes(date, now);
     return `in ${diffMinutes}m`;
   }
+};
+
+export const convertToVietnamTime = (utcDateString: string): Date => {
+  return new Date(utcDateString);
+};
+
+export const formatVietnamDateTime = (date: Date): string => {
+  return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
+};
+
+export const convertLocalToISOString = (localDateString: string): string => {
+  if (!localDateString) {
+    return "";
+  }
+
+  const date = new Date(localDateString);
+  return date.toISOString();
 };
