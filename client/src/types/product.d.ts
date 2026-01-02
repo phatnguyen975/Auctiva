@@ -11,6 +11,17 @@ export interface Product {
   isNew?: boolean;
 }
 
+export interface ActiveProduct {
+  id: number;
+  name: string;
+  currentPrice: number;
+  endDate: string;
+  images: [{ url: string; isPrimary: boolean }];
+  _count: {
+    bids: number;
+  };
+}
+
 export interface Seller {
   id?: string;
   name: string;
