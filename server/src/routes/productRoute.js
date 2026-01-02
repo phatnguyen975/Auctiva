@@ -18,37 +18,9 @@ const router = express.Router();
 
 router.use(validateApiKey);
 
-router.post(
-  "/",
-  verifyToken,
-  authorize(["seller"]),
-  validate({ body: ProductCreateSchema }),
-  ProductController.create
-);
-
-router.post(
-  "/:id/bids",
-  verifyToken,
-  authorize(["bidder", "seller"]),
-  validate({ body: BidCreateSchema, params: ProductIdSchema }),
-  BidController.create
-);
-
-router.post(
-  "/:id/bid-rejections",
-  verifyToken,
-  authorize(["seller"]),
-  validate({ params: ProductIdSchema }),
-  BidRejectionController.create
-);
-
-router.post(
-  "/:id/watchlist",
-  verifyToken,
-  authorize(["bidder", "seller"]),
-  validate({ params: ProductIdSchema }),
-  WatchlistController.create
-);
+router.get("/ending-soon", ProductController.getEndingSoon);
+router.get("/most-bids", ProductController.getMostBids);
+router.get("/highest-price", ProductController.getHighestPrice);
 
 router.get(
   "/",
@@ -56,13 +28,13 @@ router.get(
   ProductController.getAll
 );
 
-router.get("/:id/bids", BidController.getByProductId);
-
-router.get("/ending-soon", ProductController.getEndingSoon);
-
-router.get("/most-bids", ProductController.getMostBids);
-
-router.get("/highest-price", ProductController.getHighestPrice);
+router.post(
+  "/",
+  verifyToken,
+  authorize(["seller"]),
+  validate({ body: ProductCreateSchema }),
+  ProductController.create
+);
 
 router.get(
   "/active",
@@ -98,6 +70,32 @@ router.delete(
   authorize(["admin"]),
   validate({ params: ProductIdSchema }),
   ProductController.delete
+);
+
+router.get("/:id/bids", BidController.getByProductId);
+
+router.post(
+  "/:id/bids",
+  verifyToken,
+  authorize(["bidder", "seller"]),
+  validate({ body: BidCreateSchema, params: ProductIdSchema }),
+  BidController.create
+);
+
+router.post(
+  "/:id/bid-rejections",
+  verifyToken,
+  authorize(["seller"]),
+  validate({ params: ProductIdSchema }),
+  BidRejectionController.create
+);
+
+router.post(
+  "/:id/watchlist",
+  verifyToken,
+  authorize(["bidder", "seller"]),
+  validate({ params: ProductIdSchema }),
+  WatchlistController.create
 );
 
 router.delete(

@@ -155,9 +155,6 @@ const ActiveListingsPage = () => {
                           <Edit className="h-4 w-4 text-[hsl(var(--destructive))]" />
                           Edit
                         </button>
-                        <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] bg-[hsl(var(--destructive))] text-white hover:bg-[hsl(var(--destructive)/0.9)] hover:cursor-pointer h-8 px-3">
-                          End Early
-                        </button>
                       </div>
                     </td>
                   </tr>
