@@ -428,6 +428,7 @@ const ProductService = {
           omit: { productId: true },
         },
       },
+      orderBy: { createdAt: "desc" },
     });
   },
 

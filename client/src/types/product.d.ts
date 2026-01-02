@@ -9,7 +9,18 @@ export interface Product {
   postDate: Date;
   endDate: Date;
   isNew?: boolean;
-};
+}
+
+export interface ActiveProduct {
+  id: number;
+  name: string;
+  currentPrice: number;
+  endDate: string;
+  images: [{ url: string; isPrimary: boolean }];
+  _count: {
+    bids: number;
+  };
+}
 
 export interface Seller {
   name: string;

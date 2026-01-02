@@ -1,34 +1,24 @@
 import { useNavigate } from "react-router-dom";
 import { Plus, Package, Eye, Edit } from "lucide-react";
+import { useEffect, useState } from "react";
+import { axiosInstance } from "../../../lib/axios";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store/store";
+import toast from "react-hot-toast";
+import type { ActiveProduct } from "../../../types/product";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
+import { convertToVietnamTime } from "../../../utils/date";
 
 const ActiveListingsPage = () => {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
+  const [activeProducts, setActiveProducts] = useState<ActiveProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  // Mock data
-  //const activeListings: any[] = [];
-  const activeListings = [
-    {
-      id: "1",
-      image:
-        "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&h=100&fit=crop",
-      title: "Premium Headphones",
-      currentBid: 245,
-      timeLeft: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      totalBids: 23,
-    },
-    {
-      id: "2",
-      image:
-        "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop",
-      title: "Luxury Watch",
-      currentBid: 890,
-      timeLeft: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
-      totalBids: 45,
-    },
-  ];
-
-  const formatTimeLeft = (endTime: Date) => {
-    const diff = endTime.getTime() - Date.now();
+  const formatTimeLeft = (endDate: Date) => {
+    const diff = endDate.getTime() - Date.now();
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -42,6 +32,33 @@ const ActiveListingsPage = () => {
     }
   };
 
+  const fetchActiveProducts = async () => {
+    try {
+      setIsLoading(true);
+
+      const { data } = await axiosInstance.get("/products/active", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        setActiveProducts(data.data);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      console.error("Error loading active products:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActiveProducts();
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -52,17 +69,14 @@ const ActiveListingsPage = () => {
             Your current auction listings
           </p>
         </div>
-        <button
-          onClick={() => navigate("/seller/create")}
-          className="inline-flex items-center justify-center gap-2 bg-slate-900 text-white shadow-sm whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] hover:bg-[hsl(var(--primary)/0.9)] h-9 px-4 py-2 hover:cursor-pointer"
-        >
-          <Plus className="h-4 w-4" />
-          Create New
-        </button>
       </div>
 
       {/* Content */}
-      {activeListings.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      ) : activeProducts.length === 0 ? (
         <div className="text-center py-16">
           <Package className="h-16 w-16 text-[hsl(var(--muted-foreground))] mx-auto mb-4 opacity-20" />
           <h3 className="text-xl font-semibold mb-2">No active listings</h3>
@@ -86,13 +100,13 @@ const ActiveListingsPage = () => {
                   <th className="h-12 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
                     Product
                   </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
-                    Current Bid
+                  <th className="h-12 min-w-32 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
+                    Current Price
                   </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
-                    Bids
+                  <th className="h-12 min-w-25 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
+                    Total Bids
                   </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
+                  <th className="h-12 min-w-25 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
                     Time Left
                   </th>
                   <th className="h-12 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
@@ -101,39 +115,41 @@ const ActiveListingsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {activeListings.map((item) => (
+                {activeProducts.map((product) => (
                   <tr
-                    key={item.id}
+                    key={product.id}
                     className="border-b border-[hsl(var(--border))] transition-colors hover:bg-[hsl(var(--muted)/0.5)]"
                   >
                     <td className="p-4 align-middle">
                       <div className="flex items-center gap-3">
                         <img
-                          src={item.image}
-                          alt={item.title}
+                          src={product.images[0].url}
+                          alt={product.name}
                           className="w-16 h-16 rounded object-cover"
                         />
-                        <span className="font-medium">{item.title}</span>
+                        <span className="font-medium">{product.name}</span>
                       </div>
                     </td>
                     <td className="p-4 align-middle font-bold text-[hsl(var(--primary))]">
-                      ${item.currentBid.toLocaleString()}
+                      ${product.currentPrice.toLocaleString()}
                     </td>
-                    <td className="p-4 align-middle">{item.totalBids}</td>
+                    <td className="p-4 align-middle">{product._count.bids}</td>
                     <td className="p-4 align-middle">
-                      {formatTimeLeft(item.timeLeft)}
+                      {formatTimeLeft(convertToVietnamTime(product.endDate))}
                     </td>
                     <td className="p-4 align-middle">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => navigate(`/products/${item.id}`)}
+                          onClick={() => navigate(`/products/${product.id}`)}
                           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] hover:cursor-pointer h-8 px-3"
                         >
                           <Eye className="h-4 w-4" />
                           View
                         </button>
                         <button
-                          onClick={() => navigate(`/seller/update/${item.id}`)}
+                          onClick={() =>
+                            navigate(`/seller/update/${product.id}`)
+                          }
                           className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] hover:cursor-pointer h-8 px-3"
                         >
                           <Edit className="h-4 w-4 text-[hsl(var(--destructive))]" />
