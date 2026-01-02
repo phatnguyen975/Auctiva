@@ -446,17 +446,24 @@ const ProductService = {
         status: "sold",
       },
       include: {
-        winner: true,
-        transactions: true,
-        _count: {
-          select: { bids: true },
+        winner: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            ratingPositive: true,
+            ratingCount: true,
+          },
         },
+        rating: true,
+        transactions: true,
         images: {
           where: { isPrimary: true },
           omit: { productId: true },
         },
       },
       orderBy: { createdAt: "desc" },
+      omit: { winnerId: true },
     });
   },
 
