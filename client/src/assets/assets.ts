@@ -403,6 +403,7 @@ export const dummyAllProducts = [
 export const dummyProductDetails = [
   {
     id: "1",
+    sellerId: "550e8400-e29b-41d4-a716-446655440000",
     title:
       "Premium Wireless Headphones - Studio Quality Audio with Active Noise Cancellation",
     images: [
@@ -419,6 +420,7 @@ export const dummyProductDetails = [
     endTime: new Date(Date.now() + 2 * 60 * 60 * 1000),
     postedDate: new Date(Date.now() - 3 * 60 * 60 * 1000),
     seller: {
+      sellerId: "550e8400-e29b-41d4-a716-446655440000",
       name: "AudioPhile Gear",
       rating: 4.9,
       totalSales: 1234,
@@ -430,6 +432,7 @@ export const dummyProductDetails = [
   },
   {
     id: "2",
+    sellerId: "660e8400-e29b-41d4-a716-446655440111",
     title: "Luxury Vintage Watch - Limited Edition 2020 - Swiss Movement",
     images: [
       "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=800&fit=crop",
@@ -445,6 +448,7 @@ export const dummyProductDetails = [
     endTime: new Date(Date.now() + 4 * 60 * 60 * 1000),
     postedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
     seller: {
+      sellerId: "660e8400-e29b-41d4-a716-446655440111",
       name: "Vintage Timekeepers",
       rating: 4.8,
       totalSales: 560,
@@ -456,6 +460,7 @@ export const dummyProductDetails = [
   },
   {
     id: "3",
+    sellerId: "770e8400-e29b-41d4-a716-446655440222",
     title: "Professional DSLR Camera with 18-55mm Lens Kit - 24MP",
     images: [
       "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=800&h=800&fit=crop",
@@ -471,6 +476,7 @@ export const dummyProductDetails = [
     endTime: new Date(Date.now() + 6 * 60 * 60 * 1000),
     postedDate: new Date(Date.now() - 5 * 60 * 60 * 1000),
     seller: {
+      sellerId: "770e8400-e29b-41d4-a716-446655440222",
       name: "Camera Hub",
       rating: 4.7,
       totalSales: 890,
@@ -482,6 +488,7 @@ export const dummyProductDetails = [
   },
   {
     id: "4",
+    sellerId: "880e8400-e29b-41d4-a716-446655440333",
     title: "Designer Sunglasses - Authentic Brand New - UV400 Protection",
     images: [
       "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&h=800&fit=crop",
@@ -497,6 +504,7 @@ export const dummyProductDetails = [
     endTime: new Date(Date.now() + 1 * 60 * 60 * 1000),
     postedDate: new Date(Date.now() - 30 * 60 * 60 * 1000),
     seller: {
+      sellerId: "880e8400-e29b-41d4-a716-446655440333",
       name: "Fashionista Direct",
       rating: 5.0,
       totalSales: 300,
@@ -508,6 +516,7 @@ export const dummyProductDetails = [
   },
   {
     id: "5",
+    sellerId: "990e8400-e29b-41d4-a716-446655440444",
     title: "Limited Edition Sneakers - Size 10 - Collectors Choice",
     images: [
       "https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800&h=800&fit=crop",
@@ -523,6 +532,7 @@ export const dummyProductDetails = [
     endTime: new Date(Date.now() + 10 * 60 * 60 * 1000),
     postedDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
     seller: {
+      sellerId: "990e8400-e29b-41d4-a716-446655440444",
       name: "Sneakerhead Vault",
       rating: 4.6,
       totalSales: 2100,
@@ -534,6 +544,7 @@ export const dummyProductDetails = [
   },
   {
     id: "6",
+    sellerId: "aa0e8400-e29b-41d4-a716-446655440555",
     title: "Vintage Motorcycle Helmet - 1970s Style Collectors Item",
     images: [
       "https://images.unsplash.com/photo-1588508065123-287b28e013da?w=800&h=800&fit=crop",
@@ -549,6 +560,7 @@ export const dummyProductDetails = [
     endTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
     postedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     seller: {
+      sellerId: "aa0e8400-e29b-41d4-a716-446655440555",
       name: "Retro Moto",
       rating: 4.9,
       totalSales: 150,
@@ -560,6 +572,7 @@ export const dummyProductDetails = [
   },
   {
     id: "7",
+    sellerId: "bb0e8400-e29b-41d4-a716-446655440666",
     title: "Mechanical Gaming Keyboard RGB - Blue Switches - TKL",
     images: [
       "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=800&h=800&fit=crop",
@@ -575,6 +588,7 @@ export const dummyProductDetails = [
     endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
     postedDate: new Date(Date.now() - 6 * 60 * 60 * 1000),
     seller: {
+      sellerId: "bb0e8400-e29b-41d4-a716-446655440666",
       name: "Pro Gamer Shop",
       rating: 4.8,
       totalSales: 4000,
@@ -586,6 +600,7 @@ export const dummyProductDetails = [
   },
   {
     id: "8",
+    sellerId: "cc0e8400-e29b-41d4-a716-446655440777",
     title: "Smart Watch Series 7 - 45mm Aluminum Case - Like New",
     images: [
       "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=800&h=800&fit=crop",
@@ -601,6 +616,7 @@ export const dummyProductDetails = [
     endTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
     postedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
     seller: {
+      sellerId: "cc0e8400-e29b-41d4-a716-446655440777",
       name: "Tech Reseller",
       rating: 4.5,
       totalSales: 750,

@@ -14,6 +14,7 @@ import productRouter from "./routes/productRoute.js";
 import sellerUpgradeRouter from "./routes/sellerUpgradeRoute.js";
 import ratingRouter from "./routes/ratingRoute.js";
 import transactionRouter from "./routes/transactionRoute.js";
+import qaRouter from "./routes/qaRoute.js";
 
 export const app = express();
 
@@ -40,6 +41,7 @@ app.use("/api/products", productRouter);
 app.use("/api/seller-upgrade-requests", sellerUpgradeRouter);
 app.use("/api/ratings", ratingRouter);
 app.use("/api/transactions", transactionRouter);
+app.use("/api/qa", qaRouter);
 
 // Error Handler
 app.use(notFoundHandler);

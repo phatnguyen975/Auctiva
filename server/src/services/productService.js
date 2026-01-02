@@ -305,6 +305,13 @@ const ProductService = {
             fullName: true,
           },
         },
+        seller: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+          },
+        },
         _count: {
           select: {
             bids: true,
@@ -314,7 +321,7 @@ const ProductService = {
           omit: { productId: true },
         },
       },
-      omit: { winnerId: true },
+      omit: { winnerId: true, sellerId: true },
     });
 
     if (!product) {

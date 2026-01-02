@@ -1,4 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+
+import type { RootState } from "../../store/store";
+import { axiosInstance } from "../../lib/axios";
+import { getHeaders } from "../../utils/getHeaders";
 
 import {
   Heart,
@@ -22,7 +28,6 @@ import {
   dummyQAItems,
   dummyRelatedProducts,
 } from "../../assets/assets";
-import { useParams } from "react-router-dom";
 
 import CountdownTimer from "../../components/product/details/CountdownTimer";
 import { formatPostDate } from "../../utils/date";
@@ -31,9 +36,16 @@ import Input from "../../components/ui/Input";
 import BanModal from "../../components/product/details/BanModal";
 import ProductDetailTabs from "../../components/product/details/ProductDetailTabs";
 import ProductImageGallery from "../../components/product/details/ProductImageGallery";
+import toast from "react-hot-toast";
 
 const ProductDetailPage = () => {
-  const [role, setRole] = useState<"guest" | "bidder" | "seller">("seller");
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const role = authUser?.profile?.role as
+    | "admin"
+    | "bidder"
+    | "seller"
+    | undefined;
+  const currentUserId = authUser?.user?.id; // Use Supabase user ID
   const [product, setProduct] = useState<ProductDetail | null>();
 
   const [selectedImage, setSelectedImage] = useState(0);
@@ -41,7 +53,8 @@ const ProductDetailPage = () => {
   const tabsSectionRef = useRef<HTMLDivElement>(null);
 
   const [bidAmount, setBidAmount] = useState("");
-  const [question, setQuestion] = useState("");
+  //const [question, setQuestion] = useState("");
+  const [qaItems, setQaItems] = useState<any[]>([]);
   const [banningInfo, setBanningInfo] = useState<{
     bid: any;
     index: number;
@@ -49,22 +62,40 @@ const ProductDetailPage = () => {
 
   const userRating = 92; // Mock Rating of User
 
-  const suggestedBid = (product?.currentBid || 0) + (product?.bidStep || 0);
+  const suggestedBid = (product?.currentPrice || 0) + (product?.bidStep || 0);
 
   const { id: productID } = useParams();
 
   // Mock fetch data
+  const loadProduct = async () => {
+    //const res = dummyProductDetails.find((p) => p.id === productID);
+    const headers = getHeaders();
+    const res = await axiosInstance.get(`/products/${productID}`, { headers });
+
+    if (res && res.data) {
+      setProduct(res.data.data);
+    } else {
+      setProduct(null);
+    }
+  };
+
+  const fetchQA = async () => {
+    if (!productID) return;
+    try {
+      const headers = getHeaders();
+      const data = await axiosInstance.get(`/qa/${productID}`, { headers });
+
+      setQaItems(data.data);
+    } catch (error) {
+      console.error("Failed to fetch QA:", error);
+    }
+  };
+
   useEffect(() => {
-    const loadProduct = async () => {
-      const res = dummyProductDetails.find((p) => p.id === productID);
-
-      if (res) setProduct(res);
-    };
-
     loadProduct();
-  }, [productID]);
 
-  //console.log(product);
+    fetchQA();
+  }, [productID]);
 
   const handleConfirmBan = () => {
     if (!banningInfo) return;
@@ -84,6 +115,44 @@ const ProductDetailPage = () => {
         behavior: "smooth", // Cuộn mượt
         block: "start", // Canh đầu phần tử lên đầu màn hình
       });
+    }
+  };
+
+  // Xử lý gửi câu hỏi
+  const handlePostQuestion = async (content: string) => {
+    try {
+      const headers = getHeaders();
+      await axiosInstance.post(
+        "/qa/ask",
+        {
+          productId: Number(productID),
+          question: content,
+        },
+        { headers }
+      );
+      fetchQA(); // Reload lại danh sách sau khi gửi
+    } catch (error: any) {
+      console.error("Failed to post question:", error);
+      toast.error(error.response?.data?.message || "Failed to post question");
+    }
+  };
+
+  // Xử lý trả lời (Seller)
+  const handlePostAnswer = async (questionId: number, content: string) => {
+    try {
+      const headers = getHeaders();
+      await axiosInstance.post(
+        "/qa/reply",
+        {
+          questionId,
+          answer: content,
+        },
+        { headers }
+      );
+      fetchQA(); // Reload lại danh sách sau khi trả lời
+    } catch (error: any) {
+      console.error("Failed to post answer:", error);
+      toast.error(error.response?.data?.message || "Failed to post answer");
     }
   };
 
@@ -142,7 +211,7 @@ const ProductDetailPage = () => {
                   Current Bid
                 </div>
                 <div className="text-4xl font-bold text-primary">
-                  ${product?.currentBid.toLocaleString()}
+                  ${product?.currentPrice.toLocaleString()}
                 </div>
                 <div className="flex items-center justify-between gap-2 mt-2">
                   <div className="text-sm text-muted-foreground">
@@ -334,7 +403,7 @@ const ProductDetailPage = () => {
                       </span>
                     </div>
                     <div className="text-2xl font-bold text-primary">
-                      ${product?.currentBid}
+                      ${product?.currentPrice.toLocaleString()}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
                       Current bid
@@ -377,12 +446,14 @@ const ProductDetailPage = () => {
           <ProductDetailTabs
             currentTab={currentTab}
             onTabChange={setCurrentTab}
-            role={role}
+            role={role || ""}
+            userId={currentUserId}
+            productSellerId={product?.sellerId || product?.seller?.id}
             bidHistory={dummyBidHistory}
-            qaItems={dummyQAItems}
+            qaItems={qaItems}
             relatedProducts={dummyRelatedProducts}
-            question={question}
-            setQuestion={setQuestion}
+            onPostQuestion={handlePostQuestion}
+            onPostAnswer={handlePostAnswer}
             onBanUser={(bid, index) => setBanningInfo({ bid, index })}
           />
         </div>
