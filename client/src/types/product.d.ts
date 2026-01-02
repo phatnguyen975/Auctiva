@@ -22,6 +22,22 @@ export interface ActiveProduct {
   };
 }
 
+export interface SoldProduct {
+  id: number;
+  name: string;
+  currentPrice: number;
+  winner: {
+    id: string;
+    username: string;
+    fullName: string;
+    ratingPositive: number;
+    ratingCount: number;
+  };
+  images: [{ url: string; isPrimary: boolean }];
+  transactions: [{ id: number; status: string }];
+  rating: { id: number } | null;
+}
+
 export interface Seller {
   id?: string;
   name: string;
