@@ -124,6 +124,8 @@ const CreateListingPage = () => {
         reader.readAsDataURL(file);
       });
     }
+
+    e.target.value = "";
   };
 
   const handleRemoveImage = (idx: number) => {

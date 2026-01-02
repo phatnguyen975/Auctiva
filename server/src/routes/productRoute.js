@@ -56,6 +56,12 @@ router.get(
   ProductController.getAll
 );
 
+router.get(
+  "/:id",
+  validate({ params: ProductIdSchema }),
+  ProductController.getById
+);
+
 router.get("/:id/bids", BidController.getByProductId);
 
 router.get("/ending-soon", ProductController.getEndingSoon);
@@ -63,6 +69,20 @@ router.get("/ending-soon", ProductController.getEndingSoon);
 router.get("/most-bids", ProductController.getMostBids);
 
 router.get("/highest-price", ProductController.getHighestPrice);
+
+router.get(
+  "/active",
+  verifyToken,
+  authorize(["seller"]),
+  ProductController.getActiveByUserId
+);
+
+router.get(
+  "/sold",
+  verifyToken,
+  authorize(["seller"]),
+  ProductController.getSoldByUserId
+);
 
 router.put(
   "/:id",

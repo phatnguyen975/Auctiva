@@ -294,6 +294,36 @@ const ProductService = {
     };
   },
 
+  getProductById: async (id) => {
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: {
+        winner: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+          },
+        },
+        _count: {
+          select: {
+            bids: true,
+          },
+        },
+        images: {
+          omit: { productId: true },
+        },
+      },
+      omit: { winnerId: true },
+    });
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    return product;
+  },
+
   getEndingSoonProducts: async () => {
     const products = await prisma.product.findMany({
       where: {
@@ -381,6 +411,44 @@ const ProductService = {
     });
 
     return Promise.all(products.map(enrichProductWithFlags));
+  },
+
+  getActiveProductsByUserId: async (userId) => {
+    return await prisma.product.findMany({
+      where: {
+        sellerId: userId,
+        status: "active",
+      },
+      include: {
+        _count: {
+          select: { bids: true },
+        },
+        images: {
+          where: { isPrimary: true },
+          omit: { productId: true },
+        },
+      },
+    });
+  },
+
+  getSoldProductsByUserId: async (userId) => {
+    return await prisma.product.findMany({
+      where: {
+        sellerId: userId,
+        status: "sold",
+      },
+      include: {
+        winner: true,
+        transactions: true,
+        _count: {
+          select: { bids: true },
+        },
+        images: {
+          where: { isPrimary: true },
+          omit: { productId: true },
+        },
+      },
+    });
   },
 
   updateProduct: async ({ id, description }) => {
