@@ -29,6 +29,11 @@ enum seller_permission_status {
   expired
 }
 
+enum rating_type {
+  seller_bidder
+  bidder_seller
+}
+
 enum product_status {
   active
   sold
@@ -82,18 +87,20 @@ model Profile {
 }
 
 model Rating {
-  id           Int      @id @default(autoincrement())
-  productId    Int      @unique @map("product_id")
-  targetUserId String   @map("target_user_id") @db.Uuid
-  fromUserId   String   @map("from_user_id") @db.Uuid
+  id           Int         @id @default(autoincrement())
+  productId    Int         @map("product_id")
+  type         rating_type
+  targetUserId String      @map("target_user_id") @db.Uuid
+  fromUserId   String      @map("from_user_id") @db.Uuid
   score        Int
   comment      String
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz
 
   product    Product @relation(fields: [productId], references: [id])
   fromUser   Profile @relation("RatingFrom", fields: [fromUserId], references: [id])
   targetUser Profile @relation("RatingTo", fields: [targetUserId], references: [id])
 
+  @@unique([productId, type])
   @@map("ratings")
 }
 
@@ -160,7 +167,7 @@ model Product {
   category      Category          @relation(fields: [categoryId], references: [id])
   winner        Profile?          @relation("ProductWinner", fields: [winnerId], references: [id])
   images        ProductImage[]
-  rating        Rating?
+  ratings       Rating[]
   bids          Bid[]
   watchlist     Watchlist[]
   bidRejections BidRejection[]

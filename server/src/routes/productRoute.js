@@ -1,6 +1,7 @@
 import express from "express";
 import ProductController from "../controllers/productController.js";
 import BidController from "../controllers/bidController.js";
+import RatingController from "../controllers/ratingController.js";
 import BidRejectionController from "../controllers/bidRejectionController.js";
 import WatchlistController from "../controllers/watchlistController.js";
 import { validateApiKey } from "../middlewares/apiMiddleware.js";
@@ -12,6 +13,7 @@ import {
   ProductUpdateSchema,
 } from "../schemas/productSchema.js";
 import { BidCreateSchema } from "../schemas/bidSchema.js";
+import { RatingCreateSchema } from "../schemas/ratingSchema.js";
 import { verifyToken, authorize } from "../middlewares/userAuthMiddleware.js";
 
 const router = express.Router();
@@ -80,6 +82,14 @@ router.post(
   authorize(["bidder", "seller"]),
   validate({ body: BidCreateSchema, params: ProductIdSchema }),
   BidController.create
+);
+
+router.post(
+  "/:id/ratings",
+  verifyToken,
+  authorize(["bidder", "seller"]),
+  validate({ body: RatingCreateSchema, params: ProductIdSchema }),
+  RatingController.create
 );
 
 router.post(

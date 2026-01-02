@@ -1,16 +1,33 @@
 import { prisma } from "../configs/prisma.js";
 
 const RatingService = {
-  createRating: async ({ fromUserId, targetUserId, score, comment }) => {
+  createRating: async ({
+    productId,
+    fromUserId,
+    targetUserId,
+    type,
+    score,
+    comment,
+  }) => {
     if (fromUserId === targetUserId) {
       throw new Error("You cannot rate yourself");
+    }
+
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      throw new Error("Product not found");
     }
 
     return prisma.$transaction(async (tx) => {
       const rating = await tx.rating.create({
         data: {
+          productId,
           fromUserId,
           targetUserId,
+          type,
           score,
           comment,
         },

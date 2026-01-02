@@ -455,8 +455,15 @@ const ProductService = {
             ratingCount: true,
           },
         },
-        rating: true,
-        transactions: true,
+        ratings: {
+          where: { type: "seller_bidder" },
+        },
+        transactions: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
         images: {
           where: { isPrimary: true },
           omit: { productId: true },

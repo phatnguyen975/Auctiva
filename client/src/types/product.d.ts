@@ -28,14 +28,14 @@ export interface SoldProduct {
   currentPrice: number;
   winner: {
     id: string;
-    username: string;
+    username: string | null;
     fullName: string;
     ratingPositive: number;
     ratingCount: number;
   };
-  images: [{ url: string; isPrimary: boolean }];
+  ratings: [{ id: number; type: string }];
   transactions: [{ id: number; status: string }];
-  rating: { id: number } | null;
+  images: [{ url: string; isPrimary: boolean }];
 }
 
 export interface Seller {

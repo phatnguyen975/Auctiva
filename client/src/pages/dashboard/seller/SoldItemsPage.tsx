@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   PackageCheck,
   Star,
@@ -8,16 +8,105 @@ import {
   XCircle,
   AlertTriangle,
 } from "lucide-react";
-import { dumpySoldItems } from "../../../assets/assets";
+import type { SoldProduct } from "../../../types/product";
+import type { RootState } from "../../../store/store";
+import { useSelector } from "react-redux";
+import { axiosInstance } from "../../../lib/axios";
+import toast from "react-hot-toast";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
+import { maskName } from "../../../utils/masking";
 
 const SoldItemsPage = () => {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
+  const [soldProducts, setSoldProducts] = useState<SoldProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const [showRateDialog, setShowRateDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
-  const [ratingComment, setRatingComment] = useState("");
 
-  // Use mock data from assets
-  const soldItems = dumpySoldItems;
+  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  const [ratingComment, setRatingComment] = useState("");
+  const [ratingScore, setRatingScore] = useState<number | null>(null);
+
+  const handleRatingSubmit = async () => {
+    try {
+      setIsLoading(true);
+
+      if (!selectedProduct || !ratingScore) {
+        return;
+      }
+
+      const payload = {
+        targetUserId: soldProducts[selectedProduct].winner.id,
+        type: "seller_bidder",
+        score: ratingScore,
+        comment: ratingComment,
+      };
+
+      const { data } = await axiosInstance.post(
+        `/products/${selectedProduct}/ratings`,
+        payload,
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (data.success) {
+        setRatingComment("");
+        setRatingScore(null);
+        setShowRateDialog(false);
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      console.error("Error rating winner:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelTransaction = async () => {
+    try {
+      setIsLoading(true);
+      setShowCancelDialog(false);
+    } catch (error: any) {
+      console.error("Error canceling transaction:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchSoldProducts = async () => {
+    try {
+      setIsLoading(true);
+
+      const { data } = await axiosInstance.get("/products/sold", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        setSoldProducts(data.data);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      console.error("Error loading sold products:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSoldProducts();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -30,7 +119,11 @@ const SoldItemsPage = () => {
       </div>
 
       {/* Content */}
-      {soldItems.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center">
+          <LoadingSpinner />
+        </div>
+      ) : soldProducts.length === 0 ? (
         <div className="text-center py-16">
           <PackageCheck className="h-16 w-16 text-[hsl(var(--muted-foreground))] mx-auto mb-4 opacity-20" />
           <h3 className="text-xl font-semibold mb-2">No sold items yet</h3>
@@ -50,7 +143,7 @@ const SoldItemsPage = () => {
                   <th className="h-12 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
                     Winner
                   </th>
-                  <th className="h-12 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
+                  <th className="h-12 min-w-25 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
                     Sold Price
                   </th>
                   <th className="h-12 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
@@ -62,52 +155,60 @@ const SoldItemsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {soldItems.map((item) => (
+                {soldProducts.map((product) => (
                   <tr
-                    key={item.id}
+                    key={product.id}
                     className="border-b border-[hsl(var(--border))] transition-colors hover:bg-[hsl(var(--muted)/0.5)]"
                   >
                     <td className="p-4 align-middle">
                       <div className="flex items-center gap-3">
                         <img
-                          src={item.image}
-                          alt={item.title}
+                          src={product.images[0].url}
+                          alt={product.name}
                           className="w-16 h-16 rounded object-cover"
                         />
-                        <span className="font-medium">{item.title}</span>
+                        <span className="font-medium">{product.name}</span>
                       </div>
                     </td>
                     <td className="p-4 align-middle">
                       <div>
-                        <div className="font-medium">{item.winner}</div>
+                        <div className="font-medium">
+                          {maskName(product.winner.fullName) ||
+                            maskName(product.winner.username || "John Doe")}
+                        </div>
                         <div className="flex items-center gap-1 text-sm">
                           <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                           <span className="text-amber-600">
-                            {item.winnerRating}%
+                            {(
+                              (product.winner.ratingPositive /
+                                product.winner.ratingCount) *
+                              100
+                            ).toFixed(1)}
+                            %
                           </span>
                         </div>
                       </div>
                     </td>
                     <td className="p-4 align-middle font-bold text-[hsl(var(--primary))]">
-                      ${item.soldPrice.toLocaleString()}
+                      ${product.currentPrice.toLocaleString()}
                     </td>
                     <td className="p-4 align-middle">
                       <span
                         className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
-                          item.paymentStatus === "paid"
+                          product.transactions[0].status === "paid"
                             ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
                             : "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]"
                         }`}
                       >
-                        {item.paymentStatus}
+                        {product.transactions[0].status || "paid"}
                       </span>
                     </td>
                     <td className="p-4 align-middle">
                       <div className="flex gap-2">
-                        {!item.rated && (
+                        {!!product.ratings[0] && (
                           <button
                             onClick={() => {
-                              setSelectedItem(item.id);
+                              setSelectedProduct(product.id);
                               setShowRateDialog(true);
                             }}
                             className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] hover:cursor-pointer h-8 px-3"
@@ -117,10 +218,10 @@ const SoldItemsPage = () => {
                           </button>
                         )}
 
-                        {item.paymentStatus === "pending" && (
+                        {product.transactions[0].status === "pending" && (
                           <button
                             onClick={() => {
-                              setSelectedItem(item.id);
+                              setSelectedProduct(product.id);
                               setShowCancelDialog(true);
                             }}
                             className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none focus-visible:ring-[hsl(var(--ring)/0.5)] focus-visible:ring-[3px] bg-[hsl(var(--destructive))] text-white hover:bg-[hsl(var(--destructive)/0.9)] hover:cursor-pointer h-8 px-3"
@@ -152,14 +253,20 @@ const SoldItemsPage = () => {
               </div>
 
               <div className="flex gap-3 justify-center py-4">
-                <button className="flex-1 h-20 flex flex-col items-center justify-center rounded-md border border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] hover:cursor-pointer transition-all">
+                <button
+                  onClick={() => setRatingScore(1)}
+                  className="flex-1 h-20 flex flex-col items-center justify-center rounded-md border border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] hover:cursor-pointer transition-all"
+                >
                   <ThumbsUp className="h-8 w-8 mb-2 text-green-600" />
                   <span>Thumbs Up</span>
                   <span className="text-xs text-[hsl(var(--muted-foreground))]">
                     (+1)
                   </span>
                 </button>
-                <button className="flex-1 h-20 flex flex-col items-center justify-center rounded-md border border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] hover:cursor-pointer transition-all">
+                <button
+                  onClick={() => setRatingScore(-1)}
+                  className="flex-1 h-20 flex flex-col items-center justify-center rounded-md border border-[hsl(var(--border))] hover:bg-[hsl(var(--accent))] hover:cursor-pointer transition-all"
+                >
                   <ThumbsDown className="h-8 w-8 mb-2 text-[hsl(var(--destructive))]" />
                   <span>Thumbs Down</span>
                   <span className="text-xs text-[hsl(var(--muted-foreground))]">
@@ -192,11 +299,7 @@ const SoldItemsPage = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    // Handle submit rating
-                    setShowRateDialog(false);
-                    setRatingComment("");
-                  }}
+                  onClick={handleRatingSubmit}
                   className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium transition-all bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary)/0.9)] hover:cursor-pointer h-10 px-4"
                 >
                   Submit Rating
@@ -220,7 +323,7 @@ const SoldItemsPage = () => {
               </div>
 
               <div className="bg-[hsl(var(--destructive)/0.1)] border border-[hsl(var(--destructive)/0.2)] rounded-lg p-4 flex gap-3">
-                <AlertTriangle className="h-5 w-5 text-[hsl(var(--destructive))] flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="h-5 w-5 text-[hsl(var(--destructive))] shrink-0 mt-0.5" />
                 <div className="text-sm">
                   <p className="font-medium text-[hsl(var(--destructive))] mb-1">
                     Important:
@@ -240,10 +343,7 @@ const SoldItemsPage = () => {
                   Keep Order
                 </button>
                 <button
-                  onClick={() => {
-                    // Handle cancel transaction
-                    setShowCancelDialog(false);
-                  }}
+                  onClick={handleCancelTransaction}
                   className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium transition-all bg-[hsl(var(--destructive))] text-white hover:bg-[hsl(var(--destructive)/0.9)] hover:cursor-pointer h-10 px-4"
                 >
                   Confirm Cancel

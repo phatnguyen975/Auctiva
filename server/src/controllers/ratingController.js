@@ -4,10 +4,13 @@ const RatingController = {
   create: async (req, res) => {
     try {
       const fromUserId = req.user.id;
-      const { targetUserId, score, comment } = req.validated.body;
+      const productId = Number(req.validated.params.id);
+      const { targetUserId, type, score, comment } = req.validated.body;
       const newRating = await RatingService.createRating({
+        productId,
         fromUserId,
         targetUserId,
+        type,
         score,
         comment,
       });

@@ -6,6 +6,7 @@ export const RatingIdSchema = z.object({
 
 export const RatingCreateSchema = z.object({
   targetUserId: z.string().uuid("Invalid UUID format"),
+  type: z.enum(["seller_bidder", "bidder_seller"]),
   score: z.number().refine((v) => v === 1 || v === -1, {
     message: "Score must be 1 or -1",
   }),

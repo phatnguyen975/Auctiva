@@ -2,7 +2,6 @@ import {
   Package,
   TrendingUp,
   DollarSign,
-  ThumbsUp,
   Eye,
   Heart,
   Gavel,
@@ -48,7 +47,7 @@ const SellerOverviewPage = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Active Listings Card */}
         <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
           <div className="flex items-center justify-between">
@@ -97,7 +96,7 @@ const SellerOverviewPage = () => {
         </div>
 
         {/* Avg Rating Card */}
-        <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
+        {/* <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
@@ -109,7 +108,7 @@ const SellerOverviewPage = () => {
               <ThumbsUp className="h-6 w-6 text-[hsl(var(--secondary-foreground))]" />
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* 7-Day Performance Chart */}
