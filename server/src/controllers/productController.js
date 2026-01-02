@@ -22,6 +22,16 @@ const ProductController = {
     }
   },
 
+  getById: async (req, res) => {
+    try {
+      const id = Number(req.validated.params.id);
+      const product = await ProductService.getProductById(id);
+      res.ok("Product retrieved successfully", product);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
   getEndingSoon: async (req, res) => {
     try {
       const products = await ProductService.getEndingSoonProducts();
@@ -43,6 +53,26 @@ const ProductController = {
   getHighestPrice: async (req, res) => {
     try {
       const products = await ProductService.getHighestPriceProducts();
+      res.ok("Products retrieved successfully", products);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
+  getActiveByUserId: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const products = await ProductService.getActiveProductsByUserId(userId);
+      res.ok("Products retrieved successfully", products);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
+  getSoldByUserId: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const products = await ProductService.getSoldProductsByUserId(userId);
       res.ok("Products retrieved successfully", products);
     } catch (error) {
       res.error(error.message);
