@@ -56,12 +56,6 @@ router.get(
   ProductController.getAll
 );
 
-router.get(
-  "/:id",
-  validate({ params: ProductIdSchema }),
-  ProductController.getById
-);
-
 router.get("/:id/bids", BidController.getByProductId);
 
 router.get("/ending-soon", ProductController.getEndingSoon);
@@ -82,6 +76,12 @@ router.get(
   verifyToken,
   authorize(["seller"]),
   ProductController.getSoldByUserId
+);
+
+router.get(
+  "/:id",
+  validate({ params: ProductIdSchema }),
+  ProductController.getById
 );
 
 router.put(

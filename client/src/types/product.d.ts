@@ -9,9 +9,10 @@ export interface Product {
   postDate: Date;
   endDate: Date;
   isNew?: boolean;
-};
+}
 
 export interface Seller {
+  id?: string;
   name: string;
   rating: number;
   totalSales: number;
@@ -21,7 +22,7 @@ export interface ProductDetail {
   id: string;
   title: string;
   images: string[];
-  currentBid: number;
+  currentPrice: number;
   buyNowPrice?: number;
   bidStep: number;
   topBidder: string;
@@ -30,6 +31,7 @@ export interface ProductDetail {
   endTime: Date;
   postedDate: Date;
   seller: Seller;
+  sellerId?: string;
   condition: string;
   category: string;
   description: string;
