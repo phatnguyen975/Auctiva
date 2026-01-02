@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-import { Send, MessageCircle, AlertTriangle } from "lucide-react";
+import { Send, MessageCircle, AlertTriangle, Loader2 } from "lucide-react";
 
 import toast from "react-hot-toast";
+import { axiosInstance } from "../../lib/axios";
+import { getHeaders } from "../../lib/getHeaders";
+import { uploadTransactionFile } from "../../lib/uploadFile";
 
 import Progress from "./Progress";
 import PaymentShippingStep from "./steps/PaymentShippingStep";
@@ -13,6 +16,7 @@ import RatingStep from "./steps/RatingStep";
 import CancelTransactionModal from "./steps/CancelTransactionModal";
 
 interface TransactionFlowProps {
+  transactionId: string;
   userRole: "winner" | "seller";
   partnerName: string;
   productTitle: string;
@@ -21,13 +25,30 @@ interface TransactionFlowProps {
 
 type TransactionStep = 1 | 2 | 3 | 4;
 
+interface TransactionData {
+  id: string;
+  status: string;
+  shippingAddress?: string;
+  paymentProofUrl?: string;
+  shippingReceiptUrl?: string;
+  buyerRating?: "up" | "down";
+  sellerRating?: "up" | "down";
+  buyerReview?: string;
+  sellerReview?: string;
+}
+
 const TransactionFlow = ({
+  transactionId,
   userRole,
   partnerName,
   productTitle,
   winningBid,
 }: TransactionFlowProps) => {
   const [currentStep, setCurrentStep] = useState<TransactionStep>(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [transactionData, setTransactionData] =
+    useState<TransactionData | null>(null);
   const [shippingAddress, setShippingAddress] = useState("");
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [shippingReceipt, setShippingReceipt] = useState<File | null>(null);
@@ -46,52 +67,238 @@ const TransactionFlow = ({
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
+  // Fetch transaction details
+  useEffect(() => {
+    fetchTransactionDetail();
+  }, [transactionId]);
+
+  const fetchTransactionDetail = async () => {
+    try {
+      setIsFetching(true);
+      const headers = getHeaders();
+      const response = await axiosInstance.get(
+        `/transactions/${transactionId}`,
+        { headers }
+      );
+
+      if (response.data) {
+        const rawData = response.data.data || response.data;
+
+        // Map backend field names to frontend (paymentProof -> paymentProofUrl)
+        const data: TransactionData = {
+          ...rawData,
+          paymentProofUrl: rawData.paymentProof || rawData.paymentProofUrl,
+          shippingReceiptUrl:
+            rawData.shippingReceipt || rawData.shippingReceiptUrl,
+        };
+
+        setTransactionData(data);
+
+        // Set current step based on status
+        switch (data.status) {
+          case "pending":
+            setCurrentStep(1);
+            break;
+          case "paid":
+            setCurrentStep(2);
+            break;
+          case "shipped":
+            setCurrentStep(3);
+            break;
+          case "completed":
+            setCurrentStep(4);
+            break;
+          default:
+            setCurrentStep(1);
+        }
+
+        // Load existing data
+        if (data.shippingAddress) setShippingAddress(data.shippingAddress);
+        if (data.buyerRating) setRating(data.buyerRating);
+        if (data.sellerRating) setRating(data.sellerRating);
+        if (userRole === "winner" && data.buyerReview)
+          setReview(data.buyerReview);
+        if (userRole === "seller" && data.sellerReview)
+          setReview(data.sellerReview);
+      }
+    } catch (error: any) {
+      console.error("Error fetching transaction:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to load transaction"
+      );
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
   const handleFileUpload = (
     e: React.ChangeEvent<HTMLInputElement>,
     type: "payment" | "shipping"
   ) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File size must be less than 10MB");
+        return;
+      }
+
       if (type === "payment") {
         setPaymentProof(file);
-        toast.success("Payment proof uploaded");
+        toast.success("Payment proof selected");
       } else {
         setShippingReceipt(file);
-        toast.success("Shipping receipt uploaded");
+        toast.success("Shipping receipt selected");
       }
     }
   };
 
-  const handleSubmitPayment = () => {
+  const handleSubmitPayment = async () => {
     if (!shippingAddress || !paymentProof) {
       toast.error("Please fill in all fields");
       return;
     }
-    setCurrentStep(2);
-    toast.success("Payment submitted! Waiting for seller confirmation.");
+
+    try {
+      setIsLoading(true);
+
+      // Upload file to Supabase Storage first
+      const paymentProofUrl = await uploadTransactionFile(
+        paymentProof,
+        "payment-proofs",
+        transactionId
+      );
+
+      // Send URL to backend
+      const authHeaders = getHeaders();
+      const response = await axiosInstance.post(
+        `/transactions/${transactionId}/payment`,
+        {
+          shippingAddress,
+          paymentProofUrl,
+        },
+        {
+          headers: authHeaders,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Payment submitted! Waiting for seller confirmation.");
+        await fetchTransactionDetail(); // Refresh data
+      }
+    } catch (error: any) {
+      console.error("Error submitting payment:", error);
+      toast.error(error.response?.data?.message || "Failed to submit payment");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     if (!shippingReceipt) {
       toast.error("Please upload shipping receipt");
       return;
     }
-    setCurrentStep(3);
-    toast.success("Payment confirmed! Package is on the way.");
+
+    try {
+      setIsLoading(true);
+
+      // Upload file to Supabase Storage first
+      const shippingReceiptUrl = await uploadTransactionFile(
+        shippingReceipt,
+        "shipping-receipts",
+        transactionId
+      );
+
+      // Send URL to backend
+      const authHeaders = getHeaders();
+      const response = await axiosInstance.post(
+        `/transactions/${transactionId}/ship`,
+        {
+          shippingReceiptUrl,
+        },
+        {
+          headers: authHeaders,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Payment confirmed! Package is on the way.");
+        await fetchTransactionDetail(); // Refresh data
+      }
+    } catch (error: any) {
+      console.error("Error confirming shipping:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to confirm shipping"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleConfirmDelivery = () => {
-    setCurrentStep(4);
-    toast.success("Package received! Please rate this transaction.");
+  const handleConfirmDelivery = async () => {
+    try {
+      setIsLoading(true);
+
+      const headers = getHeaders();
+      const response = await axiosInstance.post(
+        `/transactions/${transactionId}/receive`,
+        {},
+        { headers }
+      );
+
+      if (response.data.success) {
+        toast.success("Package received! Please rate this transaction.");
+        await fetchTransactionDetail(); // Refresh data
+      }
+    } catch (error: any) {
+      console.error("Error confirming delivery:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to confirm delivery"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSubmitRating = () => {
+  const handleSubmitRating = async () => {
     if (!rating) {
       toast.error("Please select thumbs up or down");
       return;
     }
-    toast.success("Rating submitted successfully!");
-    setIsEditingReview(false);
+
+    if (!review || review.trim().length === 0) {
+      toast.error("Please write a review comment");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      // Convert thumbs up/down to score: +1 or -1
+      const score = rating === "up" ? 1 : -1;
+
+      const headers = getHeaders();
+      const response = await axiosInstance.post(
+        `/transactions/${transactionId}/rate`,
+        {
+          score: score,
+          comment: review,
+        },
+        { headers }
+      );
+
+      if (response.data.success) {
+        toast.success("Rating submitted successfully!");
+        setIsEditingReview(false);
+        await fetchTransactionDetail(); // Refresh data
+      }
+    } catch (error: any) {
+      console.error("Error submitting rating:", error);
+      toast.error(error.response?.data?.message || "Failed to submit rating");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSendMessage = () => {
@@ -111,15 +318,46 @@ const TransactionFlow = ({
     setNewMessage("");
   };
 
-  const handleCancelTransaction = () => {
-    toast.error("Transaction cancelled. Negative rating applied.");
-    // In real app: navigate back or show cancelled state
+  const handleCancelTransaction = async () => {
+    try {
+      setIsLoading(true);
+
+      const headers = getHeaders();
+      const response = await axiosInstance.post(
+        `/transactions/${transactionId}/cancel`,
+        {},
+        { headers }
+      );
+
+      if (response.data.success) {
+        toast.error("Transaction cancelled. Negative rating applied.");
+        await fetchTransactionDetail(); // Refresh data
+      }
+    } catch (error: any) {
+      console.error("Error cancelling transaction:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to cancel transaction"
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleConfirmCancel = () => {
-    handleCancelTransaction(); // Gọi hàm xử lý logic khi cancel transaction
-    setIsCancelModalOpen(false); // Đóng modal sau khi xong
+    handleCancelTransaction();
+    setIsCancelModalOpen(false);
   };
+
+  // Show loading state while fetching
+  if (isFetching) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -156,12 +394,13 @@ const TransactionFlow = ({
               {/* Step 1: Payment & Shipping */}
               {currentStep === 1 && (
                 <PaymentShippingStep
-                  userRole={userRole} // "winner" hoặc "seller"
+                  userRole={userRole}
                   shippingAddress={shippingAddress}
                   setShippingAddress={setShippingAddress}
                   paymentProof={paymentProof}
                   onFileUpload={(e) => handleFileUpload(e, "payment")}
                   onSubmit={handleSubmitPayment}
+                  isLoading={isLoading}
                 />
               )}
 
@@ -171,9 +410,11 @@ const TransactionFlow = ({
                   userRole={userRole}
                   shippingAddress={shippingAddress}
                   paymentProof={paymentProof}
+                  paymentProofUrl={transactionData?.paymentProofUrl}
                   shippingReceipt={shippingReceipt}
                   onFileUpload={(e) => handleFileUpload(e, "shipping")}
                   onConfirm={handleConfirmPayment}
+                  isLoading={isLoading}
                 />
               )}
 
@@ -181,8 +422,10 @@ const TransactionFlow = ({
               {currentStep === 3 && (
                 <DeliveryStep
                   userRole={userRole}
-                  shippingReceipt={shippingReceipt} // File receipt mà seller đã up ở bước trước
+                  shippingReceipt={shippingReceipt}
+                  shippingReceiptUrl={transactionData?.shippingReceiptUrl}
                   onConfirm={handleConfirmDelivery}
+                  isLoading={isLoading}
                 />
               )}
 
@@ -196,6 +439,7 @@ const TransactionFlow = ({
                   isEditingReview={isEditingReview}
                   setIsEditingReview={setIsEditingReview}
                   onSubmit={handleSubmitRating}
+                  isLoading={isLoading}
                 />
               )}
 

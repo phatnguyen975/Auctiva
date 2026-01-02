@@ -1,0 +1,260 @@
+import { prisma } from "../configs/prisma.js";
+
+const TransactionService = {
+  // Lấy chi tiết giao dịch
+  getTransactionById: async (id, userId) => {
+    const transaction = await prisma.transaction.findUnique({
+      where: { id: Number(id) },
+      include: {
+        product: {
+          include: { images: true },
+        },
+        winner: {
+          select: {
+            id: true,
+            fullName: true,
+            avatarUrl: true,
+            ratingPositive: true,
+            ratingCount: true,
+          },
+        },
+        seller: {
+          select: {
+            id: true,
+            fullName: true,
+            avatarUrl: true,
+            ratingPositive: true,
+            ratingCount: true,
+          },
+        },
+      },
+    });
+
+    if (!transaction) throw new Error("Giao dịch không tồn tại.");
+
+    // Check if user is participant (winner or seller)
+    const isParticipant =
+      transaction.winnerId === userId || transaction.sellerId === userId;
+
+    // If not participant, return limited public info
+    if (!isParticipant) {
+      return {
+        id: transaction.id,
+        status: transaction.status,
+        product: transaction.product,
+        winner: {
+          id: transaction.winner.id,
+          fullName: transaction.winner.fullName,
+          avatarUrl: transaction.winner.avatarUrl,
+          ratingPositive: transaction.winner.ratingPositive,
+          ratingCount: transaction.winner.ratingCount,
+        },
+        seller: {
+          id: transaction.seller.id,
+          fullName: transaction.seller.fullName,
+          avatarUrl: transaction.seller.avatarUrl,
+          ratingPositive: transaction.seller.ratingPositive,
+          ratingCount: transaction.seller.ratingCount,
+        },
+        // Hide sensitive information
+        shippingAddress: null,
+        paymentProof: null,
+        shippingReceipt: null,
+        winnerId: transaction.winnerId,
+        sellerId: transaction.sellerId,
+        finalPrice: transaction.finalPrice,
+        createdAt: transaction.createdAt,
+      };
+    }
+
+    // For participants, fetch ratings
+    // Winner's rating (winner rates seller)
+    const winnerRating = await prisma.rating.findFirst({
+      where: {
+        fromUserId: transaction.winnerId,
+        targetUserId: transaction.sellerId,
+        createdAt: {
+          gte: new Date(transaction.createdAt),
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Seller's rating (seller rates winner)
+    const sellerRating = await prisma.rating.findFirst({
+      where: {
+        fromUserId: transaction.sellerId,
+        targetUserId: transaction.winnerId,
+        createdAt: {
+          gte: new Date(transaction.createdAt),
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      ...transaction,
+      buyerRating: winnerRating
+        ? winnerRating.score > 0
+          ? "up"
+          : "down"
+        : null,
+      buyerReview: winnerRating?.comment || null,
+      sellerRating: sellerRating
+        ? sellerRating.score > 0
+          ? "up"
+          : "down"
+        : null,
+      sellerReview: sellerRating?.comment || null,
+    };
+  },
+
+  // Giai đoạn 1: Buyer nộp địa chỉ và minh chứng chuyển tiền
+  submitPaymentInfo: async (
+    id,
+    userId,
+    { shippingAddress, paymentProofUrl }
+  ) => {
+    const tx = await prisma.transaction.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!tx || tx.winnerId !== userId)
+      throw new Error("Chỉ người mua mới có quyền này.");
+    if (tx.status !== "pending")
+      throw new Error("Giao dịch không ở trạng thái chờ thanh toán.");
+
+    return await prisma.transaction.update({
+      where: { id: Number(id) },
+      data: {
+        shippingAddress,
+        paymentProof: paymentProofUrl,
+        status: "paid", // Chuyển sang Giai đoạn 2: Chờ seller confirm và ship
+      },
+    });
+  },
+
+  // Giai đoạn 2: Seller xác nhận đã nhận tiền và upload biên lai giao hàng
+  confirmAndShip: async (id, userId, { shippingReceiptUrl }) => {
+    const tx = await prisma.transaction.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!tx || tx.sellerId !== userId)
+      throw new Error("Chỉ người bán mới có quyền này.");
+    if (tx.status !== "paid")
+      throw new Error("Người mua chưa nộp minh chứng thanh toán.");
+
+    return await prisma.transaction.update({
+      where: { id: Number(id) },
+      data: {
+        shippingReceipt: shippingReceiptUrl,
+        status: "shipped", // Chuyển sang Giai đoạn 3: Đang vận chuyển
+      },
+    });
+  },
+
+  // Giai đoạn 2 (Option): Seller hủy giao dịch
+  cancelTransaction: async (id, userId) => {
+    const tx = await prisma.transaction.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!tx || tx.sellerId !== userId)
+      throw new Error("Chỉ người bán mới có quyền hủy.");
+
+    // Sử dụng transaction của prisma để đảm bảo tính toàn vẹn
+    return await prisma.$transaction([
+      prisma.transaction.update({
+        where: { id: Number(id) },
+        data: { status: "cancelled" },
+      }),
+      prisma.product.update({
+        where: { id: tx.productId },
+        data: {
+          status: "active",
+          winnerId: null,
+          currentPrice: tx.product?.startPrice,
+        }, // Cho phép đấu giá lại
+      }),
+    ]);
+  },
+
+  // Giai đoạn 3: Buyer xác nhận đã nhận được hàng
+  confirmReceived: async (id, userId) => {
+    const tx = await prisma.transaction.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!tx || tx.winnerId !== userId)
+      throw new Error("Chỉ người mua mới có quyền xác nhận.");
+    if (tx.status !== "shipped")
+      throw new Error("Sản phẩm chưa được chuyển đi.");
+
+    return await prisma.transaction.update({
+      where: { id: Number(id) },
+      data: { status: "completed" }, // Chuyển sang Giai đoạn 4: Đã giao hàng
+    });
+  },
+
+  // Giai đoạn 4: Đánh giá đối phương
+  submitRating: async (id, fromUserId, { score, comment }) => {
+    const tx = await prisma.transaction.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!tx || tx.status !== "completed")
+      throw new Error("Giao dịch chưa hoàn tất.");
+
+    // Xác định người được đánh giá (target)
+    if (tx.winnerId !== fromUserId && tx.sellerId !== fromUserId)
+      throw new Error("Bạn không tham gia giao dịch này.");
+
+    const targetUserId = tx.winnerId === fromUserId ? tx.sellerId : tx.winnerId;
+
+    // Kiểm tra xem đã đánh giá giao dịch này chưa
+    const existingRating = await prisma.rating.findFirst({
+      where: {
+        fromUserId: fromUserId,
+        targetUserId: targetUserId,
+        createdAt: {
+          gte: new Date(tx.createdAt), // Rating sau khi transaction được tạo
+        },
+      },
+    });
+    if (existingRating)
+      throw new Error("Bạn đã thực hiện đánh giá cho giao dịch này rồi.");
+
+    return await prisma.$transaction(async (p) => {
+      // 1. Tạo bản ghi đánh giá
+      const rating = await p.rating.create({
+        data: {
+          fromUserId,
+          targetUserId,
+          score,
+          comment,
+        },
+      });
+
+      // 2. Cập nhật uy tín cho người nhận đánh giá
+      const currentProfile = await p.profile.findUnique({
+        where: { id: targetUserId },
+        select: { ratingCount: true, ratingPositive: true },
+      });
+
+      const currentCount = currentProfile?.ratingCount || 0;
+      const currentPositive = currentProfile?.ratingPositive || 0;
+
+      await p.profile.update({
+        where: { id: targetUserId },
+        data: {
+          ratingCount: currentCount + 1,
+          ratingPositive: score > 0 ? currentPositive + 1 : currentPositive,
+        },
+      });
+
+      return rating;
+    });
+  },
+};
+
+export default TransactionService;
