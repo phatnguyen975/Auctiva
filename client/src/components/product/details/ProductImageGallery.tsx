@@ -5,7 +5,7 @@ const cn = (...classes: (string | undefined | null | false)[]) =>
   classes.filter(Boolean).join(" ");
 
 interface ProductImageGalleryProps {
-  images: string[];
+  images: any[];
   title: string;
   className?: string;
 }
@@ -36,7 +36,7 @@ const ProductImageGallery = ({
       {/* Main Image */}
       <div className="aspect-square bg-card rounded-lg overflow-hidden border bg-white">
         <img
-          src={images[selectedImage]}
+          src={images[selectedImage]?.url}
           alt={`${title} - Main View`}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105 cursor-zoom-in"
         />
@@ -58,7 +58,7 @@ const ProductImageGallery = ({
               )}
             >
               <img
-                src={image}
+                src={image?.url}
                 alt={`${title} thumbnail ${index + 1}`}
                 className="w-full h-full object-cover"
               />

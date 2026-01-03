@@ -16,6 +16,7 @@ interface ProductDetailTabsProps {
   productSellerId?: string;
 
   // Data
+  description?: string;
   bidHistory: any[];
   qaItems: any[];
   relatedProducts: any[];
@@ -32,6 +33,7 @@ const ProductDetailTabs = ({
   role,
   userId,
   productSellerId,
+  description,
   bidHistory,
   qaItems,
   relatedProducts,
@@ -77,117 +79,16 @@ const ProductDetailTabs = ({
               <h3 className="text-xl font-semibold mb-3">
                 Product Description
               </h3>
-              <p className="text-muted-foreground leading-relaxed">
-                Experience premium audio quality with these studio-grade
-                wireless headphones...
-              </p>
-            </div>
-
-            {/* Key Features Section */}
-            <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <Award className="h-5 w-5 text-primary" /> Key Features
-              </h4>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {/* ... List items ... */}
-                <li className="flex items-start gap-2">
-                  <span className="text-sm">
-                    Active Noise Cancellation (ANC) technology
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-sm">40-hour battery life</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
-                  <span className="text-sm">
-                    Premium memory foam ear cushions
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
-                  <span className="text-sm">
-                    Bluetooth 5.0 with aptX HD support
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
-                  <span className="text-sm">
-                    Foldable design with hard carrying case
-                  </span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary mt-2 shrink-0" />
-                  <span className="text-sm">Built-in microphone for calls</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Condition */}
-            <div className="pt-4 border-t">
-              <h4 className="font-semibold mb-2">Condition</h4>
-              <p className="text-sm text-muted-foreground">
-                Brand new, sealed in original packaging with full manufacturer
-                warranty.
-              </p>
-            </div>
-
-            {/* What's Included */}
-            <div className="pt-4 border-t">
-              <h4 className="font-semibold mb-3">What's Included</h4>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <div className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg p-3">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <span>Headphones</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg p-3">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <span>USB-C cable</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg p-3">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <span>3.5mm cable</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg p-3">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <span>Carrying case</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm bg-muted/50 rounded-lg p-3">
-                  <div className="h-2 w-2 rounded-full bg-primary" />
-                  <span>User manual</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Specifications */}
-            <div className="pt-4 border-t">
-              <h4 className="font-semibold mb-3">Technical Specifications</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                <div className="flex justify-between py-2 border-b border-muted">
-                  <span className="text-muted-foreground">Connectivity</span>
-                  <span className="font-medium">Bluetooth 5.0</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-muted">
-                  <span className="text-muted-foreground">Battery Life</span>
-                  <span className="font-medium">Up to 40 hours</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-muted">
-                  <span className="text-muted-foreground">Charging Port</span>
-                  <span className="font-medium">USB-C</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-muted">
-                  <span className="text-muted-foreground">Weight</span>
-                  <span className="font-medium">250g</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-muted">
-                  <span className="text-muted-foreground">Driver Size</span>
-                  <span className="font-medium">40mm</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-muted">
-                  <span className="text-muted-foreground">Impedance</span>
-                  <span className="font-medium">32 Ohm</span>
-                </div>
-              </div>
+              {description ? (
+                <div
+                  className="text-muted-foreground leading-relaxed [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:space-y-2 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:space-y-2"
+                  dangerouslySetInnerHTML={{ __html: description }}
+                />
+              ) : (
+                <p className="text-muted-foreground leading-relaxed">
+                  No description available.
+                </p>
+              )}
             </div>
           </div>
         </div>

@@ -2,13 +2,15 @@ import { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 
 interface CountdownTimerProps {
-  endTime: Date;
+  endTime: Date | string;
   urgent?: boolean;
   compact?: boolean;
 }
 
-const calculateTimeLeft = (endTime: Date) => {
-  const difference = endTime.getTime() - new Date().getTime();
+const calculateTimeLeft = (endTime: Date | string) => {
+  // Convert to Date if it's a string
+  const endDate = typeof endTime === "string" ? new Date(endTime) : endTime;
+  const difference = endDate.getTime() - new Date().getTime();
 
   if (difference <= 0) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0, ended: true };
