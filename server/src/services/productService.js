@@ -303,6 +303,8 @@ const ProductService = {
             id: true,
             username: true,
             fullName: true,
+            ratingPositive: true,
+            ratingCount: true,
           },
         },
         seller: {
@@ -310,6 +312,8 @@ const ProductService = {
             id: true,
             username: true,
             fullName: true,
+            ratingPositive: true,
+            ratingCount: true,
           },
         },
         _count: {
