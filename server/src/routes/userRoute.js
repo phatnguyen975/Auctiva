@@ -22,6 +22,13 @@ router.get(
 );
 
 router.get(
+  "/watchlist/count",
+  verifyToken,
+  authorize(["bidder", "seller"]),
+  WatchlistController.getCountByUserId
+);
+
+router.get(
   "/ratings",
   verifyToken,
   authorize(["bidder", "seller"]),

@@ -40,12 +40,14 @@ export const ProductQuerySchema = z.object({
     .regex(/^\d+$/, "Page must be a number")
     .transform(Number)
     .default(9),
-  categoryId: z
+  categoryIds: z
     .string()
-    .regex(/^\d+$/, "Category ID must be a number")
-    .transform(Number)
-    .optional(),
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      return val.split(",").map(Number).filter((n) => !isNaN(n));
+    }),
   sortBy: z.enum(["endDate", "currentPrice"]).optional(),
   order: z.enum(["asc", "desc"]).optional(),
-  keyword: z.string().trim().min(1).optional(),
+  keyword: z.string().trim().optional(),
 });

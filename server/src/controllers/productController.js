@@ -15,7 +15,8 @@ const ProductController = {
 
   getAll: async (req, res) => {
     try {
-      const products = await ProductService.getProducts(req.validated.query);
+      const userId = req.user?.id ?? null;
+      const products = await ProductService.getProducts(req.validated.query, userId);
       res.ok("Products retrieved successfully", products);
     } catch (error) {
       res.error(error.message);

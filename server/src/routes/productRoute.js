@@ -28,6 +28,7 @@ router.get("/home", optionalAuth, ProductController.getHome);
 
 router.get(
   "/",
+  optionalAuth,
   validate({ query: ProductQuerySchema }),
   ProductController.getAll
 );

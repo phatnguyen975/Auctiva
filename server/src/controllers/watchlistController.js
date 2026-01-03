@@ -25,6 +25,16 @@ const WatchlistController = {
     }
   },
 
+  getCountByUserId: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const watchlist = await WatchlistService.getProductCountByUserId(userId);
+      res.ok("Count retrieved successfully", watchlist);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
   delete: async (req, res) => {
     try {
       const productId = Number(req.validated.params.id);

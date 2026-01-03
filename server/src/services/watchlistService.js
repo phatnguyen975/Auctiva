@@ -51,6 +51,12 @@ const WatchlistService = {
     });
   },
 
+  getProductCountByUserId: async (userId) => {
+    return prisma.watchlist.count({
+      where: { userId },
+    });
+  },
+
   deleteProductFromWatchlist: async ({ productId, userId }) => {
     const product = await prisma.product.findUnique({
       where: { id: productId },

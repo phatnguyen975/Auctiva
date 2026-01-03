@@ -71,8 +71,13 @@ const ProductService = {
     return newProduct;
   },
 
-  getProducts: async ({ page, limit, categoryId, sortBy, order, keyword }) => {
+  getProducts: async (
+    { page, limit, categoryIds, sortBy, order, keyword },
+    userId
+  ) => {
     const skip = (page - 1) * limit;
+
+    const hasCategories = Array.isArray(categoryIds) && categoryIds.length > 0;
 
     if (keyword) {
       let orderBy = "ORDER BY p.created_at DESC";
@@ -85,31 +90,15 @@ const ProductService = {
         orderBy = `ORDER BY p.current_price ${order?.toUpperCase() ?? "DESC"}`;
       }
 
+      const rawCategoryParams = hasCategories ? categoryIds : null;
+
       const data = await prisma.$queryRawUnsafe(
         `
           SELECT
-            p.id,
-            p.seller_id,
-            p.category_id,
-            p.winner_id,
-            pf.user_name,
-            pf.full_name,
-            p.name,
-            p.description,
-            p.slug,
-            p.start_price,
-            p.step_price,
-            p.buy_now_price,
-            p.current_price,
-            p.post_date,
-            p.end_date,
-            p.is_auto_extend,
-            p.is_instant_purchase,
-            p.is_new,
-            p.status,
-            p.min_images,
-            p.created_at,
-            p.updated_at,
+            p.id, p.name, p.winner_id,
+            pf.user_name, pf.full_name,
+            p.current_price, p.buy_now_price,
+            p.post_date, p.end_date,
             COUNT(b.id)::int AS bid_count,
             COALESCE(
               jsonb_agg(
@@ -120,8 +109,7 @@ const ProductService = {
                   'createdAt', i.created_at
                 )
                 ORDER BY i.created_at DESC
-              ) FILTER (WHERE i.id IS NOT NULL),
-              '[]'
+              ) FILTER (WHERE i.id IS NOT NULL), '[]'
             ) AS images
           FROM products p
           JOIN categories c ON c.id = p.category_id
@@ -129,7 +117,7 @@ const ProductService = {
           LEFT JOIN bids b ON b.product_id = p.id
           LEFT JOIN product_images i ON i.product_id = p.id
           WHERE
-            ($1::int IS NULL OR p.category_id = $1)
+            ($1::int[] IS NULL OR p.category_id = ANY($1::int[]))
             AND (
               p.search_vector @@ plainto_tsquery('english', $2)
               OR c.search_vector @@ plainto_tsquery('english', $2)
@@ -137,33 +125,15 @@ const ProductService = {
               OR c.name ILIKE '%' || $2 || '%'
             )
           GROUP BY
-            p.id,
-            p.seller_id,
-            p.category_id,
-            p.winner_id,
-            pf.user_name,
-            pf.full_name,
-            p.name,
-            p.description,
-            p.slug,
-            p.start_price,
-            p.step_price,
-            p.buy_now_price,
-            p.current_price,
-            p.post_date,
-            p.end_date,
-            p.is_auto_extend,
-            p.is_instant_purchase,
-            p.is_new,
-            p.status,
-            p.min_images,
-            p.created_at,
-            p.updated_at
+            p.id, p.name, p.winner_id,
+            pf.user_name, pf.full_name,
+            p.current_price, p.buy_now_price,
+            p.post_date, p.end_date
           ${orderBy}
           LIMIT $3
           OFFSET $4
         `,
-        categoryId ?? null,
+        rawCategoryParams,
         keyword,
         limit,
         skip
@@ -175,7 +145,7 @@ const ProductService = {
           FROM products p
           JOIN categories c ON c.id = p.category_id
           WHERE
-            ($1::int IS NULL OR p.category_id = $1)
+            ($1::int[] IS NULL OR p.category_id = ANY($1::int[]))
             AND (
               p.search_vector @@ plainto_tsquery('english', $2)
               OR c.search_vector @@ plainto_tsquery('english', $2)
@@ -183,60 +153,57 @@ const ProductService = {
               OR c.name ILIKE '%' || $2 || '%'
             )
         `,
-        categoryId ?? null,
+        rawCategoryParams,
         keyword
       );
 
       const totalCount = Number(total[0].count);
+
       const formattedData = data.map((p) => ({
         id: p.id,
-        sellerId: p.seller_id,
-        categoryId: p.category_id,
-
         name: p.name,
-        description: p.description,
-        slug: p.slug,
-
-        startPrice: p.start_price,
-        stepPrice: p.step_price,
-        buyNowPrice: p.buy_now_price,
         currentPrice: p.current_price,
+        buyNowPrice: p.buy_now_price,
 
         postDate: p.post_date,
         endDate: p.end_date,
 
-        isAutoExtend: p.is_auto_extend,
-        isInstantPurchase: p.is_instant_purchase,
-        isNew: p.is_new,
-
-        status: p.status,
-        minImages: p.min_images,
-
-        createdAt: p.created_at,
-        updatedAt: p.updated_at,
-
-        winner:
-          p.user_name !== null || p.full_name !== null
-            ? {
-                id: p.winner_id,
-                username: p.user_name,
-                fullName: p.full_name,
-              }
-            : null,
+        winner: p.winner_id
+          ? {
+              id: p.winner_id,
+              username: p.user_name,
+              fullName: p.full_name,
+            }
+          : null,
 
         _count: {
           bids: p.bid_count,
         },
 
-        images: p.images ?? [],
+        images: p.images
+          ? p.images.filter((img) => img.isPrimary === true)
+          : [],
       }));
 
-      const enrichedData = await Promise.all(
-        formattedData.map(enrichProductWithFlags)
+      let watchedProductIds = new Set();
+
+      if (userId) {
+        const watchlist = await prisma.watchlist.findMany({
+          where: { userId },
+          select: { productId: true },
+        });
+
+        watchedProductIds = new Set(watchlist.map((w) => w.productId));
+      }
+
+      const enrichedProducts = await Promise.all(
+        formattedData.map((product) =>
+          enrichProductWithFlags(product, watchedProductIds.has(product.id))
+        )
       );
 
       return {
-        products: enrichedData,
+        products: enrichedProducts,
         pagination: {
           page,
           limit,
@@ -247,7 +214,7 @@ const ProductService = {
     }
 
     const where = {
-      ...(categoryId && { categoryId }),
+      ...(hasCategories && { categoryId: { in: categoryIds } }),
     };
 
     const orderBy =
@@ -268,11 +235,10 @@ const ProductService = {
             },
           },
           _count: {
-            select: {
-              bids: true,
-            },
+            select: { bids: true },
           },
           images: {
+            where: { isPrimary: true },
             omit: { productId: true },
           },
         },
@@ -281,10 +247,25 @@ const ProductService = {
       prisma.product.count({ where }),
     ]);
 
-    const enrichedData = await Promise.all(data.map(enrichProductWithFlags));
+    let watchedProductIds = new Set();
+
+    if (userId) {
+      const watchlist = await prisma.watchlist.findMany({
+        where: { userId },
+        select: { productId: true },
+      });
+
+      watchedProductIds = new Set(watchlist.map((w) => w.productId));
+    }
+
+    const enrichedProducts = await Promise.all(
+      data.map((product) =>
+        enrichProductWithFlags(product, watchedProductIds.has(product.id))
+      )
+    );
 
     return {
-      products: enrichedData,
+      products: enrichedProducts,
       pagination: {
         page,
         limit,
