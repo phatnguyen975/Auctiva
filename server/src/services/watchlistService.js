@@ -38,6 +38,15 @@ const WatchlistService = {
           some: { userId },
         },
       },
+      include: {
+        _count: {
+          select: { bids: true },
+        },
+        images: {
+          where: { isPrimary: true },
+          omit: { productId: true },
+        },
+      },
       orderBy: { endDate: "asc" },
     });
   },

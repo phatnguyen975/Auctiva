@@ -1,4 +1,4 @@
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, Hammer, Calendar } from "lucide-react";
 import toast from "react-hot-toast";
@@ -8,7 +8,6 @@ import { maskName } from "../../utils/masking";
 import { axiosInstance } from "../../lib/axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
-import { getHeaders } from "../../utils/getHeaders";
 
 export interface ProductCardProps {
   id: number;
@@ -42,6 +41,7 @@ export function ProductCard({
   const authUser = useSelector((state: RootState) => state.auth.authUser);
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
+  const [watched, setWatched] = useState(isWatched);
   const navigate = useNavigate();
 
   const handleAddToWatchlist = async (e: MouseEvent<HTMLButtonElement>) => {
@@ -49,32 +49,52 @@ export function ProductCard({
 
     if (!authUser) {
       toast.error("You must login to watch this product");
-    }
-
-    if (isWatched) {
-      toast.error("You have added this product to watchlist");
       return;
     }
 
-    try {
-      const { data } = await axiosInstance.post(
-        `/products/${id}/watchlist`,
-        {},
-        {
-          headers: {
-            "x-api-key": import.meta.env.VITE_API_KEY,
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
+    if (watched) {
+      try {
+        const { data } = await axiosInstance.delete(
+          `/products/${id}/watchlist`,
+          {
+            headers: {
+              "x-api-key": import.meta.env.VITE_API_KEY,
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
 
-      if (data.success) {
-        toast.success(data.message);
-      } else {
-        toast.error(data.message);
+        if (data.success) {
+          setWatched(false);
+          toast.success(data.message);
+        } else {
+          toast.error(data.message);
+        }
+      } catch (error: any) {
+        console.error("Error adding product to watchlist:", error.message);
       }
-    } catch (error: any) {
-      console.error("Error adding product to watchlist:", error.message);
+    } else {
+      try {
+        const { data } = await axiosInstance.post(
+          `/products/${id}/watchlist`,
+          {},
+          {
+            headers: {
+              "x-api-key": import.meta.env.VITE_API_KEY,
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        if (data.success) {
+          setWatched(true);
+          toast.success(data.message);
+        } else {
+          toast.error(data.message);
+        }
+      } catch (error: any) {
+        console.error("Error adding product to watchlist:", error.message);
+      }
     }
   };
 
@@ -101,9 +121,8 @@ export function ProductCard({
             <button
               className="sm:hidden absolute text-gray-800 top-2 right-2 p-2 bg-gray-100 hover:bg-white rounded-lg cursor-pointer"
               onClick={handleAddToWatchlist}
-              disabled={isWatched}
             >
-              {isWatched ? (
+              {watched ? (
                 <Heart className="size-5 fill-gray-800" />
               ) : (
                 <Heart className="size-5" />
@@ -122,9 +141,8 @@ export function ProductCard({
                 <button
                   className="max-sm:hidden text-gray-800 top-2 right-2 p-2 hover:bg-gray-200 rounded-lg cursor-pointer"
                   onClick={handleAddToWatchlist}
-                  disabled={isWatched}
                 >
-                  {isWatched ? (
+                  {watched ? (
                     <Heart className="size-5 fill-gray-800" />
                   ) : (
                     <Heart className="size-5" />
@@ -207,9 +225,8 @@ export function ProductCard({
           <button
             className="absolute text-gray-800 top-2 right-2 p-2 bg-gray-100 hover:bg-white rounded-lg cursor-pointer"
             onClick={handleAddToWatchlist}
-            disabled={isWatched}
           >
-            {isWatched ? (
+            {watched ? (
               <Heart className="size-4 fill-gray-800" />
             ) : (
               <Heart className="size-4" />

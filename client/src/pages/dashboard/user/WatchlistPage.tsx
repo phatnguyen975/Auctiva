@@ -1,44 +1,83 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertTriangle, Eye, Heart, XCircle } from "lucide-react";
-
-import { dumpyWatchist } from "../../../assets/assets";
 import CountdownTimer from "../../../components/product/details/CountdownTimer";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store/store";
+import { axiosInstance } from "../../../lib/axios";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
+import toast from "react-hot-toast";
 
 interface Item {
-  id: number | string;
-  image: string;
-  title: string;
-  currentBid: number;
-  timeLeft: Date;
-  totalBids: number;
+  id: number;
+  images: [{ url: string; isPrimary: boolean }];
+  name: string;
+  currentPrice: number;
+  endDate: string;
+  _count: {
+    bids: number;
+  };
 }
 
 const WatchlistPage = () => {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
   const [watchlist, setWatchList] = useState<Item[]>([]);
-  const [itemToDelete, setItemToDelete] = useState<number | string | null>(
-    null
-  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const loadWatchList = async () => {
-      // Call API
-      setWatchList(dumpyWatchist);
-    };
+  const fetchWatchlist = async () => {
+    try {
+      setIsLoading(true);
 
-    loadWatchList();
+      const { data } = await axiosInstance.get("/users/watchlist", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        setWatchList(data.data);
+      }
+    } catch (error: any) {
+      console.error("Error loading watchlist:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWatchlist();
   }, []);
 
-  const handleRequestDelete = (id: number | string) => {
+  const handleRequestDelete = (id: number) => {
     setItemToDelete(id);
   };
 
-  const handleConfirmDelete = () => {
-    if (itemToDelete !== null) {
-      setWatchList((prev) => prev.filter((item) => item.id !== itemToDelete));
-      setItemToDelete(null); // Đóng popup
+  const handleConfirmDelete = async () => {
+    try {
+      const { data } = await axiosInstance.delete(
+        `/products/${itemToDelete}/watchlist`,
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (data.success) {
+        setItemToDelete(null);
+        toast.success(data.message);
+        await fetchWatchlist();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      console.error("Error adding product to watchlist:", error.message);
     }
   };
 
@@ -65,7 +104,11 @@ const WatchlistPage = () => {
             </span>
           </div>
 
-          {watchlist.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <LoadingSpinner />
+            </div>
+          ) : watchlist.length === 0 ? (
             <div className="text-center py-16">
               <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-20" />
               <h3 className="text-xl font-semibold mb-2">
@@ -84,23 +127,19 @@ const WatchlistPage = () => {
           ) : (
             <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] flex flex-col gap-6 rounded-xl border border-[hsl(var(--border))] transition-colors duration-300">
               <div className="relative w-full overflow-x-auto">
-                {/* Tương ứng với component <Table> */}
                 <table className="w-full caption-bottom text-sm">
-                  {/* Tương ứng với component <TableHeader> */}
                   <thead className="[&_tr]:border-b">
-                    {/* Tương ứng với component <TableRow> trong header */}
                     <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      {/* Tương ứng với component <TableHead> */}
                       <th className="h-10 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap">
                         Product
                       </th>
-                      <th className="h-10 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap">
+                      <th className="h-10 min-w-25 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap">
                         Current Bid
                       </th>
-                      <th className="h-10 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap">
+                      <th className="h-10 min-w-15 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap">
                         Bids
                       </th>
-                      <th className="h-10 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap">
+                      <th className="h-10 min-w-28 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap">
                         Time Left
                       </th>
                       <th className="h-10 px-2 text-left align-middle font-medium text-foreground whitespace-nowrap">
@@ -109,36 +148,31 @@ const WatchlistPage = () => {
                     </tr>
                   </thead>
 
-                  {/* Tương ứng với component <TableBody> */}
                   <tbody className="[&_tr:last-child]:border-0">
                     {watchlist.map((item) => (
-                      /* Tương ứng với component <TableRow> trong body */
                       <tr
                         key={item.id}
                         className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                       >
-                        {/* Tương ứng với component <TableCell> */}
-                        <td className="p-2 align-middle whitespace-nowrap">
+                        <td className="p-4 align-middle">
                           <div className="flex items-center gap-3">
                             <img
-                              src={item.image}
-                              alt={item.title}
-                              className="w-16 h-16 rounded-lg object-cover"
+                              src={item.images[0].url}
+                              alt={item.name}
+                              className="w-16 h-16 rounded object-cover"
                             />
-                            <span className="font-medium">{item.title}</span>
+                            <span className="font-medium">{item.name}</span>
                           </div>
                         </td>
 
-                        <td className="p-2 align-middle whitespace-nowrap font-bold text-primary">
-                          ${item.currentBid.toLocaleString()}
+                        <td className="p-2 align-middle font-bold text-primary">
+                          ${item.currentPrice.toLocaleString()}
                         </td>
 
-                        <td className="p-2 align-middle whitespace-nowrap">
-                          {item.totalBids}
-                        </td>
+                        <td className="p-2 align-middle">{item._count.bids}</td>
 
                         <td className="p-2 align-middle whitespace-nowrap">
-                          <CountdownTimer endTime={item.timeLeft} compact />
+                          <CountdownTimer endTime={item.endDate} compact />
                         </td>
 
                         <td className="p-2 align-middle whitespace-nowrap">
@@ -151,7 +185,7 @@ const WatchlistPage = () => {
                               View
                             </button>
                             <button
-                              className="flex justify-center items-center rounded-md px-4 py-2 text-sm text-black bg-slate-300 font-medium transition-colors shadow-sm hover:bg-slate-500 hover:cursor-pointer"
+                              className="flex justify-center items-center rounded-md px-3 py-2 text-sm text-black bg-slate-300 font-medium transition-colors shadow-sm hover:bg-slate-500 hover:cursor-pointer"
                               onClick={() => handleRequestDelete(item.id)}
                             >
                               <XCircle className="h-4 w-4 mr-1" />
@@ -169,11 +203,9 @@ const WatchlistPage = () => {
         </div>
       </div>
 
-      {/* --- POPUP CONFIRMATION --- */}
       {itemToDelete !== null && (
         // Overlay nền đen mờ
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          {/* Hộp thoại chính */}
           <div className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] text-[hsl(var(--card-foreground))] w-full max-w-md rounded-lg shadow-xl p-6 scale-100 animate-in zoom-in-95 duration-200">
             {/* Header Popup */}
             <div className="flex flex-col items-center text-center sm:text-left sm:items-start mb-4">
@@ -191,13 +223,13 @@ const WatchlistPage = () => {
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 mt-6">
               <button
                 onClick={handleCancelDelete}
-                className="px-4 py-2 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-100 transition-colors"
+                className="px-4 py-2 rounded-md cursor-pointer border border-gray-300 text-sm font-medium hover:bg-gray-100 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700 shadow-sm transition-colors"
+                className="px-4 py-2 rounded-md cursor-pointer bg-red-600 text-white text-sm font-medium hover:bg-red-700 shadow-sm transition-colors"
               >
                 Remove
               </button>
