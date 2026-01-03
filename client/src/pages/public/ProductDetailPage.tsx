@@ -19,10 +19,7 @@ import {
 } from "lucide-react";
 
 import type { ProductDetail } from "../../types/product";
-import {
-  dummyBidHistory,
-  dummyRelatedProducts,
-} from "../../assets/assets";
+import { dummyBidHistory, dummyRelatedProducts } from "../../assets/assets";
 
 import CountdownTimer from "../../components/product/details/CountdownTimer";
 import { formatPostDate } from "../../utils/date";
@@ -48,8 +45,8 @@ const ProductDetailPage = () => {
   const tabsSectionRef = useRef<HTMLDivElement>(null);
 
   const [bidAmount, setBidAmount] = useState("");
-  //const [question, setQuestion] = useState("");
   const [qaItems, setQaItems] = useState<any[]>([]);
+  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [banningInfo, setBanningInfo] = useState<{
     bid: any;
     index: number;
@@ -86,11 +83,31 @@ const ProductDetailPage = () => {
     }
   };
 
+  const fetchRelatedProducts = async (categoryId: number) => {
+    try {
+      const headers = getHeaders();
+      const data = await axiosInstance.get(
+        `/products/${productID}/related?categoryId=${categoryId}`,
+        {
+          headers,
+        }
+      );
+
+      if (data && data.data) {
+        setRelatedProducts(data.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch related products:", error);
+    }
+  };
+
   useEffect(() => {
     loadProduct();
 
     fetchQA();
-  }, [productID]);
+
+    fetchRelatedProducts(product?.categoryId || 1);
+  }, [productID, product?.categoryId]);
 
   const handleConfirmBan = () => {
     if (!banningInfo) return;
@@ -372,7 +389,7 @@ const ProductDetailPage = () => {
             description={product?.description}
             bidHistory={dummyBidHistory}
             qaItems={qaItems}
-            relatedProducts={dummyRelatedProducts}
+            relatedProducts={relatedProducts}
             onPostQuestion={handlePostQuestion}
             onPostAnswer={handlePostAnswer}
             onBanUser={(bid, index) => setBanningInfo({ bid, index })}

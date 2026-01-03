@@ -335,6 +335,46 @@ const ProductService = {
     return product;
   },
 
+  getRelatedProducts: async (productId, categoryId) => {
+    return await prisma.product.findMany({
+      where: {
+        categoryId: categoryId,
+        id: { not: productId },
+        status: "active",
+      },
+      take: 5,
+      include: {
+        winner: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            ratingPositive: true,
+            ratingCount: true,
+          },
+        },
+        seller: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            ratingPositive: true,
+            ratingCount: true,
+          },
+        },
+        _count: {
+          select: {
+            bids: true,
+          },
+        },
+        images: {
+          omit: { productId: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  },
+
   getHomeProducts: async (userId) => {
     const include = {
       winner: {

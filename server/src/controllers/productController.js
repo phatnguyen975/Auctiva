@@ -32,6 +32,22 @@ const ProductController = {
     }
   },
 
+  getRelated: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { categoryId } = req.query;
+
+      const products = await ProductService.getRelatedProducts(
+        Number(id),
+        Number(categoryId)
+      );
+
+      res.ok("Related products retrieved successfully", products);
+    } catch (error) {
+      res.status(400).json({ message: error.message });
+    }
+  },
+
   getHome: async (req, res) => {
     try {
       const userId = req.user?.id ?? null;
@@ -76,7 +92,10 @@ const ProductController = {
     try {
       const id = Number(req.validated.params.id);
       const description = req.validated.body.description;
-      const updatedProduct = await ProductService.updateProduct({ id, description });
+      const updatedProduct = await ProductService.updateProduct({
+        id,
+        description,
+      });
       res.ok("Product updated successfully", updatedProduct);
     } catch (error) {
       res.error(error.message);

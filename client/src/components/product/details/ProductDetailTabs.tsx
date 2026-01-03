@@ -5,6 +5,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../ui/Tabs";
 import { BidHistoryTable } from "./BidHistoryTable";
 import { ProductCard } from "../ProductCard";
 
+import { mapProductToCard } from "../../../utils/product";
+
 // Interface cho Props
 interface ProductDetailTabsProps {
   currentTab: string;
@@ -199,7 +201,7 @@ const ProductDetailTabs = ({
       <TabsContent value="related" className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           {relatedProducts.map((rp) => (
-            <ProductCard key={rp.id} {...rp} />
+            <ProductCard key={rp.id} {...mapProductToCard(rp)} />
           ))}
         </div>
       </TabsContent>
