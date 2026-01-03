@@ -77,6 +77,6 @@ export interface ProductDetail {
   sellerId?: string;
   winner: Winner;
   condition: string;
-  category: string;
+  categoryId: number;
   description: string;
 }

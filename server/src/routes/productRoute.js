@@ -67,6 +67,12 @@ router.get(
   ProductController.getById
 );
 
+router.get(
+  "/:id/related",
+  validate({ params: ProductIdSchema }),
+  ProductController.getRelated
+);
+
 router.put(
   "/:id",
   verifyToken,
