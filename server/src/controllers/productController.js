@@ -79,6 +79,16 @@ const ProductController = {
     }
   },
 
+  getAnalysisByUserId: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const analysis = await ProductService.getSoldProductsByUserId(userId);
+      res.ok("Analysis retrieved successfully", analysis);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
   update: async (req, res) => {
     try {
       const id = Number(req.validated.params.id);

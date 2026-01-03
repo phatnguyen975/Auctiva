@@ -474,6 +474,38 @@ const ProductService = {
     });
   },
 
+  getAnalysisProductByUserId: async (userId) => {
+    const [activeCount, soldCount, revenue] = await Promise.all([
+      prisma.product.count({
+        where: {
+          sellerId: userId,
+          status: "active",
+        },
+      }),
+
+      prisma.product.count({
+        where: {
+          sellerId: userId,
+          status: "sold",
+        },
+      }),
+
+      prisma.product.aggregate({
+        where: {
+          sellerId: userId,
+          status: "sold",
+        },
+        _sum: { currentPrice: true },
+      }),
+    ]);
+
+    return {
+      activeCount,
+      soldCount,
+      totalRevenue: revenue._sum.currentPrice ?? 0,
+    };
+  },
+
   updateProduct: async ({ id, description }) => {
     const product = await prisma.product.findUnique({
       where: { id },

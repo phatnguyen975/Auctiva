@@ -136,7 +136,7 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
               {authUser && role !== "admin" && !isDashboard && (
                 <button
                   className="relative p-2 shrink-0 hover:bg-gray-200 cursor-pointer rounded-lg"
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => navigate("/dashboard/watchlist")}
                 >
                   <Heart className="size-5" />
                   <div className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-5 bg-black rounded-full text-white text-xs">

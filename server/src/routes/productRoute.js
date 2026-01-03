@@ -53,6 +53,13 @@ router.get(
 );
 
 router.get(
+  "/analysis",
+  verifyToken,
+  authorize(["seller"]),
+  ProductController.getAnalysisByUserId
+);
+
+router.get(
   "/:id",
   validate({ params: ProductIdSchema }),
   ProductController.getById
