@@ -7,21 +7,30 @@ import Breadcrumbs from "../../components/product/Breadcrumbs";
 import SideBar from "../../components/product/SideBar";
 import SortBar, { sortOptions } from "../../components/product/SortBar";
 import Pagination from "../../components/product/Pagination";
-import { dummyAllProducts } from "../../assets/assets";
+import { mapProductToCard } from "../../utils/product";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { axiosInstance } from "../../lib/axios";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store/store";
 
 const PAGE_SIZE = 9;
 
 const ProductListPage = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const [totalPages, setTotalPages] = useState(8);
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  
   const [searchParams, setSearchParams] = useSearchParams();
 
   const sort = searchParams.get("sort") || "";
   const page = Number(searchParams.get("page")) || 1;
-  const category = searchParams.get("categoryId") || "";
   const keyword = searchParams.get("keyword") || "";
+  const categoryIds = searchParams.get("categoryIds") || "";
 
   const sortOption = sortOptions.find((opt) => opt.value === sort);
 
@@ -39,15 +48,16 @@ const ProductListPage = () => {
     params.set("limit", PAGE_SIZE.toString());
 
     // filter
-    if (category) {
-      params.set("categoryId", category);
-    }
     if (keyword) {
       params.set("keyword", keyword);
     }
 
+    if (categoryIds) {
+      params.set("categoryIds", categoryIds);
+    }
+
     return params.toString();
-  }, [sort, page, category, keyword]);
+  }, [sort, page, keyword, categoryIds]);
 
   const handleSortChange = (value: string) => {
     const nextParams = new URLSearchParams(searchParams);
@@ -74,32 +84,51 @@ const ProductListPage = () => {
     setSearchParams(nextParams);
   };
 
-  const getALlProducts = async () => {
-    // Call API
-    setProducts(dummyAllProducts);
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+
+      const headers: HeadersInit = {
+        "x-api-key": import.meta.env.VITE_API_KEY,
+      };
+
+      if (authUser && accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+      }
+
+      const { data } = await axiosInstance.get(`/products?${queryString}`, { headers });
+
+      if (data.success) {
+        setProducts(data.data.products);
+        setTotalPages(data.data.pagination.totalPages);
+        setTotalResults(data.data.pagination.totalCount);
+      }
+    } catch (error: any) {
+      console.error("Error fetching products:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    getALlProducts();
+    fetchProducts();
   }, [queryString]);
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <Breadcrumbs items={[]} />
+      <Breadcrumbs items={[{ label: "Products", href: "/products" }]} />
 
       <div className="flex flex-col md:flex-row gap-4 md:gap-6">
         <SideBar />
 
         {/* Main Content */}
-        <main className="flex-1">
+        <main className="flex-1 min-w-0">
           {/* Top Bar */}
-          <div className="bg-white rounded-lg p-4 mb-6 flex items-center justify-between">
-            {/* <SideBar /> */}
-
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-bold">
-                {products.length}
-              </span>
+          <div className="bg-white rounded-lg p-4 mb-6 shadow-sm flex items-center justify-between">
+            <div className="text-gray-600 text-sm">
+              Showing{" "}
+              <span className="font-bold text-black">{products.length}</span> of{" "}
+              <span className="font-bold text-black">{totalResults}</span>{" "}
               results
             </div>
 
@@ -130,19 +159,37 @@ const ProductListPage = () => {
           </div>
 
           {/* Product Grid */}
-          <div
-            className={
-              viewMode === "grid"
-                ? "grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6"
-                : "space-y-4"
-            }
-          >
-            {products.map((product) => (
-              <ProductCard key={product.id} {...product} viewMode={viewMode} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <LoadingSpinner />
+            </div>
+          ) : products.length === 0 ? (
+            <div className="text-gray-600 flex items-center justify-center">
+              No Products
+            </div>
+          ) : (
+            <div
+              className={
+                viewMode === "grid"
+                  ? "grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6"
+                  : "space-y-4"
+              }
+            >
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  {...mapProductToCard(product)}
+                  viewMode={viewMode}
+                />
+              ))}
+            </div>
+          )}
 
-          <Pagination page={page} totalPages={totalPages} onChange={handlePageChange} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onChange={handlePageChange}
+          />
         </main>
       </div>
     </div>

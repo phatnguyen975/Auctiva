@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 import type { ProductDetail } from "../../types/product";
-import { dummyBidHistory, dummyRelatedProducts } from "../../assets/assets";
+import { dummyBidHistory } from "../../assets/assets";
 
 import CountdownTimer from "../../components/product/details/CountdownTimer";
 import { formatPostDate } from "../../utils/date";
@@ -29,6 +29,7 @@ import BanModal from "../../components/product/details/BanModal";
 import ProductDetailTabs from "../../components/product/details/ProductDetailTabs";
 import ProductImageGallery from "../../components/product/details/ProductImageGallery";
 import toast from "react-hot-toast";
+import Breadcrumbs from "../../components/product/Breadcrumbs";
 
 const ProductDetailPage = () => {
   const authUser = useSelector((state: RootState) => state.auth.authUser);
@@ -40,7 +41,6 @@ const ProductDetailPage = () => {
   const currentUserId = authUser?.user?.id; // Use Supabase user ID
   const [product, setProduct] = useState<ProductDetail | null>();
 
-  const [selectedImage, setSelectedImage] = useState(0);
   const [currentTab, setCurrentTab] = useState("description");
   const tabsSectionRef = useRef<HTMLDivElement>(null);
 
@@ -56,13 +56,13 @@ const ProductDetailPage = () => {
 
   const suggestedBid = (product?.currentPrice || 0) + (product?.bidStep || 0);
 
-  const { id: productID } = useParams();
+  const { id: productId } = useParams();
 
   // Mock fetch data
   const loadProduct = async () => {
-    //const res = dummyProductDetails.find((p) => p.id === productID);
+    //const res = dummyProductDetails.find((p) => p.id === productId);
     const headers = getHeaders();
-    const res = await axiosInstance.get(`/products/${productID}`, { headers });
+    const res = await axiosInstance.get(`/products/${productId}`, { headers });
 
     if (res && res.data) {
       setProduct(res.data.data);
@@ -72,10 +72,10 @@ const ProductDetailPage = () => {
   };
 
   const fetchQA = async () => {
-    if (!productID) return;
+    if (!productId) return;
     try {
       const headers = getHeaders();
-      const data = await axiosInstance.get(`/qa/${productID}`, { headers });
+      const data = await axiosInstance.get(`/qa/${productId}`, { headers });
 
       setQaItems(data.data);
     } catch (error) {
@@ -87,7 +87,7 @@ const ProductDetailPage = () => {
     try {
       const headers = getHeaders();
       const data = await axiosInstance.get(
-        `/products/${productID}/related?categoryId=${categoryId}`,
+        `/products/${productId}/related?categoryId=${categoryId}`,
         {
           headers,
         }
@@ -107,7 +107,7 @@ const ProductDetailPage = () => {
     fetchQA();
 
     fetchRelatedProducts(product?.categoryId || 1);
-  }, [productID, product?.categoryId]);
+  }, [productId, product?.categoryId]);
 
   const handleConfirmBan = () => {
     if (!banningInfo) return;
@@ -137,7 +137,7 @@ const ProductDetailPage = () => {
       await axiosInstance.post(
         "/qa/ask",
         {
-          productId: Number(productID),
+          productId: Number(productId),
           question: content,
         },
         { headers }
@@ -171,6 +171,13 @@ const ProductDetailPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
+        <Breadcrumbs
+          items={[
+            { label: "Products", href: "/products" },
+            { label: "Details", href: `/products/${productId}` },
+          ]}
+        />
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Left Column - Images */}
           <ProductImageGallery

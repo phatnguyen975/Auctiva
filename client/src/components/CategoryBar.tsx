@@ -55,7 +55,11 @@ const CategoryBar = () => {
                       : "border-transparent"
                   }
                 `}
-                onClick={() => navigate(`/products?category=${category.slug}`)}
+                onClick={() => {
+                  const childIds = category.children.map((child) => child.id);
+                  const params = childIds.join(",");
+                  navigate(`/products?categoryIds=${params}`);
+                }}
               >
                 {category.name}
                 <ChevronDown
@@ -98,7 +102,7 @@ const CategoryBar = () => {
                       <button
                         className="w-full py-2 text-sm text-left cursor-pointer"
                         onClick={() =>
-                          navigate(`/products?category=${child.slug}`)
+                          navigate(`/products?categoryIds=${child.id}`)
                         }
                       >
                         {child.name}

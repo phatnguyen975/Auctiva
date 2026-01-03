@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Bell,
   ChevronRight,
@@ -16,8 +16,10 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../store/store";
 import LoadingSpinner from "./ui/LoadingSpinner";
 import { getCategories } from "../store/slices/categorySlice";
+import { axiosInstance } from "../lib/axios";
 
 const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const dispatch = useDispatch<AppDispatch>();
   const {
     data: categories,
@@ -27,11 +29,16 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const authUser = useSelector((state: RootState) => state.auth.authUser);
   const role = authUser?.profile?.role;
 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [categorySidebarOpen, setCategorySidebarOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
+  const [watchlistCount, setWatchlistCount] = useState<number | null>(null);
+  const [countLoaded, setCountLoaded] = useState(false);
 
-  const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
 
   const toggleCategory = (categoryId: number) => {
@@ -49,6 +56,47 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
       console.error("Error fetching categories:", error);
     }
   };
+
+  const fetchWatchlistCount = async () => {
+    try {
+      const { data } = await axiosInstance.get("/users/watchlist/count", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        setWatchlistCount(data.data);
+        setCountLoaded(true);
+      }
+    } catch (error: any) {
+      console.error("Error loading count:", error.message);
+    }
+  };
+
+  const handleTriggerSearch = () => {
+    const isProductPage = location.pathname.startsWith("/products");
+
+    const newParams = isProductPage
+      ? new URLSearchParams(searchParams)
+      : new URLSearchParams();
+
+    if (searchQuery.trim()) {
+      newParams.set("keyword", searchQuery.trim());
+    } else {
+      newParams.delete("keyword");
+    }
+
+    newParams.set("page", "1");
+    navigate(`/products?${newParams.toString()}`);
+  };
+
+  useEffect(() => {
+    if (authUser && !countLoaded) {
+      fetchWatchlistCount();
+    }
+  }, [countLoaded]);
 
   useEffect(() => {
     if (!loaded) {
@@ -72,6 +120,14 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [categorySidebarOpen]);
+
+  useEffect(() => {
+    if (location.pathname === "/products") {
+      setSearchQuery(searchParams.get("keyword") || "");
+    } else {
+      setSearchQuery("");
+    }
+  }, [location.pathname, searchParams]);
 
   return (
     <>
@@ -113,13 +169,12 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                   <Input
                     icon={Search}
                     type="text"
-                    placeholder="Search for anything..."
+                    placeholder="Search for products..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        navigate(`/products?keyword=${searchQuery}`);
-                        setSearchQuery("");
+                        handleTriggerSearch();
                       }
                     }}
                   />
@@ -140,7 +195,7 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                 >
                   <Heart className="size-5" />
                   <div className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-5 bg-black rounded-full text-white text-xs">
-                    3
+                    {watchlistCount}
                   </div>
                 </button>
               )}
@@ -150,7 +205,7 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                 <button className="relative p-2 shrink-0 hover:bg-gray-200 cursor-pointer rounded-lg">
                   <Bell className="size-5" />
                   <div className="absolute -top-0.5 -right-0.5 flex items-center justify-center size-5 bg-black rounded-full text-white text-xs">
-                    5
+                    0
                   </div>
                 </button>
               )}
@@ -194,13 +249,12 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
               <Input
                 icon={Search}
                 type="text"
-                placeholder="Search for anything..."
+                placeholder="Search for products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    navigate(`/products?keyword=${searchQuery}`);
-                    setSearchQuery("");
+                    handleTriggerSearch();
                   }
                 }}
               />
@@ -264,7 +318,7 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
                             <button
                               className="w-full py-2 text-sm text-left cursor-pointer"
                               onClick={() => {
-                                navigate(`/products?category=${child.slug}`);
+                                navigate(`/products?categoryIds=${child.id}`);
                                 setCategorySidebarOpen(false);
                               }}
                             >

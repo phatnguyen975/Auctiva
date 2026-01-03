@@ -414,11 +414,11 @@ const DesktopDashboardSidebar = ({
                       )
                     }
                     className={`
-                      group flex w-full items-center rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-slate-200 hover:cursor-pointer
+                      group flex w-full items-center rounded-md px-4 py-2 text-sm font-medium transition-colors cursor-pointer
                       ${
                         isActive
                           ? "bg-slate-900 text-white shadow-sm"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                          : "text-slate-600 hover:bg-slate-200 hover:text-slate-900"
                       }
                     `}
                   >
