@@ -32,28 +32,11 @@ const ProductController = {
     }
   },
 
-  getEndingSoon: async (req, res) => {
+  getHome: async (req, res) => {
     try {
-      const products = await ProductService.getEndingSoonProducts();
-      res.ok("Products retrieved successfully", products);
-    } catch (error) {
-      res.error(error.message);
-    }
-  },
-
-  getMostBids: async (req, res) => {
-    try {
-      const products = await ProductService.getMostBidsProducts();
-      res.ok("Products retrieved successfully", products);
-    } catch (error) {
-      res.error(error.message);
-    }
-  },
-
-  getHighestPrice: async (req, res) => {
-    try {
-      const products = await ProductService.getHighestPriceProducts();
-      res.ok("Products retrieved successfully", products);
+      const userId = req.user?.id ?? null;
+      const products = await ProductService.getHomeProducts(userId);
+      res.ok("Home products retrieved successfully", products);
     } catch (error) {
       res.error(error.message);
     }

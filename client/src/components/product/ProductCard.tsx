@@ -1,20 +1,26 @@
+import type { MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Heart, Hammer, Calendar } from "lucide-react";
+import toast from "react-hot-toast";
 import TimeLeft from "./TimeLeft";
 import { formatPostDate } from "../../utils/date";
 import { maskName } from "../../utils/masking";
+import { axiosInstance } from "../../lib/axios";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store/store";
 
-interface ProductCardProps {
-  id: string;
+export interface ProductCardProps {
+  id: number;
   image: string;
   title: string;
   currentBid: number;
-  buyNowPrice?: number;
-  topBidder: string;
+  buyNowPrice: number | null;
+  topBidder: string | null;
   totalBids: number;
   postDate: Date;
   endDate: Date;
-  isNew?: boolean;
+  isNew: boolean;
+  isWatched: boolean;
   viewMode?: "grid" | "list";
 }
 
@@ -29,9 +35,43 @@ export function ProductCard({
   postDate,
   endDate,
   isNew = false,
+  isWatched = false,
   viewMode = "grid",
 }: ProductCardProps) {
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
   const navigate = useNavigate();
+
+  const handleAddToWatchlist = async (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+
+    if (!authUser) {
+      toast.error("You must login to watch this product");
+    }
+
+    if (isWatched) {
+      toast.error("You have added this product to watchlist");
+      return;
+    }
+
+    try {
+      const { data } = await axiosInstance.post(`/products/${id}/watchlist`, {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        toast.success(data.message);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      console.error("Error adding product to watchlist:", error.message);
+    }
+  };
 
   // List View Layout
   if (viewMode === "list") {
@@ -55,9 +95,14 @@ export function ProductCard({
             )}
             <button
               className="sm:hidden absolute text-gray-800 top-2 right-2 p-2 bg-gray-100 hover:bg-white rounded-lg cursor-pointer"
-              onClick={(e) => e.stopPropagation()}
+              onClick={handleAddToWatchlist}
+              disabled={isWatched}
             >
-              <Heart className="size-5" />
+              {isWatched ? (
+                <Heart className="size-5 fill-gray-800" />
+              ) : (
+                <Heart className="size-5" />
+              )}
             </button>
           </div>
 
@@ -71,9 +116,14 @@ export function ProductCard({
                 </h3>
                 <button
                   className="max-sm:hidden text-gray-800 top-2 right-2 p-2 hover:bg-gray-200 rounded-lg cursor-pointer"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={handleAddToWatchlist}
+                  disabled={isWatched}
                 >
-                  <Heart className="size-5" />
+                  {isWatched ? (
+                    <Heart className="size-5 fill-gray-800" />
+                  ) : (
+                    <Heart className="size-5" />
+                  )}
                 </button>
               </div>
 
@@ -107,7 +157,7 @@ export function ProductCard({
                 </div>
                 <div className="flex gap-1">
                   Top:
-                  <span className="font-medium">{maskName(topBidder)}</span>
+                  <span className="font-medium">{topBidder !== null ? maskName(topBidder) : "None"}</span>
                 </div>
               </div>
             </div>
@@ -149,9 +199,14 @@ export function ProductCard({
           )}
           <button
             className="absolute text-gray-800 top-2 right-2 p-2 bg-gray-100 hover:bg-white rounded-lg cursor-pointer"
-            onClick={(e) => e.stopPropagation()}
+            onClick={handleAddToWatchlist}
+            disabled={isWatched}
           >
-            <Heart className="size-4" />
+            {isWatched ? (
+              <Heart className="size-4 fill-gray-800" />
+            ) : (
+              <Heart className="size-4" />
+            )}
           </button>
         </div>
 
@@ -192,7 +247,7 @@ export function ProductCard({
               <Hammer className="size-5 lg:size-3" />
               <span>{totalBids} bids</span>
             </div>
-            <span className="truncate">Top: {maskName(topBidder)}</span>
+            <span className="truncate">Top: {topBidder !== null ? maskName(topBidder) : "None"}</span>
           </div>
 
           {/* Countdown and Posted Date */}

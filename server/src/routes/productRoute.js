@@ -14,15 +14,17 @@ import {
 } from "../schemas/productSchema.js";
 import { BidCreateSchema } from "../schemas/bidSchema.js";
 import { RatingCreateSchema } from "../schemas/ratingSchema.js";
-import { verifyToken, authorize } from "../middlewares/userAuthMiddleware.js";
+import {
+  verifyToken,
+  authorize,
+  optionalAuth,
+} from "../middlewares/userAuthMiddleware.js";
 
 const router = express.Router();
 
 router.use(validateApiKey);
 
-router.get("/ending-soon", ProductController.getEndingSoon);
-router.get("/most-bids", ProductController.getMostBids);
-router.get("/highest-price", ProductController.getHighestPrice);
+router.get("/home", optionalAuth, ProductController.getHome);
 
 router.get(
   "/",

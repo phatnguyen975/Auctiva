@@ -335,93 +335,78 @@ const ProductService = {
     return product;
   },
 
-  getEndingSoonProducts: async () => {
-    const products = await prisma.product.findMany({
-      where: {
-        endDate: { gt: new Date() },
-      },
-      orderBy: { endDate: "asc" },
-      take: 5,
-      include: {
-        winner: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-          },
-        },
-        _count: {
-          select: {
-            bids: true,
-          },
-        },
-        images: {
-          where: { isPrimary: true },
-          omit: { productId: true },
+  getHomeProducts: async (userId) => {
+    const include = {
+      winner: {
+        select: {
+          id: true,
+          username: true,
+          fullName: true,
         },
       },
-      omit: { winnerId: true },
-    });
-
-    return Promise.all(products.map(enrichProductWithFlags));
-  },
-
-  getMostBidsProducts: async () => {
-    const products = await prisma.product.findMany({
-      orderBy: {
-        bids: { _count: "desc" },
-      },
-      take: 5,
-      include: {
-        winner: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-          },
-        },
-        _count: {
-          select: {
-            bids: true,
-          },
-        },
-        images: {
-          where: { isPrimary: true },
-          omit: { productId: true },
+      _count: {
+        select: {
+          bids: true,
         },
       },
-      omit: { winnerId: true },
-    });
-
-    return Promise.all(products.map(enrichProductWithFlags));
-  },
-
-  getHighestPriceProducts: async () => {
-    const products = await prisma.product.findMany({
-      orderBy: { currentPrice: "desc" },
-      take: 5,
-      include: {
-        winner: {
-          select: {
-            id: true,
-            username: true,
-            fullName: true,
-          },
-        },
-        _count: {
-          select: {
-            bids: true,
-          },
-        },
-        images: {
-          where: { isPrimary: true },
-          omit: { productId: true },
-        },
+      images: {
+        where: { isPrimary: true },
+        omit: { productId: true },
       },
-      omit: { winnerId: true },
-    });
+    };
 
-    return Promise.all(products.map(enrichProductWithFlags));
+    const [endingSoon, mostBids, highestPrice] = await Promise.all([
+      prisma.product.findMany({
+        where: {
+          endDate: { gt: new Date() },
+        },
+        orderBy: { endDate: "asc" },
+        take: 5,
+        include,
+        omit: { winnerId: true },
+      }),
+
+      prisma.product.findMany({
+        orderBy: {
+          bids: { _count: "desc" },
+        },
+        take: 5,
+        include,
+        omit: { winnerId: true },
+      }),
+
+      prisma.product.findMany({
+        orderBy: { currentPrice: "desc" },
+        take: 5,
+        include,
+        omit: { winnerId: true },
+      }),
+    ]);
+
+    const products = [...endingSoon, ...mostBids, ...highestPrice];
+
+    let watchedProductIds = new Set();
+
+    if (userId) {
+      const watchlist = await prisma.watchlist.findMany({
+        where: { userId },
+        select: { productId: true },
+      });
+
+      watchedProductIds = new Set(watchlist.map((w) => w.productId));
+    }
+
+    const enrichedProducts = await Promise.all(
+      products.map((product) =>
+        enrichProductWithFlags(product, watchedProductIds.has(product.id))
+      )
+    );
+
+    return {
+      endingSoon: enrichedProducts.slice(0, 5),
+      mostBids: enrichedProducts.slice(5, 10),
+      highestPrice: enrichedProducts.slice(10, 15),
+    };
   },
 
   getActiveProductsByUserId: async (userId) => {

@@ -1,14 +1,21 @@
 export interface Product {
-  id: string;
-  image: string;
-  title: string;
-  currentBid: number;
-  buyNowPrice?: number;
-  topBidder: string;
-  totalBids: number;
-  postDate: Date;
-  endDate: Date;
-  isNew?: boolean;
+  id: number;
+  name: string;
+  currentPrice: number;
+  buyNowPrice: number | null;
+  postDate: string;
+  endDate: string;
+  winner: {
+    id: string;
+    username: string | null;
+    fullName: string;
+  } | null;
+  _count: {
+    bids: number;
+  };
+  images: [{ url: string; isPrimary: boolean }];
+  isNew: boolean;
+  isWatched: boolean;
 }
 
 export interface ActiveProduct {

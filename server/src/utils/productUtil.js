@@ -1,6 +1,6 @@
 import AdminSettingsService from "../services/adminSettingService.js";
 
-export const enrichProductWithFlags = async (product) => {
+export const enrichProductWithFlags = async (product, isWatched = false) => {
   const settings = await AdminSettingsService.getAdminSettings();
 
   const highlightMinutes = Number(settings.highlight_minutes ?? 0);
@@ -12,5 +12,6 @@ export const enrichProductWithFlags = async (product) => {
   return {
     ...product,
     isNew: now - postDate <= highlightMs,
+    isWatched,
   };
 };

@@ -195,7 +195,7 @@ const products = [
     winnerId: null,
     name: "Astrox 100zx 4UG5 badminton racket in excellent condition",
     description:
-      "Used: An item that has been used previously. The item may have some signs of cosmetic wear, but is fully operational and functions as intended. This item may be a floor model or store return that has been used. ",
+      "Used: An item that has been used previously. The item may have some signs of cosmetic wear, but is fully operational and functions as intended. This item may be a floor model or store return that has been used.",
     slug: "astrox-100zx-4ug5-badminton-racket-in-excellent-condition",
     startPrice: 80.0,
     stepPrice: 10.0,
@@ -216,7 +216,7 @@ const products = [
     winnerId: null,
     name: "ASTROX 88S Badminton Racket",
     description:
-      "Used: An item that has been used previously. The item may have some signs of cosmetic wear, but is fully operational and functions as intended. This item may be a floor model or store return that has been used. ",
+      "Used: An item that has been used previously. The item may have some signs of cosmetic wear, but is fully operational and functions as intended. This item may be a floor model or store return that has been used.",
     slug: "astrox-88s-badminton-racket",
     startPrice: 40.0,
     stepPrice: 10.0,

@@ -1,4 +1,6 @@
 import { supabase } from "../lib/supabaseClient";
+import type { Product } from "../types/product";
+import type { ProductCardProps } from "../components/product/ProductCard";
 
 type UploadProductImageParams = {
   file: File;
@@ -61,4 +63,20 @@ export const deleteProductImage = async (
     console.error("Delete product image exception:", error);
     return false;
   }
+};
+
+export const mapProductToCard = (product: Product): ProductCardProps => {
+  return {
+    id: product.id,
+    image: product.images[0].url,
+    title: product.name,
+    currentBid: product.currentPrice,
+    buyNowPrice: product.buyNowPrice,
+    topBidder: product.winner?.fullName ?? product.winner?.username ?? null,
+    totalBids: product._count.bids,
+    postDate: new Date(product.postDate),
+    endDate: new Date(product.endDate),
+    isNew: product.isNew,
+    isWatched: product.isWatched,
+  };
 };

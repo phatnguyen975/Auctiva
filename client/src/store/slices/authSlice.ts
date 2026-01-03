@@ -297,6 +297,7 @@ const authSlice = createSlice({
         state.error = null;
         state.isPasswordReset = false;
         state.isCheckingAuth = true;
+        state.hasCheckedAuth = false;
       })
       // --- Fetch Profile ---
       .addCase(fetchProfileThunk.pending, (state) => {

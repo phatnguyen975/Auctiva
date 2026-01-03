@@ -9,12 +9,13 @@ import {
   TrendingUp,
 } from "lucide-react";
 import CategoryBar from "../../components/CategoryBar";
-import {
-  dummyEndingSoonProducts,
-  dummyHighestPriceProducts,
-  dummyMostBidsProducts,
-} from "../../assets/assets";
 import { ProductCard } from "../../components/product/ProductCard";
+import { axiosInstance } from "../../lib/axios";
+import type { RootState } from "../../store/store";
+import { useSelector } from "react-redux";
+import type { Product } from "../../types/product";
+import LoadingSpinner from "../../components/ui/LoadingSpinner";
+import { mapProductToCard } from "../../utils/product";
 
 const banners = [
   {
@@ -38,9 +39,47 @@ const banners = [
 ];
 
 const HomePage = () => {
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [endingSoonProducts, setEndingSoonProducts] = useState<Product[]>([]);
+  const [mostBidsProducts, setMostBidsProducts] = useState<Product[]>([]);
+  const [highestPriceProducts, setHighestPriceProducts] = useState<Product[]>([]);
 
   const navigate = useNavigate();
+
+  const fetchHomeProducts = async () => {
+    try {
+      setIsLoading(true);
+
+      const headers: HeadersInit = {
+        "x-api-key": import.meta.env.VITE_API_KEY,
+      };
+
+      if (authUser && accessToken) {
+        headers.Authorization = `Bearer ${accessToken}`;
+      }
+
+      const { data } = await axiosInstance.get("/products/home", { headers });
+
+      if (data.success) {
+        setEndingSoonProducts(data.data.endingSoon);
+        setMostBidsProducts(data.data.mostBids)
+        setHighestPriceProducts(data.data.highestPrice);
+      }
+    } catch (error: any) {
+      console.error("Error fetching home products:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHomeProducts();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -151,8 +190,12 @@ const HomePage = () => {
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
-            {dummyEndingSoonProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
+            {isLoading ? (
+              <LoadingSpinner />
+            ) : endingSoonProducts.length === 0 ? (
+              <div>No Ending Soon Products</div>
+            ) : endingSoonProducts.map((product) => (
+              <ProductCard key={product.id} {...mapProductToCard(product)} />
             ))}
           </div>
         </section>
@@ -180,8 +223,12 @@ const HomePage = () => {
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
-            {dummyMostBidsProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
+            {isLoading ? (
+              <LoadingSpinner />
+            ) : mostBidsProducts.length === 0 ? (
+              <div>No Most Bids Products</div>
+            ) : mostBidsProducts.map((product) => (
+              <ProductCard key={product.id} {...mapProductToCard(product)} />
             ))}
           </div>
         </section>
@@ -209,8 +256,12 @@ const HomePage = () => {
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
-            {dummyHighestPriceProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
+            {isLoading ? (
+              <LoadingSpinner />
+            ) : highestPriceProducts.length === 0 ? (
+              <div>No Highest Price Products</div>
+            ) : highestPriceProducts.map((product) => (
+              <ProductCard key={product.id} {...mapProductToCard(product)} />
             ))}
           </div>
         </section>
