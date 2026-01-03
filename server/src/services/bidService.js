@@ -1,4 +1,5 @@
 import { prisma } from "../configs/prisma.js";
+import AdminSettingsService from "../services/adminSettingService.js";
 import {
   calculateProxyBidding,
   checkBidderRating,
@@ -17,8 +18,29 @@ const BidService = {
       }
 
       const now = new Date();
-      if (new Date(product.endDate) < now) {
+      const endDate = new Date(product.endDate);
+
+      if (endDate <= now) {
         throw new Error("Auction already ended");
+      }
+
+      const settings = await AdminSettingsService.getAdminSettings();
+      const extendThresholdMinutes = settings.extend_threshold_minutes;
+      const autoExtendMinutes = settings.auto_extend_minutes;
+
+      const remainingMinutes =
+        (endDate.getTime() - now.getTime()) / (1000 * 60);
+      let newEndDate = endDate;
+
+      if (product.isAutoExtend && remainingMinutes <= extendThresholdMinutes) {
+        newEndDate = new Date(
+          endDate.getTime() + autoExtendMinutes * 60 * 1000
+        );
+
+        await tx.product.update({
+          where: { id: product.id },
+          data: { endDate: newEndDate },
+        });
       }
 
       await checkBidderRating({
