@@ -8,7 +8,6 @@ import { maskName } from "../../utils/masking";
 import { axiosInstance } from "../../lib/axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
-import { getHeaders } from "../../utils/getHeaders";
 
 export interface ProductCardProps {
   id: number;
