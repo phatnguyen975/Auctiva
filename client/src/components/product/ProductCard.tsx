@@ -8,6 +8,7 @@ import { maskName } from "../../utils/masking";
 import { axiosInstance } from "../../lib/axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
+import { getHeaders } from "../../utils/getHeaders";
 
 export interface ProductCardProps {
   id: number;
@@ -56,12 +57,16 @@ export function ProductCard({
     }
 
     try {
-      const { data } = await axiosInstance.post(`/products/${id}/watchlist`, {
-        headers: {
-          "x-api-key": import.meta.env.VITE_API_KEY,
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const { data } = await axiosInstance.post(
+        `/products/${id}/watchlist`,
+        {},
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
       if (data.success) {
         toast.success(data.message);
@@ -157,7 +162,9 @@ export function ProductCard({
                 </div>
                 <div className="flex gap-1">
                   Top:
-                  <span className="font-medium">{topBidder !== null ? maskName(topBidder) : "None"}</span>
+                  <span className="font-medium">
+                    {topBidder !== null ? maskName(topBidder) : "None"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -247,7 +254,9 @@ export function ProductCard({
               <Hammer className="size-5 lg:size-3" />
               <span>{totalBids} bids</span>
             </div>
-            <span className="truncate">Top: {topBidder !== null ? maskName(topBidder) : "None"}</span>
+            <span className="truncate">
+              Top: {topBidder !== null ? maskName(topBidder) : "None"}
+            </span>
           </div>
 
           {/* Countdown and Posted Date */}

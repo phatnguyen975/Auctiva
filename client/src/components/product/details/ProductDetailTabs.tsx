@@ -97,6 +97,7 @@ const ProductDetailTabs = ({
         <BidHistoryTable bids={bidHistory} role={role} onBanUser={onBanUser} />
       </TabsContent>
 
+      {/* --- 3. Q&A TAB --- */}
       <TabsContent value="qa" className="mt-6">
         <div className="space-y-6">
           {/* Form đặt câu hỏi: Chỉ hiện nếu không phải chủ sản phẩm */}
@@ -193,51 +194,6 @@ const ProductDetailTabs = ({
           </div>
         </div>
       </TabsContent>
-
-      {/* --- 3. Q&A TAB --- */}
-      {/* <TabsContent value="qa" className="mt-6">
-        <div className="space-y-6">
-          <div className="bg-card rounded-lg p-6">
-            <h3 className="font-semibold mb-4">Ask a Question</h3>
-            <div className="space-y-3">
-              <textarea
-                className="w-full rounded-md border p-3 min-h-16 bg-input-background resize-none"
-                placeholder="Type your question here..."
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                rows={3}
-              />
-              <button className="bg-black text-white px-4 py-3 rounded-lg text-sm font-semibold">
-                Submit Question
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            {qaItems.map((item, index) => (
-              <div key={index} className="bg-card rounded-lg p-6">
-                <div className="flex items-start gap-2">
-                  <span className="text-primary font-semibold">Q:</span>
-                  <div>
-                    <p className="font-medium">{item.question}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Asked by {item.askedBy}
-                    </p>
-                  </div>
-                </div>
-                {item.answer && (
-                  <div className="flex items-start gap-2 pl-6 mt-3 border-l-2 border-primary/20">
-                    <span className="text-secondary font-semibold">A:</span>
-                    <div>
-                      <p>{item.answer}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </TabsContent> */}
 
       {/* --- 4. RELATED TAB --- */}
       <TabsContent value="related" className="mt-6">
