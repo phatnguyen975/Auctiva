@@ -478,7 +478,7 @@ const ProductService = {
     });
   },
 
-  getAnalysisProductByUserId: async (userId) => {
+  getProductAnalysisByUserId: async (userId) => {
     const [activeCount, soldCount, revenue] = await Promise.all([
       prisma.product.count({
         where: {
