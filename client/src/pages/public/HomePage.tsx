@@ -44,10 +44,13 @@ const HomePage = () => {
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const [endingSoonProducts, setEndingSoonProducts] = useState<Product[]>([]);
   const [mostBidsProducts, setMostBidsProducts] = useState<Product[]>([]);
-  const [highestPriceProducts, setHighestPriceProducts] = useState<Product[]>([]);
+  const [highestPriceProducts, setHighestPriceProducts] = useState<Product[]>(
+    []
+  );
 
   const navigate = useNavigate();
 
@@ -66,8 +69,9 @@ const HomePage = () => {
       const { data } = await axiosInstance.get("/products/home", { headers });
 
       if (data.success) {
+        setIsLoaded(true);
         setEndingSoonProducts(data.data.endingSoon);
-        setMostBidsProducts(data.data.mostBids)
+        setMostBidsProducts(data.data.mostBids);
         setHighestPriceProducts(data.data.highestPrice);
       }
     } catch (error: any) {
@@ -78,8 +82,10 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    fetchHomeProducts();
-  }, []);
+    if (!isLoaded) {
+      fetchHomeProducts();
+    }
+  }, [isLoaded]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -189,15 +195,19 @@ const HomePage = () => {
               <ArrowRight className="size-4 group-hover:translate-x-0.5" />
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
-            {isLoading ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center">
               <LoadingSpinner />
-            ) : endingSoonProducts.length === 0 ? (
-              <div>No Ending Soon Products</div>
-            ) : endingSoonProducts.map((product) => (
-              <ProductCard key={product.id} {...mapProductToCard(product)} />
-            ))}
-          </div>
+            </div>
+          ) : endingSoonProducts.length === 0 ? (
+            <div>No Ending Soon Products</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
+              {endingSoonProducts.map((product) => (
+                <ProductCard key={product.id} {...mapProductToCard(product)} />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Most Bids Section */}
@@ -222,15 +232,19 @@ const HomePage = () => {
               <ArrowRight className="size-4 group-hover:translate-x-0.5" />
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
-            {isLoading ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center">
               <LoadingSpinner />
-            ) : mostBidsProducts.length === 0 ? (
-              <div>No Most Bids Products</div>
-            ) : mostBidsProducts.map((product) => (
-              <ProductCard key={product.id} {...mapProductToCard(product)} />
-            ))}
-          </div>
+            </div>
+          ) : mostBidsProducts.length === 0 ? (
+            <div>No Most Bids Products</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
+              {mostBidsProducts.map((product) => (
+                <ProductCard key={product.id} {...mapProductToCard(product)} />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Highest Price Section */}
@@ -255,15 +269,19 @@ const HomePage = () => {
               <ArrowRight className="size-4 group-hover:translate-x-0.5" />
             </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
-            {isLoading ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center">
               <LoadingSpinner />
-            ) : highestPriceProducts.length === 0 ? (
-              <div>No Highest Price Products</div>
-            ) : highestPriceProducts.map((product) => (
-              <ProductCard key={product.id} {...mapProductToCard(product)} />
-            ))}
-          </div>
+            </div>
+          ) : highestPriceProducts.length === 0 ? (
+            <div>No Highest Price Products</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
+              {highestPriceProducts.map((product) => (
+                <ProductCard key={product.id} {...mapProductToCard(product)} />
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </>

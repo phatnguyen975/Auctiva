@@ -34,6 +34,7 @@ app.use(logger);
 app.use(responseWrapper);
 
 // Routes
+app.get("/", (_, res) => res.send("Server is live!"));
 app.use("/api/users", userRouter);
 app.use("/api/categories", categoryRouter);
 app.use("/api/products", productRouter);

@@ -8,6 +8,7 @@ import { maskName } from "../../utils/masking";
 import { axiosInstance } from "../../lib/axios";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../store/store";
+import Tooltip from "../ui/Tooltip";
 
 export interface ProductCardProps {
   id: number;
@@ -235,11 +236,13 @@ export function ProductCard({
         </div>
 
         {/* Product Information */}
-        <div className="h-full p-9 md:p-6 lg:p-3 flex flex-col justify-between gap-3">
+        <div className="h-full p-9 md:p-6 lg:p-4 flex flex-col justify-between gap-3">
           {/* Title */}
-          <h3 className="line-clamp-2 font-semibold text-2xl md:text-xl lg:text-lg">
-            {title}
-          </h3>
+          <Tooltip content={title}>
+            <h3 className="line-clamp-2 font-semibold text-2xl md:text-xl lg:text-lg">
+              {title}
+            </h3>
+          </Tooltip>
 
           {/* Pricing */}
           <div className="flex items-center">
