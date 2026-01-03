@@ -116,7 +116,7 @@ const ProductListPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <Breadcrumbs items={[{ label: "Products", href: "/products" }]} />
+      <Breadcrumbs items={[{ label: "Products" }]} />
 
       <div className="flex flex-col md:flex-row gap-4 md:gap-6">
         <SideBar />

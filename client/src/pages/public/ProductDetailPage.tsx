@@ -174,7 +174,7 @@ const ProductDetailPage = () => {
         <Breadcrumbs
           items={[
             { label: "Products", href: "/products" },
-            { label: "Details", href: `/products/${productId}` },
+            { label: "Details" },
           ]}
         />
 
