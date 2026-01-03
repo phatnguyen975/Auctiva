@@ -40,9 +40,16 @@ export interface SoldProduct {
 
 export interface Seller {
   id?: string;
-  name: string;
-  rating: number;
-  totalSales: number;
+  fullName: string;
+  ratingPositive?: number;
+  ratingCount?: number;
+}
+
+export interface Winner {
+  id: string;
+  fullName: string;
+  ratingPositive?: number;
+  ratingCount?: number;
 }
 
 export interface ProductDetail {
@@ -54,11 +61,14 @@ export interface ProductDetail {
   bidStep: number;
   topBidder: string;
   topBidderRating: number;
-  totalBids: number;
-  endTime: Date;
-  postedDate: Date;
+  _count: {
+    bids: number;
+  };
+  endDate: Date;
+  postDate: Date;
   seller: Seller;
   sellerId?: string;
+  winner: Winner;
   condition: string;
   category: string;
   description: string;
