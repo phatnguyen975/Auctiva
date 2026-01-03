@@ -13,9 +13,6 @@ import {
   AlertCircle,
   ShoppingCart,
   Calendar,
-  TrendingUp,
-  DollarSign,
-  Eye,
   Package,
   BanknoteArrowUp,
   Gavel,
@@ -23,9 +20,7 @@ import {
 
 import type { ProductDetail } from "../../types/product";
 import {
-  dummyProductDetails,
   dummyBidHistory,
-  dummyQAItems,
   dummyRelatedProducts,
 } from "../../assets/assets";
 
@@ -205,8 +200,8 @@ const ProductDetailPage = () => {
                           (product.seller.ratingPositive /
                             product.seller.ratingCount) *
                           100
-                        ).toFixed(2)
-                      : "0.00"}
+                        ).toFixed(1)
+                      : "0.0"}
                     %
                   </span>
                 </div>
@@ -236,8 +231,8 @@ const ProductDetailPage = () => {
                             (product.winner?.ratingPositive /
                               product.winner?.ratingCount) *
                             100
-                          ).toFixed(2)
-                        : "0.00"}
+                          ).toFixed(1)
+                        : "0.0"}
                       %
                     </span>
                   </div>

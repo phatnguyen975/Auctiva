@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-import { Award } from "lucide-react";
-
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../ui/Tabs";
 
 import { BidHistoryTable } from "./BidHistoryTable";

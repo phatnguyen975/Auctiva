@@ -6,6 +6,7 @@ import {
   Heart,
   Gavel,
 } from "lucide-react";
+import { useSelector } from "react-redux";
 import {
   LineChart,
   Line,
@@ -18,15 +19,39 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import type { RootState } from "../../../store/store";
+import { axiosInstance } from "../../../lib/axios";
+import { useEffect, useState } from "react";
 
 const SellerOverviewPage = () => {
-  // Mock data - Stats
-  const stats = {
-    activeListings: 12,
-    totalSales: 156,
-    revenue: 45230,
-    avgRating: 4.8,
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
+  const [activeCount, setActiveCount] = useState<number | null>(null);
+  const [soldCount, setSoldCount] = useState<number | null>(null);
+  const [totalRevenue, setTotalRevenue] = useState<number | null>(null);
+
+  const fetchSellerAnalysis = async () => {
+    try {
+      const { data } = await axiosInstance.get("/products/analysis", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        setActiveCount(data.data.activeCount);
+        setSoldCount(data.data.soldCount);
+        setTotalRevenue(data.data.totalRevenue);
+      }
+    } catch (error: any) {
+      console.error("Error fetching analysis:", error.message);
+    }
   };
+
+  useEffect(() => {
+    fetchSellerAnalysis();
+  }, []);
 
   // Mock data - Performance over 7 days
   const performanceData = [
@@ -55,7 +80,7 @@ const SellerOverviewPage = () => {
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
                 Active Listings
               </p>
-              <p className="text-3xl font-bold mt-1">{stats.activeListings}</p>
+              <p className="text-3xl font-bold mt-1">{activeCount}</p>
             </div>
             <div className="bg-[hsl(var(--primary)/0.1)] p-3 rounded-lg">
               <Package className="h-6 w-6 text-[hsl(var(--primary))]" />
@@ -70,7 +95,7 @@ const SellerOverviewPage = () => {
               <p className="text-sm text-[hsl(var(--muted-foreground))]">
                 Total Sales
               </p>
-              <p className="text-3xl font-bold mt-1">{stats.totalSales}</p>
+              <p className="text-3xl font-bold mt-1">{soldCount}</p>
             </div>
             <div className="bg-green-500/10 p-3 rounded-lg">
               <TrendingUp className="h-6 w-6 text-green-500" />
@@ -86,7 +111,7 @@ const SellerOverviewPage = () => {
                 Revenue
               </p>
               <p className="text-3xl font-bold mt-1">
-                ${stats.revenue.toLocaleString()}
+                ${totalRevenue && totalRevenue.toLocaleString()}
               </p>
             </div>
             <div className="bg-amber-500/10 p-3 rounded-lg">

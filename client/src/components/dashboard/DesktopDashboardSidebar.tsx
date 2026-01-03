@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
@@ -21,15 +21,9 @@ import {
   CheckCircle,
   UserCog,
 } from "lucide-react";
-
-import {
-  dumpyWatchist,
-  dumpyMyBids,
-  dumpyActiveListings,
-  dumpySoldItems,
-} from "../../assets/assets";
-
+import { assets, dumpyWatchist, dumpyMyBids } from "../../assets/assets";
 import type { RootState } from "../../store/store";
+import { axiosInstance } from "../../lib/axios";
 
 interface DesktopDashboardSidebarProps {
   isDesktop?: boolean;
@@ -39,22 +33,29 @@ const DesktopDashboardSidebar = ({
   isDesktop = true,
 }: DesktopDashboardSidebarProps) => {
   const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
   const location = useLocation();
   const pathSegments = location.pathname.split("/").filter(Boolean);
   let currentTabId = pathSegments[pathSegments.length - 1] || "profile";
 
   if (currentTabId === "admin" || currentTabId === "dashboard") {
-    currentTabId = "profile"
+    currentTabId = "profile";
   } else if (currentTabId === "seller") {
-    currentTabId = "overview"
+    currentTabId = "overview";
   }
 
   const [activeTab, setActiveTab] = useState(currentTabId);
+  const [activeCount, setActiveCount] = useState<number | null>(null);
+  const [soldCount, setSoldCount] = useState<number | null>(null);
 
-  const [avatarUrl, setAvatarUrl] = useState(
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop"
-  );
+  const [avatarUrl, setAvatarUrl] = useState<string>(assets.avatar);
+
+  const navigate = useNavigate();
+
+  // Detect current context: admin panel, seller studio, or user dashboard
+  const isAdminPanel = location.pathname.startsWith("/admin");
+  const isSellerStudio = location.pathname.startsWith("/seller");
 
   // Avatar upload handler
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,12 +68,6 @@ const DesktopDashboardSidebar = ({
       reader.readAsDataURL(file);
     }
   };
-
-  const navigate = useNavigate();
-
-  // Detect current context: admin panel, seller studio, or user dashboard
-  const isAdminPanel = location.pathname.startsWith("/admin");
-  const isSellerStudio = location.pathname.startsWith("/seller");
 
   const handleTabClick = (
     tab: string,
@@ -106,8 +101,6 @@ const DesktopDashboardSidebar = ({
 
   const watchlistCount = dumpyWatchist.length;
   const myBidsCount = dumpyMyBids.length;
-  const activeListingsCount = dumpyActiveListings.length;
-  const soldItemsCount = dumpySoldItems.length;
 
   const sellerPrivilegesExpiry = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days remaining
   const isExpiryUrgent =
@@ -167,13 +160,13 @@ const DesktopDashboardSidebar = ({
       id: "active",
       label: "Active Listings",
       icon: Package,
-      count: activeListingsCount,
+      count: activeCount,
     },
     {
       id: "sold",
       label: "Sold Items",
       icon: PackageCheck,
-      count: soldItemsCount,
+      count: soldCount,
     },
   ];
 
@@ -212,13 +205,25 @@ const DesktopDashboardSidebar = ({
     },
   ];
 
+  const calculateUserRating = () => {
+    const ratingCount = authUser?.profile?.rating_count;
+    const ratingPositive = authUser?.profile?.rating_positive;
+
+    if (!ratingCount || !ratingPositive || ratingCount === 0) {
+      return 0;
+    }
+
+    return ((ratingPositive / ratingCount) * 100).toFixed(1);
+  };
+
   const userData = {
-    name: authUser?.profile?.full_name,
+    username: authUser?.profile?.user_name,
+    fullName: authUser?.profile?.full_name,
     email: authUser?.profile?.email,
     address: authUser?.profile?.address,
     dateOfBirth: authUser?.profile?.birth_date,
-    avatar: authUser?.profile?.avatar_url || "",
-    rating: authUser?.profile?.rating_positive,
+    avatarUrl: authUser?.profile?.avatar_url || "",
+    rating: calculateUserRating(),
     role: authUser?.profile?.role,
     auctionsWon: 45, // Mock
     bidsPlaced: 127, // Mock
@@ -235,6 +240,30 @@ const DesktopDashboardSidebar = ({
   const shouldShowUpgradeTab =
     !isSellerStudio && !isAdminPanel && userData.role === "bidder";
   const additionalTabs = shouldShowUpgradeTab ? [upgradeToSellerTab] : [];
+
+  const fetchSellerAnalysis = async () => {
+    try {
+      const { data } = await axiosInstance.get("/products/analysis", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        setActiveCount(data.data.activeCount);
+        setSoldCount(data.data.soldCount);
+      }
+    } catch (error: any) {
+      console.error("Error fetching analysis:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (isSellerStudio) {
+      fetchSellerAnalysis();
+    }
+  }, [location]);
 
   return (
     <>
@@ -281,7 +310,7 @@ const DesktopDashboardSidebar = ({
               <div className="text-center pb-6 border-b">
                 <div className="relative inline-block mb-4">
                   <img
-                    src={userData.avatar}
+                    src={userData.avatarUrl || assets.avatar}
                     alt="Avatar"
                     className="w-20 h-20 lg:w-24 lg:h-24 rounded-full object-cover mx-auto border-4 border-black/10"
                   />
@@ -299,7 +328,9 @@ const DesktopDashboardSidebar = ({
                     />
                   </label>
                 </div>
-                <h3 className="font-bold mb-1">{userData.name}</h3>
+                <h3 className="font-bold mb-1">
+                  {userData.fullName || userData.username}
+                </h3>
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                   <span className="font-semibold text-lg text-amber-600">

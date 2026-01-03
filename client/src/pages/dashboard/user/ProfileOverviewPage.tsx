@@ -12,9 +12,9 @@ import {
   ThumbsDown,
   X,
 } from "lucide-react";
-
 import type { RootState } from "../../../store/store";
 import { dumpyAllReviews } from "../../../assets/assets";
+import { assets } from "../../../assets/assets";
 
 interface Review {
   id: number | string;
@@ -31,15 +31,26 @@ const ProfileOverviewPage = () => {
 
   const [showAllReviews, setShowAllReviews] = useState(false);
 
+  const calculateUserRating = () => {
+    const ratingCount = authUser?.profile?.rating_count;
+    const ratingPositive = authUser?.profile?.rating_positive;
+
+    if (!ratingCount || !ratingPositive || ratingCount === 0) {
+      return 0;
+    }
+
+    return ((ratingPositive / ratingCount) * 100).toFixed(1);
+  };
+
   const userData = {
-    name: authUser?.profile?.full_name,
+    username: authUser?.profile?.user_name,
+    fullName: authUser?.profile?.full_name,
     email: authUser?.profile?.email,
-    address:
-      authUser?.profile?.address || "227 NVC, Cho Quan Ward, Ho Chi Minh City",
-    dateOfBirth: authUser?.profile?.birth_date || "22/08/2005",
-    avatar: authUser?.profile?.avatar_url || "",
-    rating: authUser?.profile?.rating_positive,
-    role: "seller", // Mock
+    address: authUser?.profile?.address,
+    dateOfBirth: authUser?.profile?.birth_date,
+    avatarUrl: authUser?.profile?.avatar_url || "",
+    rating: calculateUserRating(),
+    role: authUser?.profile?.role,
     auctionsWon: 45, // Mock
     bidsPlaced: 127, // Mock
   };
@@ -68,12 +79,14 @@ const ProfileOverviewPage = () => {
           <div className="flex flex-col lg:flex-row items-start justify-between gap-8 pb-8 border-b">
             <div className="flex items-center gap-4">
               <img
-                src={userData.avatar}
-                alt={userData.name}
+                src={userData.avatarUrl || assets.avatar}
+                alt={userData.fullName || "Avatar"}
                 className="w-20 h-20 rounded-full object-cover border-4 border-[hsl(var(--primary))]/10"
               />
               <div>
-                <h2 className="text-2xl font-bold mb-2">{userData.name}</h2>
+                <h2 className="text-2xl font-bold mb-2">
+                  {userData.fullName || userData.username}
+                </h2>
                 <span
                   className="inline-flex items-center bg-gray-200 justify-center rounded-lg px-2 py-1 text-xm font-medium w-fit whitespace-nowrap 
                   text-primary border-primary shrink-0 gap-1"
@@ -117,9 +130,11 @@ const ProfileOverviewPage = () => {
                       Date of Birth
                     </p>
                     <p className="font-medium">
-                      {userData.dateOfBirth instanceof Date
-                        ? userData.dateOfBirth.toString()
-                        : userData.dateOfBirth}
+                      {userData.dateOfBirth
+                        ? userData.dateOfBirth instanceof Date
+                          ? userData.dateOfBirth.toString()
+                          : userData.dateOfBirth
+                        : "None"}
                     </p>
                   </div>
                 </div>
@@ -131,7 +146,9 @@ const ProfileOverviewPage = () => {
                     <p className="text-sm text-muted-foreground mb-1">
                       Address
                     </p>
-                    <p className="font-medium">{userData.address}</p>
+                    <p className="font-medium">
+                      {userData.address ? userData.address : "None"}
+                    </p>
                   </div>
                 </div>
               </div>
