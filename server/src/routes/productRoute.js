@@ -90,7 +90,11 @@ router.delete(
   ProductController.delete
 );
 
-router.get("/:id/bids", BidController.getByProductId);
+router.get(
+  "/:id/bids",
+  validate({ params: ProductIdSchema }),
+  BidController.getByProductId
+);
 
 router.post(
   "/:id/bids",
