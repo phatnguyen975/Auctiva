@@ -1,3 +1,4 @@
+import { email } from "zod";
 import { prisma } from "../configs/prisma.js";
 import AdminSettingsService from "../services/adminSettingService.js";
 import {
@@ -7,10 +8,11 @@ import {
 } from "../utils/bidUtil.js";
 
 const BidService = {
-  createBid: async ({ productId, userId, maxBid }) => {
+  createBid: async ({ productId, userId, emailBidder, maxBid }) => {
     return prisma.$transaction(async (tx) => {
       const product = await tx.product.findUnique({
         where: { id: productId },
+        include: { seller: true, winner: true },
       });
 
       if (!product) {
@@ -94,10 +96,45 @@ const BidService = {
         },
       });
 
+      const emailTasks = {
+        seller: {
+          email: product.seller.email,
+          data: {
+            productName: product.name,
+            currentPrice,
+            winnerName: leader.fullName,
+            productLink: `${process.env.CLIENT_URL}/products/${productId}`,
+          },
+        },
+        currentBidder: {
+          email: emailBidder, // Email của người vừa nhấn Bid
+          data: {
+            productName: product.name,
+            maxBid,
+            currentPrice,
+            isWinning: leader.bidderId === userId,
+          },
+        },
+        oldWinner:
+          product.winner && product.winner.id !== leader.bidderId
+            ? {
+                email: product.winner.email,
+                data: {
+                  productName: product.name,
+                  currentPrice,
+                  productLink: `${process.env.CLIENT_URL}/products/${productId}`,
+                },
+              }
+            : null,
+      };
+
       return {
-        leaderId: leader?.bidderId ?? null,
-        leaderMaxBid: leader?.maxBid ?? null,
-        currentPrice,
+        newBid: {
+          leaderId: leader?.bidderId ?? null,
+          leaderMaxBid: leader?.maxBid ?? null,
+          currentPrice,
+        },
+        emailTasks,
       };
     });
   },
