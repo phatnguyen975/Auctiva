@@ -96,7 +96,11 @@ const ProductDetailTabs = ({
 
       {/* --- 2. BIDS TAB (Đã gọn gàng nhờ component riêng) --- */}
       <TabsContent value="bids" className="mt-6">
-        <BidHistoryTable bids={bidHistory} role={role} onBanUser={onBanUser} />
+        <BidHistoryTable
+          bids={bidHistory}
+          productSellerId={productSellerId}
+          onBanUser={onBanUser}
+        />
       </TabsContent>
 
       {/* --- 3. Q&A TAB --- */}

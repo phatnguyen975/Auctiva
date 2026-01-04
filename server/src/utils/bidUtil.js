@@ -1,25 +1,36 @@
 export const calculateProxyBidding = (bids, startPrice, stepPrice) => {
-  let leader = null;
+  if (bids.length === 0) return { leader: null, currentPrice: startPrice };
+
+  let leader = bids[0];
   let currentPrice = startPrice;
 
-  for (const bid of bids) {
-    if (!leader) {
-      leader = bid;
-      continue;
+  for (let i = 1; i < bids.length; i++) {
+    const bid = bids[i];
+
+    // Nếu người đặt giá mới TRÙNG với người đang dẫn đầu
+    if (bid.bidderId === leader.bidderId) {
+      // Chỉ cập nhật mức trần (MaxBid), không tăng CurrentPrice
+      if (Number(bid.maxBid) > Number(leader.maxBid)) {
+        leader = bid;
+      }
+      continue; // Bỏ qua việc tính lại giá
     }
 
-    if (bid.maxBid <= leader.maxBid) {
-      currentPrice = Math.min(bid.maxBid, leader.maxBid);
+    // Nếu là người khác đặt giá
+    if (Number(bid.maxBid) <= Number(leader.maxBid)) {
+      // Người cũ vẫn thắng, nâng giá lên mức của người mới (không cần + step theo ví dụ của bạn)
+      currentPrice = Number(bid.maxBid);
     } else {
-      currentPrice = Math.min(leader.maxBid + stepPrice, bid.maxBid);
+      // Người mới vượt mặt, giá = Max cũ + Bước giá
+      currentPrice = Math.min(
+        Number(leader.maxBid) + Number(stepPrice),
+        Number(bid.maxBid)
+      );
       leader = bid;
     }
   }
 
-  return {
-    leader,
-    currentPrice,
-  };
+  return { leader, currentPrice };
 };
 
 export const checkBidderRating = async ({
@@ -27,23 +38,27 @@ export const checkBidderRating = async ({
   bidderId,
   isInstantPurchase,
 }) => {
-  const ratings = await tx.rating.findMany({
-    where: { targetUserId: bidderId },
+  const bidderProfile = await tx.profile.findUnique({
+    where: { id: bidderId },
     select: {
-      score: true,
+      ratingPositive: true,
+      ratingCount: true,
     },
   });
 
-  if (ratings.length === 0) {
+  if (!bidderProfile) {
+    throw new Error("Bidder profile not found");
+  }
+
+  if (bidderProfile.ratingCount === 0) {
+    // Nếu không phải mua ngay (đang đấu giá) thì không cho phép
     if (!isInstantPurchase) {
       throw new Error("This product does not allow unrated bidders");
     }
-    return;
+    return; // Cho phép nếu là Instant Purchase
   }
 
-  const positiveCount = ratings.filter((r) => r.score > 0).length;
-  const ratio = positiveCount / ratings.length;
-
+  const ratio = bidderProfile.ratingPositive / bidderProfile.ratingCount;
   if (ratio < 0.8) {
     throw new Error("Your rating score is too low to place a bid");
   }

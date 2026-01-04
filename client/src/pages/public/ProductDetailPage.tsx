@@ -44,7 +44,8 @@ const ProductDetailPage = () => {
   const [currentTab, setCurrentTab] = useState("description");
   const tabsSectionRef = useRef<HTMLDivElement>(null);
 
-  const [bidAmount, setBidAmount] = useState("");
+  const [bids, setBids] = useState<any[]>([]);
+  const [bidAmount, setBidAmount] = useState<number>(0);
   const [qaItems, setQaItems] = useState<any[]>([]);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [banningInfo, setBanningInfo] = useState<{
@@ -54,13 +55,13 @@ const ProductDetailPage = () => {
 
   const userRating = 92; // Mock Rating of User
 
-  const suggestedBid = (product?.currentPrice || 0) + (product?.bidStep || 0);
+  const suggestedBid =
+    Number(product?.currentPrice || 0) + Number(product?.stepPrice || 0);
 
   const { id: productId } = useParams();
 
   // Mock fetch data
   const loadProduct = async () => {
-    //const res = dummyProductDetails.find((p) => p.id === productId);
     const headers = getHeaders();
     const res = await axiosInstance.get(`/products/${productId}`, { headers });
 
@@ -68,6 +69,23 @@ const ProductDetailPage = () => {
       setProduct(res.data.data);
     } else {
       setProduct(null);
+    }
+  };
+
+  const loadBids = async () => {
+    if (!productId) return;
+
+    try {
+      const headers = getHeaders();
+      const { data } = await axiosInstance.get(`/products/${productId}/bids`, {
+        headers,
+      });
+
+      if (data && data.data) {
+        setBids(data.data);
+      }
+    } catch (error) {
+      console.error("Failed to load bids:", error);
     }
   };
 
@@ -103,6 +121,8 @@ const ProductDetailPage = () => {
 
   useEffect(() => {
     loadProduct();
+
+    loadBids();
 
     fetchQA();
 
@@ -165,6 +185,39 @@ const ProductDetailPage = () => {
     } catch (error: any) {
       console.error("Failed to post answer:", error);
       toast.error(error.response?.data?.message || "Failed to post answer");
+    }
+  };
+
+  //console.log("Product:", product);
+
+  const handlePlaceBid = async () => {
+    const minRequired =
+      Number(product?.currentPrice) + Number(product?.stepPrice);
+    if (bidAmount < minRequired) {
+      toast.error(`Mức giá tối thiểu phải là ${minRequired.toLocaleString()}`);
+      return;
+    }
+
+    try {
+      // Gọi API đặt giá
+      const headers = getHeaders();
+      const res = await axiosInstance.post(
+        `/products/${product?.id}/bids`,
+        {
+          maxBid: bidAmount,
+        },
+        { headers }
+      );
+
+      if (res.data.success) {
+        //const newBid = res.data.data;
+
+        toast.success("Đặt giá thành công!");
+        // Refresh lại dữ liệu sản phẩm để cập nhật giá mới
+        loadProduct();
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Đặt giá thất bại");
     }
   };
 
@@ -320,20 +373,25 @@ const ProductDetailPage = () => {
                         <div className="flex-1">
                           <Input
                             icon={BanknoteArrowUp}
-                            type="number"
+                            type="text"
                             placeholder={`Min $${suggestedBid}`}
                             value={bidAmount}
-                            onChange={(e) => setBidAmount(e.target.value)}
+                            onChange={(e) =>
+                              setBidAmount(Number(e.target.value))
+                            }
                             className="text-lg"
                           />
                           <div className="text-xs text-muted-foreground mt-1">
                             Suggested: ${suggestedBid} (Current + $
-                            {product?.bidStep})
+                            {product?.stepPrice})
                           </div>
                         </div>
                       </div>
                     </div>
-                    <button className="flex justify-center items-center w-full bg-black text-white px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold">
+                    <button
+                      className="flex justify-center items-center w-full bg-black text-white px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold"
+                      onClick={handlePlaceBid}
+                    >
                       <Gavel className="size-5 mr-2" />
                       Place Bid
                     </button>
@@ -394,7 +452,7 @@ const ProductDetailPage = () => {
             userId={currentUserId}
             productSellerId={product?.sellerId || product?.seller?.id}
             description={product?.description}
-            bidHistory={dummyBidHistory}
+            bidHistory={bids}
             qaItems={qaItems}
             relatedProducts={relatedProducts}
             onPostQuestion={handlePostQuestion}

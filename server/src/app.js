@@ -20,7 +20,11 @@ export const app = express();
 // Middlewares
 app.use(
   cors({
-    origin: [process.env.CLIENT_URL, "http://localhost:5174"],
+    origin: [
+      process.env.CLIENT_URL,
+      "http://localhost:5174",
+      "http://localhost:5175",
+    ],
     credentials: true,
   })
 );
