@@ -65,7 +65,7 @@ export interface ProductDetail {
   images: string[];
   currentPrice: number;
   buyNowPrice?: number;
-  bidStep: number;
+  stepPrice: number;
   topBidder: string;
   topBidderRating: number;
   _count: {

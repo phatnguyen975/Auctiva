@@ -119,6 +119,8 @@ const BidService = {
             id: true,
             username: true,
             fullName: true,
+            ratingPositive: true,
+            ratingCount: true,
           },
         },
       },

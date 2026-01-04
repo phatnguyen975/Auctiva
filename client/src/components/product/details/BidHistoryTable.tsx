@@ -1,4 +1,9 @@
+import { formatDistanceToNow } from "date-fns";
+import { useSelector } from "react-redux";
 import { User, Ban } from "lucide-react";
+
+import type { RootState } from "../../../store/store";
+
 import {
   Table,
   TableBody,
@@ -10,23 +15,34 @@ import {
 
 // Định nghĩa kiểu dữ liệu cho Bid (nếu bạn chưa có file types chung)
 interface Bid {
-  time: string;
-  bidder: string;
+  createdAt: Date;
+  bidder: {
+    id: string;
+    fullName: string;
+    username: string;
+    ratingPositive: number;
+    ratingCount: number;
+  };
   rating: number;
-  amount: number;
+  maxBid: number;
 }
 
 interface BidHistoryTableProps {
   bids: Bid[];
-  role: string; // "seller" | "bidder"
+  productSellerId?: string;
   onBanUser: (bid: Bid, index: number) => void; // Callback khi bấm nút Ban
 }
 
 export function BidHistoryTable({
   bids,
-  role,
+  productSellerId,
   onBanUser,
 }: BidHistoryTableProps) {
+  const authUser = useSelector((state: RootState) => state.auth.authUser);
+  const currentUserId = authUser?.user?.id;
+
+  const isPrivileged = currentUserId === productSellerId; // Seller role
+
   return (
     <div className="bg-card rounded-lg overflow-hidden">
       <Table>
@@ -35,7 +51,7 @@ export function BidHistoryTable({
             <TableHead>Time</TableHead>
             <TableHead>Bidder</TableHead>
             <TableHead className="text-right">Bid Amount</TableHead>
-            {role === "seller" && (
+            {isPrivileged && (
               <TableHead className="text-right">Actions</TableHead>
             )}
           </TableRow>
@@ -43,24 +59,41 @@ export function BidHistoryTable({
         <TableBody>
           {bids.map((bid, index) => (
             <TableRow key={index}>
-              <TableCell>{bid.time}</TableCell>
+              <TableCell>
+                {formatDistanceToNow(new Date(bid.createdAt), {
+                  addSuffix: true,
+                })}
+              </TableCell>
               <TableCell className="font-medium">
                 <div className="flex items-center gap-2">
                   <div className="bg-primary/10 p-2 rounded-full">
                     <User className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <div className="font-medium">{bid.bidder}</div>
+                    <div className="font-medium">
+                      {/* {bid.bidder} */}
+                      {formatBidderName(
+                        bid.bidder?.fullName || bid.bidder?.username,
+                        isPrivileged
+                      )}
+                    </div>
                     <div className="text-muted-foreground text-xs">
-                      {bid.rating}% rating
+                      {(
+                        ((bid.bidder?.ratingPositive || 0) /
+                          (bid.bidder?.ratingCount || 1)) *
+                        100
+                      ).toFixed(2)}
+                      % rating
                     </div>
                   </div>
                 </div>
               </TableCell>
               <TableCell className="text-right font-semibold">
-                ${bid.amount}
+                {isPrivileged || currentUserId === bid.bidder.id
+                  ? `$${Number(bid.maxBid).toLocaleString()}`
+                  : "***"}
               </TableCell>
-              {role === "seller" && (
+              {isPrivileged && (
                 <TableCell className="text-right">
                   <button
                     onClick={() => onBanUser(bid, index)}
@@ -78,3 +111,9 @@ export function BidHistoryTable({
     </div>
   );
 }
+
+const formatBidderName = (fullName: string, isPrivileged: boolean) => {
+  if (isPrivileged) return fullName;
+  // Hiện 4 ký tự cuối, còn lại là dấu *
+  return "****" + fullName.slice(-4);
+};
