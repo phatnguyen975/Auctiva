@@ -8,6 +8,14 @@ import type { AppDispatch, RootState } from "../../../store/store";
 import { getCategories } from "../../../store/slices/categorySlice";
 import { axiosInstance } from "../../../lib/axios";
 import { getCategoryNamesByIds } from "../../../utils/category";
+import { createListingSchema } from "../../../utils/validation";
+
+const ErrorMessage = ({ message }: { message?: string }) => {
+  if (!message) return null;
+  return (
+    <p className="text-[hsl(var(--destructive))] text-xs mt-1">{message}</p>
+  );
+};
 
 const CreateListingPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -21,10 +29,14 @@ const CreateListingPage = () => {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]); // URLs for preview
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]); // Real files for upload
 
+  const [productName, setProductName] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [startPrice, setStartPrice] = useState("");
+  const [stepPrice, setStepPrice] = useState("");
+  const [buyNowPrice, setBuyNowPrice] = useState("");
   const [description, setDescription] = useState("");
   const [autoExtension, setAutoExtension] = useState(true);
   const [allowInstantPurchase, setAllowInstantPurchase] = useState(false);
-  const [endDate, setEndDate] = useState("");
 
   const [selectedParentCategory, setSelectedParentCategory] = useState<
     number | null
@@ -32,6 +44,8 @@ const CreateListingPage = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState<number | null>(
     null
   );
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -86,6 +100,9 @@ const CreateListingPage = () => {
   const handleEditorInput = () => {
     if (editorRef.current) {
       setDescription(editorRef.current.innerHTML);
+      if (errors.description) {
+        setErrors((prev) => ({ ...prev, description: "" }));
+      }
     }
   };
 
@@ -110,7 +127,14 @@ const CreateListingPage = () => {
       const newImages: string[] = [];
 
       // Update File state
-      setSelectedFiles((prev) => [...prev, ...newFiles]);
+      setSelectedFiles((prev) => {
+        const updated = [...prev, ...newFiles];
+        // Clear image error if length >= 3
+        if (updated.length >= 3 && errors.images) {
+          setErrors((errs) => ({ ...errs, images: "" }));
+        }
+        return updated;
+      });
 
       // Create Preview URLs
       newFiles.forEach((file) => {
@@ -135,34 +159,34 @@ const CreateListingPage = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setErrors({});
 
-    const productName = (
-      document.getElementById("productName") as HTMLInputElement
-    ).value;
-    const startPrice = (
-      document.getElementById("startingPrice") as HTMLInputElement
-    ).value;
-    const stepPrice = (document.getElementById("stepPrice") as HTMLInputElement)
-      .value;
-    const buyNowPrice = (
-      document.getElementById("buyNowPrice") as HTMLInputElement
-    ).value;
+    const formData = {
+      productName,
+      parentCategoryId: selectedParentCategory,
+      subCategoryId: selectedSubcategory,
+      endDate,
+      startPrice,
+      stepPrice,
+      buyNowPrice: buyNowPrice === "" ? undefined : buyNowPrice,
+      description:
+        description.replace(/<[^>]*>?/gm, "").trim().length === 0
+          ? ""
+          : description,
+      images: selectedFiles,
+    };
 
-    if (
-      !productName ||
-      !selectedParentCategory ||
-      !selectedSubcategory ||
-      !endDate ||
-      !startPrice ||
-      !stepPrice ||
-      !description
-    ) {
-      toast.error("Missing required fields");
-      return;
-    }
+    const result = createListingSchema.safeParse(formData);
 
-    if (selectedFiles.length < 3) {
-      toast.error("Please upload at least 3 images");
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        // Map Zod path to field name
+        const fieldName = issue.path[0] as string;
+        fieldErrors[fieldName] = issue.message;
+      });
+      setErrors(fieldErrors);
+      toast.error("Please fix the errors in the form");
       return;
     }
 
@@ -171,15 +195,15 @@ const CreateListingPage = () => {
 
       const result = getCategoryNamesByIds(
         categories,
-        selectedParentCategory,
-        selectedSubcategory
+        selectedParentCategory!,
+        selectedSubcategory!
       );
       if (!result) {
         toast.error("Category not found");
         return;
       }
 
-      // Upload images to Supabase
+      // Upload images to Supabase Storage
       const uploadPromises = selectedFiles.map((file) =>
         uploadProductImage({
           file,
@@ -225,31 +249,21 @@ const CreateListingPage = () => {
       if (data.success) {
         setUploadedImages([]);
         setSelectedFiles([]);
+        setProductName("");
         setDescription("");
+        setStartPrice("");
+        setStepPrice("");
+        setBuyNowPrice("");
+        setEndDate("");
         setAutoExtension(true);
         setAllowInstantPurchase(false);
-        setEndDate("");
         setSelectedParentCategory(null);
         setSelectedSubcategory(null);
+        setErrors({});
 
         if (editorRef.current) {
           editorRef.current.innerHTML = "";
         }
-
-        const idsToReset = [
-          "productName",
-          "startingPrice",
-          "stepPrice",
-          "buyNowPrice",
-          "image-upload",
-        ];
-
-        idsToReset.forEach((id) => {
-          const element = document.getElementById(id) as HTMLInputElement;
-          if (element) {
-            element.value = "";
-          }
-        });
 
         toast.success(data.message);
       } else {
@@ -279,10 +293,20 @@ const CreateListingPage = () => {
             <input
               id="productName"
               type="text"
-              required
+              value={productName}
               placeholder="Enter product name"
-              className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+              className={`w-full rounded-md border ${
+                errors.productName
+                  ? "border-[hsl(var(--destructive))]"
+                  : "border-[hsl(var(--border))]"
+              } bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]`}
+              onChange={(e) => {
+                setProductName(e.target.value);
+                if (errors.productName)
+                  setErrors({ ...errors, productName: "" });
+              }}
             />
+            <ErrorMessage message={errors.productName} />
           </div>
 
           {/* Category Selection */}
@@ -304,17 +328,27 @@ const CreateListingPage = () => {
                   setSelectedParentCategory(
                     e.target.value === "" ? null : Number(e.target.value)
                   );
-                  setSelectedSubcategory(null); // Reset subcategory when parent changes
+                  setSelectedSubcategory(null);
+                  if (errors.parentCategoryId)
+                    setErrors({ ...errors, parentCategoryId: "" });
                 }}
-                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] cursor-pointer"
+                className={`w-full rounded-md border ${
+                  errors.parentCategoryId
+                    ? "border-[hsl(var(--destructive))]"
+                    : "border-[hsl(var(--border))]"
+                } bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] cursor-pointer`}
               >
                 <option value="">Select a category</option>
+                {categories.length === 0 && (
+                  <option value="">No categories</option>
+                )}
                 {categories.map((parent) => (
                   <option key={parent.id} value={parent.id}>
                     {parent.name}
                   </option>
                 ))}
               </select>
+              <ErrorMessage message={errors.parentCategoryId} />
             </div>
 
             <div className="space-y-2">
@@ -328,13 +362,15 @@ const CreateListingPage = () => {
               <select
                 id="subcategory"
                 value={selectedSubcategory === null ? "" : selectedSubcategory}
-                onChange={(e) =>
+                onChange={(e) => {
                   setSelectedSubcategory(
                     e.target.value === "" ? null : Number(e.target.value)
-                  )
-                }
+                  );
+                  if (errors.subCategoryId)
+                    setErrors({ ...errors, subCategoryId: "" });
+                }}
                 disabled={!selectedParentCategory}
-                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full rounded-md border ${errors.subCategoryId ? "border-[hsl(var(--destructive))]" : "border-[hsl(var(--border))]"} bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 <option value="">
                   {selectedParentCategory
@@ -350,6 +386,7 @@ const CreateListingPage = () => {
                       </option>
                     ))}
               </select>
+              <ErrorMessage message={errors.subCategoryId} />
             </div>
           </div>
 
@@ -362,10 +399,13 @@ const CreateListingPage = () => {
               id="endDate"
               type="datetime-local"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-              className="w-full md:w-1/2 rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+              onChange={(e) => {
+                  setEndDate(e.target.value);
+                  if (errors.endDate) setErrors({...errors, endDate: ""});
+              }}
+              className={`w-full md:w-1/2 rounded-md border ${errors.endDate ? "border-[hsl(var(--destructive))]" : "border-[hsl(var(--border))]"} bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]`}
             />
+            <ErrorMessage message={errors.endDate} />
             <p className="text-xs text-[hsl(var(--muted-foreground))]">
               Select the date and time when the auction ends (Local Time)
             </p>
@@ -400,6 +440,7 @@ const CreateListingPage = () => {
                 </p>
               </label>
             </div>
+            <ErrorMessage message={errors.images} />
 
             {/* Preview Uploaded Images */}
             {uploadedImages.length > 0 && (
@@ -446,12 +487,17 @@ const CreateListingPage = () => {
               <input
                 id="startingPrice"
                 type="number"
+                value={startPrice}
+                onChange={(e) => {
+                    setStartPrice(e.target.value);
+                    if (errors.startPrice) setErrors({...errors, startPrice: ""});
+                }}
                 placeholder="0.0"
                 min="0"
                 step="0.1"
-                required
-                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+                className={`w-full rounded-md border ${errors.startPrice ? "border-[hsl(var(--destructive))]" : "border-[hsl(var(--border))]"} bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]`}
               />
+              <ErrorMessage message={errors.startPrice} />
             </div>
             {/* Step Price */}
             <div className="space-y-2">
@@ -462,12 +508,17 @@ const CreateListingPage = () => {
               <input
                 id="stepPrice"
                 type="number"
+                value={stepPrice}
+                onChange={(e) => {
+                    setStepPrice(e.target.value);
+                    if (errors.stepPrice) setErrors({...errors, stepPrice: ""});
+                }}
                 placeholder="0.0"
                 min="0"
                 step="0.1"
-                required
-                className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]"
+                className={`w-full rounded-md border ${errors.stepPrice ? "border-[hsl(var(--destructive))]" : "border-[hsl(var(--border))]"} bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]`}
               />
+              <ErrorMessage message={errors.stepPrice} />
             </div>
             {/* Buy Now Price */}
             <div className="space-y-2">
@@ -480,6 +531,8 @@ const CreateListingPage = () => {
               <input
                 id="buyNowPrice"
                 type="number"
+                value={buyNowPrice}
+                onChange={(e) => setBuyNowPrice(e.target.value)}
                 placeholder="0.0"
                 min="0"
                 step="0.1"
@@ -611,6 +664,7 @@ const CreateListingPage = () => {
                 data-placeholder="Describe your product in detail..."
               />
             </div>
+            <ErrorMessage message={errors.description} />
             <p className="text-xs text-[hsl(var(--muted-foreground))]">
               Rich text editor for detailed product descriptions
             </p>
