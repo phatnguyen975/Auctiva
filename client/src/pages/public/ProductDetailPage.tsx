@@ -119,7 +119,7 @@ const ProductDetailPage = () => {
     }
   };
 
-  useEffect(() => {
+  const fetchProductDetail = async () => {
     loadProduct();
 
     loadBids();
@@ -127,15 +127,11 @@ const ProductDetailPage = () => {
     fetchQA();
 
     fetchRelatedProducts(product?.categoryId || 1);
-  }, [productId, product?.categoryId]);
-
-  const handleConfirmBan = () => {
-    if (!banningInfo) return;
-
-    console.log("Banning user:", banningInfo.bid.bidder);
-
-    setBanningInfo(null);
   };
+
+  useEffect(() => {
+    fetchProductDetail();
+  }, [productId, product?.categoryId]);
 
   const handleViewQuestions = () => {
     console.log("Clicked");
@@ -218,6 +214,30 @@ const ProductDetailPage = () => {
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Đặt giá thất bại");
+    }
+  };
+
+  const handleConfirmBan = async () => {
+    if (!banningInfo || !product) return;
+
+    try {
+      const headers = getHeaders();
+      const response = await axiosInstance.post(
+        `/products/${product.id}/bid-rejections`,
+        { bidderId: banningInfo.bid.bidder.id }, // Gửi ID của người bị ban
+        { headers }
+      );
+
+      if (response.status === 201) {
+        toast.success("User has been banned and prices recalculated!");
+
+        // Đóng modal
+        setBanningInfo(null);
+
+        fetchProductDetail();
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to ban user");
     }
   };
 
@@ -468,10 +488,10 @@ const ProductDetailPage = () => {
           onClose={() => setBanningInfo(null)} // Đóng modal bằng cách set null
           onConfirm={handleConfirmBan}
           // Truyền data vào
-          bidderName={banningInfo.bid.bidder}
+          bidderName={
+            banningInfo.bid.bidder?.fullName || banningInfo.bid.bidder.username
+          }
           isHighestBidder={banningInfo.index === 0}
-          nextBidderName={dummyBidHistory[1]?.bidder}
-          nextBidderAmount={dummyBidHistory[1]?.amount}
         />
       )}
     </div>

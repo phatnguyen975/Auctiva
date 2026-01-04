@@ -8,8 +8,6 @@ interface BanModalProps {
   // Dữ liệu truyền vào để hiển thị logic
   bidderName: string;
   isHighestBidder: boolean; // Thay vì truyền index, ta truyền boolean cho dễ hiểu
-  nextBidderName?: string;
-  nextBidderAmount?: number;
 }
 
 export default function BanModal({
@@ -18,8 +16,6 @@ export default function BanModal({
   onConfirm,
   bidderName,
   isHighestBidder,
-  nextBidderName,
-  nextBidderAmount,
 }: BanModalProps) {
   // Nếu không mở thì không render gì cả (return null)
   if (!isOpen) return null;
@@ -60,9 +56,7 @@ export default function BanModal({
                   {isHighestBidder ? (
                     <>
                       This user holds the current highest bid. The highest price
-                      will automatically revert to the second highest bidder (
-                      <span className="font-semibold">{nextBidderName}</span> at
-                      ${nextBidderAmount}).
+                      will automatically revert to the second highest bidder.
                     </>
                   ) : (
                     <>
@@ -86,7 +80,7 @@ export default function BanModal({
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm"
+            className="px-4 py-2 text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors shadow-sm hover:cursor-pointer"
           >
             Confirm Ban
           </button>

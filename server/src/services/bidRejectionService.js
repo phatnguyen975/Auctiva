@@ -2,12 +2,24 @@ import { prisma } from "../configs/prisma.js";
 import { calculateProxyBidding } from "../utils/bidUtil.js";
 
 const BidRejectionService = {
-  createBidRejection: async ({ productId, userId }) => {
+  createBidRejection: async ({ productId, bidderId, sellerId }) => {
     return prisma.$transaction(async (tx) => {
+      // Check quyền của seller trên sản phẩm
+      const initialProduct = await tx.product.findUnique({
+        where: { id: productId },
+      });
+
+      if (!initialProduct || initialProduct.sellerId !== sellerId) {
+        throw new Error(
+          "You do not have permission to manage this product's bidders."
+        );
+      }
+
+      // Tạo bid rejection
       await tx.bidRejection.create({
         data: {
           productId,
-          bidderId: userId,
+          bidderId,
         },
       });
 
