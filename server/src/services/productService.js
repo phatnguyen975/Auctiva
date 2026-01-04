@@ -516,7 +516,12 @@ const ProductService = {
     };
   },
 
-  updateProduct: async ({ id, description }) => {
+  updateProduct: async ({
+    id,
+    description,
+    isAutoExtend,
+    isInstantPurchase,
+  }) => {
     const product = await prisma.product.findUnique({
       where: { id },
     });
@@ -525,11 +530,13 @@ const ProductService = {
       throw new Error("Product not found");
     }
 
-    const newDescription = product.description + " " + description;
+    if (product.status !== "active" || new Date(product.endDate) < new Date()) {
+      throw new Error("Cannot update product after auction has ended");
+    }
 
     return await prisma.product.update({
       where: { id },
-      data: { description: newDescription },
+      data: { description, isAutoExtend, isInstantPurchase },
     });
   },
 

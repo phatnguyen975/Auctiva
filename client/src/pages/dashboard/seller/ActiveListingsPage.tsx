@@ -97,7 +97,7 @@ const ActiveListingsPage = () => {
             <table className="w-full caption-bottom text-sm">
               <thead className="border-b border-[hsl(var(--border))]">
                 <tr className="border-b border-[hsl(var(--border))] transition-colors hover:bg-[hsl(var(--muted)/0.5)]">
-                  <th className="h-12 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
+                  <th className="h-12 px-5 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">
                     Product
                   </th>
                   <th className="h-12 min-w-32 px-4 text-left align-middle font-medium text-[hsl(var(--muted-foreground))]">

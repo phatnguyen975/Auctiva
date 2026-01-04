@@ -1,41 +1,76 @@
-import { useState, useRef, useEffect } from "react";
-import { Upload, XCircle, HelpCircle } from "lucide-react";
+import { useState, useRef, useEffect, type FormEvent } from "react";
+import { ArrowLeft, HelpCircle, Loader2 } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store/store";
+import { axiosInstance } from "../../../lib/axios";
+import toast from "react-hot-toast";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
+
+interface ProductDetail {
+  id: number;
+  name: string;
+  description: string;
+  startPrice: number;
+  stepPrice: number;
+  buyNowPrice: number | null;
+  isAutoExtend: boolean;
+  isInstantPurchase: boolean;
+}
 
 const UpdateListingPage = () => {
-  // Mock data - sản phẩm hiện tại từ database
-  const currentProduct = {
-    name: "Vintage Camera 1960s Collectible",
-    images: [
-      "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400",
-      "https://images.unsplash.com/photo-1495121553079-4c61bcce1894?w=400",
-      "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400",
-    ],
-    startingPrice: 150.0,
-    stepPrice: 10.0,
-    buyNowPrice: 500.0,
-    description:
-      "Original vintage camera from the 1960s in excellent working condition. This camera has been well-maintained and comes with original leather case. Perfect for collectors and photography enthusiasts.\n\nKey Features:\n• Fully functional mechanical shutter\n• Clean lens with no fungus or scratches\n• Original leather case included\n• Tested and working perfectly",
-    additionalInfo:
-      "Item location: New York, USA\nShipping: Worldwide\nPayment: PayPal, Credit Card accepted",
-    autoExtension: true,
-    allowInstantPurchase: true,
-  };
+  const { id: productId } = useParams();
+  const navigate = useNavigate();
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
-  const [uploadedImages, setUploadedImages] = useState<string[]>(
-    currentProduct.images
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+
+  const [currentProduct, setCurrentProduct] = useState<ProductDetail | null>(
+    null
   );
+
   const [additionalDescription, setAdditionalDescription] = useState("");
-  const [additionalInfo, setAdditionalInfo] = useState(
-    currentProduct.additionalInfo
-  );
-  const [autoExtension, setAutoExtension] = useState(
-    currentProduct.autoExtension
-  );
-  const [allowInstantPurchase, setAllowInstantPurchase] = useState(
-    currentProduct.allowInstantPurchase
-  );
+  const [autoExtension, setAutoExtension] = useState(true);
+  const [allowInstantPurchase, setAllowInstantPurchase] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) {
+        return;
+      }
+
+      try {
+        setIsFetching(true);
+
+        const { data } = await axiosInstance.get(`/products/${productId}`, {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+          },
+        });
+
+        if (data.success) {
+          const productData = data.data;
+          setCurrentProduct(productData);
+          setAutoExtension(productData.isAutoExtend);
+          setAllowInstantPurchase(productData.isInstantPurchase);
+        } else {
+          toast.error("Failed to load product details");
+          navigate("/seller/active");
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        toast.error("Error loading product");
+        navigate("/seller/active");
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchProduct();
+  }, [productId, navigate]);
 
   // Setup keyboard shortcuts
   useEffect(() => {
@@ -89,44 +124,83 @@ const UpdateListingPage = () => {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      const newImages: string[] = [];
-      Array.from(files).forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          newImages.push(reader.result as string);
-          if (newImages.length === files.length) {
-            setUploadedImages([...uploadedImages, ...newImages]);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!currentProduct) {
+      return;
+    }
+
+    const hasDescriptionChange = additionalDescription.trim().length > 0;
+    const hasSettingChange =
+      autoExtension !== currentProduct.isAutoExtend ||
+      allowInstantPurchase !== currentProduct.isInstantPurchase;
+
+    if (!hasDescriptionChange && !hasSettingChange) {
+      toast("No changes detected", { icon: "ℹ️" });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      let finalDescription = currentProduct.description;
+      if (hasDescriptionChange) {
+        finalDescription += `<br/><hr/><br/><h3><strong>Updated Information</strong></h3><br/>${additionalDescription}`;
+      }
+
+      const payload = {
+        description: finalDescription,
+        isAutoExtend: autoExtension,
+        isInstantPurchase: allowInstantPurchase,
+      };
+
+      const { data } = await axiosInstance.put(
+        `/products/${productId}`,
+        payload,
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (data.success) {
+        toast.success("Listing updated successfully");
+        navigate("/seller/active");
+      } else {
+        toast.error(data.message || "Failed to update listing");
+      }
+    } catch (error) {
+      console.error("Error updating listing:", error);
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Concatenate descriptions: original + new
-    const finalDescription = additionalDescription.trim()
-      ? `${currentProduct.description}\n\n--- Updated Information ---\n${additionalDescription}`
-      : currentProduct.description;
+  if (isFetching) {
+    return (
+      <div className="flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
 
-    console.log("Updated product:", {
-      ...currentProduct,
-      images: uploadedImages,
-      description: finalDescription,
-      additionalInfo,
-      autoExtension,
-      allowInstantPurchase,
-    });
-  };
+  if (!currentProduct) {
+    return;
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
+        <Link
+          to="/seller/active"
+          className="flex items-center text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] mb-4 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back to Active Listings
+        </Link>
         <h2 className="text-3xl font-bold">Update Listing</h2>
         <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">
           Modify and enhance your existing product listing
@@ -153,60 +227,6 @@ const UpdateListingPage = () => {
             </p>
           </div>
 
-          {/* Image Upload */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium block">Product Images</label>
-            <div className="border-2 border-dashed border-[hsl(var(--border))] rounded-lg p-8 text-center bg-[hsl(var(--muted)/0.1)] hover:bg-[hsl(var(--muted)/0.2)] transition-colors">
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="hidden"
-                id="image-upload"
-              />
-              <label htmlFor="image-upload" className="cursor-pointer">
-                <Upload className="h-12 w-12 mx-auto mb-3 text-[hsl(var(--muted-foreground))]" />
-                <p className="font-medium mb-1">Add more images</p>
-                <p className="text-sm text-[hsl(var(--muted-foreground))] mb-2">
-                  or click to browse
-                </p>
-                <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
-                  PNG, JPG, WEBP up to 5MB each
-                </p>
-              </label>
-            </div>
-
-            {/* Preview Uploaded Images */}
-            {uploadedImages.length > 0 && (
-              <div className="grid grid-cols-4 gap-4 mt-4">
-                {uploadedImages.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="relative aspect-square rounded-lg overflow-hidden border border-[hsl(var(--border))]"
-                  >
-                    <img
-                      src={img}
-                      alt={`Upload ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setUploadedImages(
-                          uploadedImages.filter((_, i) => i !== idx)
-                        )
-                      }
-                      className="absolute top-2 right-2 bg-[hsl(var(--destructive))] text-white rounded-full p-1 hover:bg-[hsl(var(--destructive)/0.9)] hover:cursor-pointer"
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Pricing - Read Only */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
@@ -219,7 +239,7 @@ const UpdateListingPage = () => {
               <input
                 id="startingPrice"
                 type="number"
-                value={currentProduct.startingPrice}
+                value={currentProduct.startPrice}
                 disabled
                 className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.3)] px-3 py-2 cursor-not-allowed opacity-70"
               />
@@ -246,7 +266,7 @@ const UpdateListingPage = () => {
               <input
                 id="buyNowPrice"
                 type="number"
-                value={currentProduct.buyNowPrice}
+                value={currentProduct.buyNowPrice || ""}
                 disabled
                 className="w-full rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--muted)/0.3)] px-3 py-2 cursor-not-allowed opacity-70"
               />
@@ -261,17 +281,19 @@ const UpdateListingPage = () => {
             <label className="text-sm font-medium block">
               Current Description
             </label>
-            <div className="border border-[hsl(var(--border))] rounded-lg bg-[hsl(var(--muted)/0.2)] p-4 max-h-[200px] overflow-y-auto">
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">
-                {currentProduct.description}
-              </p>
+            <div className="border border-[hsl(var(--border))] rounded-lg bg-[hsl(var(--muted)/0.2)] p-4 max-h-[300px] overflow-y-auto">
+              {/* Render HTML content safely */}
+              <div
+                className="text-muted-foreground leading-relaxed [&>ul]:list-disc [&>ul]:ml-6 [&>ul]:space-y-1 [&>ol]:list-decimal [&>ol]:ml-6 [&>ol]:space-y-1"
+                dangerouslySetInnerHTML={{ __html: currentProduct.description }}
+              />
             </div>
             <p className="text-xs text-[hsl(var(--muted-foreground))]">
               Original description (cannot be modified)
             </p>
           </div>
 
-          {/* Additional Description */}
+          {/* Additional Description - WYSIWYG */}
           <div className="space-y-2">
             <label className="text-sm font-medium block">
               Additional Description
@@ -390,7 +412,7 @@ const UpdateListingPage = () => {
                 className="w-full min-h-[200px] border-0 rounded-none px-3 py-2 focus:outline-none bg-[hsl(var(--background))] overflow-y-auto"
                 style={{ whiteSpace: "pre-wrap" }}
                 suppressContentEditableWarning
-                data-placeholder="Add new information about the product here... (This will be appended to the original description)"
+                data-placeholder="Add new information about the product here..."
               />
             </div>
             <p className="text-xs text-[hsl(var(--muted-foreground))]">
@@ -440,22 +462,6 @@ const UpdateListingPage = () => {
                 margin: 0.5rem 0;
               }
             `}</style>
-          </div>
-
-          {/* Additional Information */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium block">
-              Additional Information
-            </label>
-            <textarea
-              placeholder="Update any additional information about the product..."
-              className="w-full min-h-[100px] rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] resize-none"
-              value={additionalInfo}
-              onChange={(e) => setAdditionalInfo(e.target.value)}
-            />
-            <p className="text-xs text-[hsl(var(--muted-foreground))]">
-              You can modify shipping, payment, or location details
-            </p>
           </div>
 
           {/* Auto-Extension Setting */}
@@ -538,13 +544,23 @@ const UpdateListingPage = () => {
           <div className="flex gap-3">
             <button
               type="submit"
+              disabled={isLoading}
               className="flex-1 inline-flex items-center justify-center bg-slate-900 text-white shadow-sm rounded-md text-sm font-medium transition-all hover:bg-[hsl(var(--primary)/0.9)] hover:cursor-pointer h-10 px-4"
             >
-              Update Listing
+              {isLoading ? (
+                <>
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Listing"
+              )}
             </button>
             <button
               type="button"
+              disabled={isLoading}
               className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-all border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--primary)/0.9)] hover:cursor-pointer h-10 px-4"
+              onClick={() => navigate("/seller/active")}
             >
               Cancel
             </button>

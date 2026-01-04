@@ -26,7 +26,9 @@ export const ProductCreateSchema = z.object({
 });
 
 export const ProductUpdateSchema = z.object({
-  description: z.string().min(10),
+  description: z.string().min(1).optional(),
+  isAutoExtend: z.boolean().optional(),
+  isInstantPurchase: z.boolean().optional(),
 });
 
 export const ProductQuerySchema = z.object({

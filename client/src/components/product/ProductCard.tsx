@@ -182,7 +182,7 @@ export function ProductCard({
                 <div className="flex gap-1">
                   Top:
                   <span className="font-medium">
-                    {topBidder !== null ? maskName(topBidder) : "None"}
+                    {topBidder !== null ? maskName(topBidder) : "N/A"}
                   </span>
                 </div>
               </div>
@@ -275,7 +275,7 @@ export function ProductCard({
               <span>{totalBids} bids</span>
             </div>
             <span className="truncate">
-              Top: {topBidder !== null ? maskName(topBidder) : "None"}
+              Top: {topBidder !== null ? maskName(topBidder) : "N/A"}
             </span>
           </div>
 

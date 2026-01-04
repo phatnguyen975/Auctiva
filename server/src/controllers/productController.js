@@ -16,7 +16,10 @@ const ProductController = {
   getAll: async (req, res) => {
     try {
       const userId = req.user?.id ?? null;
-      const products = await ProductService.getProducts(req.validated.query, userId);
+      const products = await ProductService.getProducts(
+        req.validated.query,
+        userId
+      );
       res.ok("Products retrieved successfully", products);
     } catch (error) {
       res.error(error.message);
@@ -92,10 +95,13 @@ const ProductController = {
   update: async (req, res) => {
     try {
       const id = Number(req.validated.params.id);
-      const description = req.validated.body.description;
+      const { description, isAutoExtend, isInstantPurchase } =
+        req.validated.body;
       const updatedProduct = await ProductService.updateProduct({
         id,
         description,
+        isAutoExtend,
+        isInstantPurchase,
       });
       res.ok("Product updated successfully", updatedProduct);
     } catch (error) {
