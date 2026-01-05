@@ -165,6 +165,27 @@ export const EmailTemplates = {
     </div>
   `,
 
+  // 7. Thông báo thắng cuộc cho Winner
+  auctionWon: (data) => `
+    <div style="font-family: sans-serif; padding: 20px;">
+      <h2 style="color: #16a34a;">Congratulations! You won the auction!</h2>
+      <p>You are now the new owner of the product: <strong>${data.productName}</strong></p>
+      <p>Final Price: <strong>${data.finalPrice} USD</strong></p>
+      <p>Please access the system to complete payment and receive your item.</p>
+      <a href="${data.transactionLink}" style="background: #16a34a; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Pay Now</a>
+    </div>
+  `,
+
+  // 8. Thông báo cho Seller khi đấu giá kết thúc và có người mua
+  productSold: (data) => `
+    <div style="font-family: sans-serif; padding: 20px;">
+      <h2>Your product has been sold!</h2>
+      <p>Product <strong>${data.productName}</strong> has ended with the winner being <strong>${data.winnerName}</strong>.</p>
+      <p>Final price: <strong>${data.finalPrice} USD</strong>.</p>
+      <p>The system has created an order, please prepare the goods for shipment.</p>
+    </div>
+  `,
+
   // Account deleted notification
   accountDeleted: (data) => `
     <!DOCTYPE html>

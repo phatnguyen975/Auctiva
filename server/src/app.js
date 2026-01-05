@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cron from "node-cron";
 
 import { logger } from "./configs/logger.js";
 import { responseWrapper } from "./middlewares/responseMiddleware.js";
@@ -14,6 +15,8 @@ import productRouter from "./routes/productRoute.js";
 import sellerUpgradeRouter from "./routes/sellerUpgradeRoute.js";
 import transactionRouter from "./routes/transactionRoute.js";
 import qaRouter from "./routes/qaRoute.js";
+
+import AuctionTaskService from "./services/auctionTaskService.js";
 
 export const app = express();
 
@@ -45,6 +48,11 @@ app.use("/api/products", productRouter);
 app.use("/api/seller-upgrade-requests", sellerUpgradeRouter);
 app.use("/api/transactions", transactionRouter);
 app.use("/api/qa", qaRouter);
+
+// Chạy mỗi phút 1 lần để kiểm tra các sản phẩm hết hạn đấu giá
+cron.schedule("* * * * *", async () => {
+  await AuctionTaskService.processExpiredAuctions();
+});
 
 // Error Handler
 app.use(notFoundHandler);
