@@ -82,6 +82,16 @@ const ProductController = {
     }
   },
 
+  getWonByUserId: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const products = await ProductService.getWonProductsByUserId(userId);
+      res.ok("Won products retrieved successfully", products);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
   getAnalysisByUserId: async (req, res) => {
     try {
       const userId = req.user.id;
