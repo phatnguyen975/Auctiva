@@ -19,13 +19,13 @@ import {
 } from "lucide-react";
 
 import type { ProductDetail } from "../../types/product";
-import { dummyBidHistory } from "../../assets/assets";
 
 import CountdownTimer from "../../components/product/details/CountdownTimer";
 import { formatPostDate } from "../../utils/date";
 import Input from "../../components/ui/Input";
 
 import BanModal from "../../components/product/details/BanModal";
+import ConfirmBidModal from "../../components/product/details/ConfirmBidModal";
 import ProductDetailTabs from "../../components/product/details/ProductDetailTabs";
 import ProductImageGallery from "../../components/product/details/ProductImageGallery";
 import toast from "react-hot-toast";
@@ -52,6 +52,7 @@ const ProductDetailPage = () => {
     bid: any;
     index: number;
   } | null>(null);
+  const [showConfirmBid, setShowConfirmBid] = useState(false);
 
   const userRating = 92; // Mock Rating of User
 
@@ -194,6 +195,11 @@ const ProductDetailPage = () => {
       return;
     }
 
+    // Show confirmation modal
+    setShowConfirmBid(true);
+  };
+
+  const confirmPlaceBid = async () => {
     try {
       // Gọi API đặt giá
       const headers = getHeaders();
@@ -206,11 +212,12 @@ const ProductDetailPage = () => {
       );
 
       if (res.data.success) {
-        //const newBid = res.data.data;
-
         toast.success("Đặt giá thành công!");
+        setShowConfirmBid(false);
+        setBidAmount(0);
         // Refresh lại dữ liệu sản phẩm để cập nhật giá mới
         loadProduct();
+        loadBids();
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Đặt giá thất bại");
@@ -492,6 +499,17 @@ const ProductDetailPage = () => {
             banningInfo.bid.bidder?.fullName || banningInfo.bid.bidder.username
           }
           isHighestBidder={banningInfo.index === 0}
+        />
+      )}
+
+      {showConfirmBid && product && (
+        <ConfirmBidModal
+          isOpen={showConfirmBid}
+          onClose={() => setShowConfirmBid(false)}
+          onConfirm={confirmPlaceBid}
+          bidAmount={bidAmount}
+          currentPrice={product.currentPrice}
+          productTitle={product.title}
         />
       )}
     </div>

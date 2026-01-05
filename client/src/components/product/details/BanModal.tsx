@@ -74,7 +74,7 @@ export default function BanModal({
         <div className="p-6 flex justify-end gap-3 bg-gray-50 dark:bg-slate-800/50 mt-4">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white hover:bg-gray-100 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300 bg-white hover:bg-gray-100 transition-colors hover:cursor-pointer"
           >
             Cancel
           </button>
