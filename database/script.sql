@@ -2,7 +2,7 @@ create extension if not exists "uuid-ossp";
 create extension if not exists "pg_trgm";
 
 create type user_role as enum ('bidder', 'seller', 'admin');
-create type account_status as enum ('active', 'locked');
+create type account_status as enum ('active', 'deleted');
 create type rating_type as enum ('seller_bidder', 'bidder_seller');
 create type seller_request_status as enum ('pending', 'approved', 'rejected');
 create type seller_permission_status as enum ('active', 'expired');
@@ -25,6 +25,15 @@ create table if not exists profiles (
   created_at          timestamptz default now(),
   updated_at          timestamptz default now()
 );
+
+alter table profiles
+add column search_vector tsvector generated always as (
+    setweight(to_tsvector('english', coalesce(full_name,'')), 'A') ||
+    setweight(to_tsvector('english', coalesce(user_name,'')), 'B') ||
+    setweight(to_tsvector('english', coalesce(email,'')), 'C')
+) stored;
+
+create index idx_users_search on profiles using gin(search_vector);
 
 alter table profiles
   enable row level security;

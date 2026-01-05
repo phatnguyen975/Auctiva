@@ -15,7 +15,7 @@ enum user_role {
 
 enum account_status {
   active
-  locked
+  deleted
 }
 
 enum seller_request_status {

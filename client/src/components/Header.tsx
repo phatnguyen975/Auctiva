@@ -37,7 +37,6 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   const [categorySidebarOpen, setCategorySidebarOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<number[]>([]);
   const [watchlistCount, setWatchlistCount] = useState<number | null>(null);
-  const [countLoaded, setCountLoaded] = useState(false);
 
   const sidebarRef = useRef<HTMLDivElement>(null);
 
@@ -68,7 +67,6 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
 
       if (data.success) {
         setWatchlistCount(data.data);
-        setCountLoaded(true);
       }
     } catch (error: any) {
       console.error("Error loading count:", error.message);
@@ -93,10 +91,12 @@ const Header = ({ isDashboard = false }: { isDashboard?: boolean }) => {
   };
 
   useEffect(() => {
-    if (authUser && !countLoaded) {
+    if (authUser?.profile && role !== "admin") {
       fetchWatchlistCount();
+    } else {
+      setWatchlistCount(null);
     }
-  }, [countLoaded]);
+  }, [authUser]);
 
   useEffect(() => {
     if (!loaded) {

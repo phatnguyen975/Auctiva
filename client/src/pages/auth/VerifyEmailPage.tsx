@@ -90,7 +90,7 @@ const VerifyEmailPage = () => {
         navigate("/reset-password", { replace: true });
       } else {
         sessionStorage.removeItem("isPasswordReset");
-        navigate("/", { replace: true });
+        navigate("/login", { replace: true });
       }
 
       toast.success("Email verified successfully");

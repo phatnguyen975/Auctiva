@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+export const ProfileIdSchema = z.object({
+  id: z.string().uuid("Invalid UUID format"),
+});
+
 export const ProfileUpdateSchema = z.object({
   username: z.string().min(2).max(50).optional(),
   fullName: z.string().min(2).max(100).optional(),
@@ -11,4 +15,8 @@ export const ProfileUpdateSchema = z.object({
 export const AuthUpdateSchema = z.object({
   email: z.string().email().optional(),
   password: z.string().min(1).optional(),
+});
+
+export const ProfileQuerySchema = z.object({
+  keyword: z.string().trim().optional(),
 });

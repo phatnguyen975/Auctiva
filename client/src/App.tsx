@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "./store/store";
@@ -14,42 +14,40 @@ import LoadingSpinner from "./components/ui/LoadingSpinner";
 import AppRoutes from "./routes/AppRoutes";
 
 const App = () => {
-  const { hasCheckedAuth, isCheckingAuth } = useSelector(
-    (s: RootState) => s.auth
-  );
+  const { hasCheckedAuth } = useSelector((s: RootState) => s.auth);
   const dispatch = useDispatch<AppDispatch>();
 
-  useEffect(() => {
-    if (hasCheckedAuth) {
-      return;
-    }
+  const initRef = useRef(false);
 
-    // Get current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      dispatch(setSession(session));
+  useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
+
+    const initializeAuth = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (session?.user) {
-        dispatch(
-          setUser({
-            user: session.user,
-            profile: null,
-          })
-        );
+        dispatch(setSession(session));
+        dispatch(setUser({ user: session.user, profile: null }));
         dispatch(fetchProfileThunk(session.user.id));
       } else {
         dispatch(setUser(null));
+        dispatch(setSession(null));
       }
 
-      dispatch(setIsCheckingAuth(false));
       dispatch(setHasCheckedAuth(true));
-    });
+      dispatch(setIsCheckingAuth(false));
+    };
+
+    initializeAuth();
 
     // Listen auth state change
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        dispatch(setSession(session));
-
         if (session?.user) {
+          dispatch(setSession(session));
           dispatch(
             setUser({
               user: session.user,
@@ -59,14 +57,15 @@ const App = () => {
           dispatch(fetchProfileThunk(session.user.id));
         } else {
           dispatch(setUser(null));
+          dispatch(setSession(null));
         }
       }
     );
 
     return () => listener.subscription.unsubscribe();
-  }, [hasCheckedAuth, dispatch]);
+  }, [dispatch]);
 
-  if (!hasCheckedAuth || isCheckingAuth) {
+  if (!hasCheckedAuth) {
     return (
       <div className="flex items-center justify-center h-screen">
         <LoadingSpinner />

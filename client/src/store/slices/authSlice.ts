@@ -27,6 +27,24 @@ export const registerThunk = createAsyncThunk(
     },
     { rejectWithValue }
   ) => {
+    if (!captchaToken) {
+      return rejectWithValue("Missing captcha token");
+    }
+
+    const { data: profile, error: checkError } = await supabase
+      .from("profiles")
+      .select("id, status")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (checkError) {
+      return rejectWithValue("Failed to check email");
+    }
+
+    if (profile?.status === "active") {
+      return rejectWithValue("Email already exists");
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -79,7 +97,7 @@ export const loginThunk = createAsyncThunk(
     }: { email: string; password: string; captchaToken: string },
     { rejectWithValue }
   ) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
       options: { captchaToken },
@@ -89,7 +107,25 @@ export const loginThunk = createAsyncThunk(
       return rejectWithValue(error.message);
     }
 
-    return true;
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", data.user.id)
+      .maybeSingle();
+
+    if (profileError || !profile) {
+      await supabase.auth.signOut();
+      return rejectWithValue("Profile not found");
+    }
+
+    if (profile.status !== "active") {
+      await supabase.auth.signOut();
+      if (profile.status === "deleted") {
+        return rejectWithValue("This account has been deleted");
+      }
+    }
+
+    return { data, profile };
   }
 );
 
@@ -281,8 +317,16 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(loginThunk.fulfilled, (state) => {
+      .addCase(loginThunk.fulfilled, (state, action) => {
         state.loading = false;
+        if (action.payload.data.user && action.payload.data.session) {
+          state.authUser = {
+            user: action.payload.data.user,
+            profile: action.payload.profile,
+          };
+          state.accessToken = action.payload.data.session.access_token;
+          state.refreshToken = action.payload.data.session.refresh_token;
+        }
       })
       .addCase(loginThunk.rejected, (state, action) => {
         state.loading = false;
@@ -296,8 +340,8 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = null;
         state.isPasswordReset = false;
-        state.isCheckingAuth = true;
-        state.hasCheckedAuth = false;
+        // state.isCheckingAuth = true;
+        // state.hasCheckedAuth = false;
       })
       // --- Fetch Profile ---
       .addCase(fetchProfileThunk.pending, (state) => {
@@ -305,11 +349,10 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchProfileThunk.fulfilled, (state, action) => {
-        if (!state.authUser) {
-          return;
-        }
         state.isCheckingAuth = false;
-        state.authUser.profile = action.payload;
+        if (state.authUser) {
+          state.authUser.profile = action.payload;
+        }
       })
       // --- Send OTP ---
       .addCase(sendOtpThunk.pending, (state) => {
