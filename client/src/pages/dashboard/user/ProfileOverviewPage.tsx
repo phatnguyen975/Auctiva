@@ -6,31 +6,62 @@ import {
   Mail,
   Calendar,
   MapPin,
-  Trophy,
-  Gavel,
   ThumbsUp,
   ThumbsDown,
   X,
 } from "lucide-react";
 import type { RootState } from "../../../store/store";
-import { dumpyAllReviews } from "../../../assets/assets";
 import { assets } from "../../../assets/assets";
 import { formatVietnamDateTime } from "../../../utils/date";
+import { axiosInstance } from "../../../lib/axios";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 
 interface Review {
-  id: number | string;
-  type: "positive" | "negative" | string;
+  id: number;
   reviewer: string;
-  date: string;
+  score: 1 | -1 | number;
   comment: string;
+  ratedAt: string;
 }
 
+const ReviewItem = ({ review }: { review: Review }) => {
+  return (
+    <div className="flex items-start gap-4 p-4 bg-[hsl(var(--muted))]/30 rounded-lg border border-border/50">
+      <div
+        className={`p-2 rounded-lg shrink-0 ${
+          review.score === 1 ? "bg-green-100" : "bg-red-100"
+        }`}
+      >
+        {review.score === 1 ? (
+          <ThumbsUp className="h-5 w-5 text-green-600" />
+        ) : (
+          <ThumbsDown className="h-5 w-5 text-red-600" />
+        )}
+      </div>
+      <div className="flex-1">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-medium">{review.reviewer}</span>
+          <span className="text-sm text-[hsl(var(--muted-foreground))]">
+            · {new Date(review.ratedAt).toLocaleString()}
+          </span>
+        </div>
+        <p className="text-sm text-[hsl(var(--muted-foreground))]">
+          {review.comment}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const ProfileOverviewPage = () => {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const authUser = useSelector((state: RootState) => state.auth.authUser);
+
   const [reviews, setReviews] = useState<Review[]>([]);
   const [recentReviews, setRecentReviews] = useState<Review[]>([]);
 
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const calculateUserRating = () => {
     const ratingCount = authUser?.profile?.rating_count;
@@ -43,29 +74,6 @@ const ProfileOverviewPage = () => {
     return ((ratingPositive / ratingCount) * 100).toFixed(1);
   };
 
-  const userData = {
-    username: authUser?.profile?.user_name,
-    fullName: authUser?.profile?.full_name,
-    email: authUser?.profile?.email,
-    address: authUser?.profile?.address,
-    dateOfBirth: authUser?.profile?.birth_date,
-    avatarUrl: authUser?.profile?.avatar_url || "",
-    rating: calculateUserRating(),
-    role: authUser?.profile?.role,
-    auctionsWon: 45, // Mock
-    bidsPlaced: 127, // Mock
-  };
-
-  useEffect(() => {
-    const loadReviews = async () => {
-      // Call API
-      setReviews(dumpyAllReviews);
-      setRecentReviews(dumpyAllReviews.slice(0, 3));
-    };
-
-    loadReviews();
-  }, []);
-
   function formatDate(dateStr: string) {
     const date = new Date(dateStr);
 
@@ -75,6 +83,43 @@ const ProfileOverviewPage = () => {
 
     return `${day}/${month}/${year}`;
   }
+
+  const userData = {
+    username: authUser?.profile?.user_name,
+    fullName: authUser?.profile?.full_name,
+    email: authUser?.profile?.email,
+    address: authUser?.profile?.address,
+    dateOfBirth: authUser?.profile?.birth_date,
+    avatarUrl: authUser?.profile?.avatar_url || "",
+    rating: calculateUserRating(),
+    role: authUser?.profile?.role,
+  };
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        setIsLoading(true);
+
+        const { data } = await axiosInstance.get("/users/ratings", {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (data.success) {
+          setReviews(data.data);
+          setRecentReviews(data.data.slice(0, 3));
+        }
+      } catch (error: any) {
+        console.error("Error loading reviews:", error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchReviews();
+  }, []);
 
   return (
     <>
@@ -122,7 +167,7 @@ const ProfileOverviewPage = () => {
           </div>
           {/* Personal Information Section */}
           <div>
-            <h3 className="text-xl font-semibold mb-6">Personal Information</h3>
+            <h3 className="text-xl font-semibold mb-4">Personal Information</h3>
             <div className="grid grid-rows-3 lg:grid-cols-2 gap-x-12 gap-y-6">
               <div>
                 <div className="flex items-start gap-3">
@@ -166,37 +211,6 @@ const ProfileOverviewPage = () => {
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4">Activity Stats</h3>
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] flex flex-col gap-6 rounded-xl border transition-colors duration-300 p-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-primary/10 p-3 rounded-lg">
-                    <Trophy className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold">{userData.auctionsWon}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Auctions Won
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] flex flex-col gap-6 rounded-xl border transition-colors duration-300 p-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-green-500/10 p-3 rounded-lg">
-                    <Gavel className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold">{userData.bidsPlaced}</p>
-                    <p className="text-sm text-muted-foreground">Bids Placed</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Recent Reviews */}
           <div>
             {/* --- HEADER CỦA PHẦN REVIEWS --- */}
@@ -211,11 +225,21 @@ const ProfileOverviewPage = () => {
             </div>
 
             {/* --- DANH SÁCH REVIEW GẦN ĐÂY (HIỂN THỊ MẶC ĐỊNH) --- */}
-            <div className="space-y-4">
-              {recentReviews.map((review) => (
-                <ReviewItem key={review.id} review={review} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <LoadingSpinner />
+              </div>
+            ) : reviews.length === 0 ? (
+              <div className="flex items-center justify-center text-gray-500">
+                No recent reviews
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentReviews.map((review) => (
+                  <ReviewItem key={review.id} review={review} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -244,11 +268,21 @@ const ProfileOverviewPage = () => {
 
             {/* Modal Body (Scrollable) */}
             <div className="p-6 overflow-y-auto">
-              <div className="space-y-4">
-                {reviews.map((review) => (
-                  <ReviewItem key={review.id} review={review} />
-                ))}
-              </div>
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <LoadingSpinner />
+                </div>
+              ) : reviews.length === 0 ? (
+                <div className="flex items-center justify-center text-gray-500">
+                  No reviews
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <ReviewItem key={review.id} review={review} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -260,35 +294,6 @@ const ProfileOverviewPage = () => {
         </div>
       )}
     </>
-  );
-};
-
-const ReviewItem = ({ review }: { review: Review }) => {
-  return (
-    <div className="flex items-start gap-4 p-4 bg-[hsl(var(--muted))]/30 rounded-lg border border-border/50">
-      <div
-        className={`p-2 rounded-lg shrink-0 ${
-          review.type === "positive" ? "bg-green-100" : "bg-red-100"
-        }`}
-      >
-        {review.type === "positive" ? (
-          <ThumbsUp className="h-5 w-5 text-green-600" />
-        ) : (
-          <ThumbsDown className="h-5 w-5 text-red-600" />
-        )}
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="font-medium">{review.reviewer}</span>
-          <span className="text-sm text-[hsl(var(--muted-foreground))]">
-            · {review.date}
-          </span>
-        </div>
-        <p className="text-sm text-[hsl(var(--muted-foreground))]">
-          {review.comment}
-        </p>
-      </div>
-    </div>
   );
 };
 

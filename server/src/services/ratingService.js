@@ -48,7 +48,7 @@ const RatingService = {
   },
 
   getRatingsByUserId: async (userId) => {
-    return await prisma.rating.findMany({
+    const ratings = await prisma.rating.findMany({
       where: { targetUserId: userId },
       include: {
         fromUser: {
@@ -63,6 +63,14 @@ const RatingService = {
       orderBy: { createdAt: "desc" },
       omit: { fromUserId: true },
     });
+
+    return ratings.map((rating) => ({
+      id: rating.id,
+      reviewer: rating.fromUser.fullName || rating.fromUser.username,
+      score: rating.score,
+      comment: rating.comment,
+      ratedAt: rating.createdAt,
+    }));
   },
 };
 
