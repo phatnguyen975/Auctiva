@@ -107,7 +107,7 @@ export function ProductCard({
           className="w-full h-full flex flex-col sm:flex-row gap-6 p-4"
           onClick={() => navigate(`/products/${id}`)}
         >
-          {/* Left: Product Image */}
+          {/* Left: Product Images */}
           <div className="aspect-square relative overflow-hidden rounded-lg">
             <img
               src={image}
