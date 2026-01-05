@@ -183,7 +183,7 @@ const WonAuctionsPage = () => {
                         key={item.id}
                         className="border-b transition-colors hover:bg-muted/50"
                       >
-                        {/* Cột Product */}
+                        {/* Cột Products */}
                         <td className="p-2 align-middle whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <img
