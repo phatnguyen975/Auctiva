@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   PackageCheck,
   Star,
@@ -7,6 +8,7 @@ import {
   ThumbsDown,
   XCircle,
   AlertTriangle,
+  Eye,
 } from "lucide-react";
 import type { SoldProduct } from "../../../types/product";
 import type { RootState } from "../../../store/store";
@@ -17,6 +19,7 @@ import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 import { maskName } from "../../../utils/masking";
 
 const SoldItemsPage = () => {
+  const navigate = useNavigate();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
   const [soldProducts, setSoldProducts] = useState<SoldProduct[]>([]);
@@ -108,6 +111,8 @@ const SoldItemsPage = () => {
     fetchSoldProducts();
   }, []);
 
+  console.log("Sold Products:", soldProducts);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -174,7 +179,7 @@ const SoldItemsPage = () => {
                       <div>
                         <div className="font-medium">
                           {maskName(product.winner.fullName) ||
-                            maskName(product.winner.username || "John Doe")}
+                            maskName(product.winner.username || "Unknown")}
                         </div>
                         <div className="flex items-center gap-1 text-sm">
                           <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
@@ -205,6 +210,19 @@ const SoldItemsPage = () => {
                     </td>
                     <td className="p-4 align-middle">
                       <div className="flex gap-2">
+                        {/* NÚT VIEW TRANSACTION MỚI THÊM */}
+                        <button
+                          onClick={() =>
+                            navigate(
+                              `/transaction/${product.transactions[0]?.id}`
+                            )
+                          }
+                          className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-all border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:cursor-pointer h-9 px-3 w-full"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View Transaction
+                        </button>
+
                         {!!product.ratings[0] && (
                           <button
                             onClick={() => {
