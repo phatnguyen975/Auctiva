@@ -502,6 +502,41 @@ const ProductService = {
     });
   },
 
+  getWonProductsByUserId: async (userId) => {
+    return await prisma.product.findMany({
+      where: {
+        winnerId: userId,
+        status: "sold",
+      },
+      include: {
+        seller: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            ratingPositive: true,
+            ratingCount: true,
+          },
+        },
+        ratings: {
+          where: { type: "bidder_seller" },
+        },
+        transactions: {
+          select: {
+            id: true,
+            status: true,
+          },
+        },
+        images: {
+          where: { isPrimary: true },
+          omit: { productId: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      omit: { sellerId: true },
+    });
+  },
+
   getProductAnalysisByUserId: async (userId) => {
     const [activeCount, soldCount, revenue] = await Promise.all([
       prisma.product.count({

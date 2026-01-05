@@ -33,6 +33,13 @@ router.get(
   ProductController.getAll
 );
 
+router.get(
+  "/won",
+  verifyToken,
+  authorize(["bidder"]),
+  ProductController.getWonByUserId
+);
+
 router.post(
   "/",
   verifyToken,
