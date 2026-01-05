@@ -170,7 +170,8 @@ const SoldItemsPage = () => {
                         <img
                           src={product.images[0].url}
                           alt={product.name}
-                          className="w-16 h-16 rounded object-cover"
+                          className="w-16 h-16 rounded object-cover hover:cursor-pointer"
+                          onClick={() => navigate(`/products/${product.id}`)}
                         />
                         <span className="font-medium">{product.name}</span>
                       </div>

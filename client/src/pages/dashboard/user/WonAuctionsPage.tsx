@@ -185,7 +185,10 @@ const WonAuctionsPage = () => {
                       >
                         {/* Cột Products */}
                         <td className="p-2 align-middle whitespace-nowrap">
-                          <div className="flex items-center gap-3">
+                          <div
+                            className="flex items-center gap-3 hover:cursor-pointer"
+                            onClick={() => navigate(`/products/${item.id}`)}
+                          >
                             <img
                               src={item.images[0]?.url}
                               alt={item.title}
