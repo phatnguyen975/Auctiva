@@ -195,7 +195,7 @@ const WonAuctionsPage = () => {
                           </div>
                         </td>
 
-                        {/* Cột Winning Price */}
+                        {/* Cột Winning Prices */}
                         <td className="p-2 align-middle whitespace-nowrap font-bold text-primary">
                           ${item.currentPrice.toLocaleString()}
                         </td>
