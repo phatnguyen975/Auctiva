@@ -6,9 +6,9 @@ import { validateApiKey } from "../middlewares/apiMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import {
   ProfileUpdateSchema,
-  AuthUpdateSchema,
   ProfileIdSchema,
   ProfileQuerySchema,
+  PasswordUpdateSchema,
 } from "../schemas/profileSchema.js";
 import { verifyToken, authorize } from "../middlewares/userAuthMiddleware.js";
 
@@ -22,6 +22,13 @@ router.get(
   authorize(["admin"]),
   validate({ query: ProfileQuerySchema }),
   UserController.getAll
+);
+
+router.get(
+  "/me",
+  verifyToken,
+  authorize(["bidder", "seller", "admin"]),
+  UserController.getMe
 );
 
 router.get(
@@ -48,21 +55,14 @@ router.get(
 router.put(
   "/profile",
   verifyToken,
+  authorize(["bidder", "seller", "admin"]),
   validate({ body: ProfileUpdateSchema }),
   UserController.updateProfile
 );
 
 router.put(
-  "/email",
-  verifyToken,
-  validate({ body: AuthUpdateSchema }),
-  UserController.updateEmail
-);
-
-router.put(
   "/password",
-  verifyToken,
-  validate({ body: AuthUpdateSchema }),
+  validate({ body: PasswordUpdateSchema }),
   UserController.updatePassword
 );
 

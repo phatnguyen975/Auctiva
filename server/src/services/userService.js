@@ -50,46 +50,82 @@ const UserService = {
     `;
   },
 
-  updateUserProfile: async ({ userId, profile }) => {
-    return await prisma.profile.update({
+  getMyProfile: async (userId) => {
+    const profile = await prisma.profile.findUnique({
       where: { id: userId },
-      data: profile,
-    });
-  },
-
-  updateUserEmail: async ({ userId, email }) => {
-    const { data: user } = await supabase.auth.admin.getUserById(userId);
-
-    const isSocialOnly = user.user.identities?.every(
-      (i) => i.provider !== "email"
-    );
-
-    if (isSocialOnly) {
-      throw new Error("Social login accounts cannot change email");
-    }
-
-    const { error } = await supabase.auth.admin.updateUserById(userId, {
-      email,
     });
 
-    if (error) {
-      throw error;
-    }
-
-    await prisma.profile.update({
-      where: { id: userId },
-      data: { email },
-    });
-  },
-
-  updateUserPassword: async ({ userId, password }) => {
-    const { data: user } = await supabase.auth.admin.getUserById(userId);
-
-    if (!user) {
+    if (!profile) {
       throw new Error("User not found");
     }
 
-    const hasEmailProvider = user.user.identities?.some(
+    return profile;
+  },
+
+  updateUserProfile: async ({ userId, profile }) => {
+    const { email } = profile;
+
+    if (email) {
+      const { data: userData, error: getUserError } =
+        await supabase.auth.admin.getUserById(userId);
+
+      if (getUserError || !userData.user) {
+        throw new Error("User not found in Auth system");
+      }
+
+      if (userData.user.email !== email) {
+        const isSocialOnly = userData.user.identities?.every(
+          (i) => i.provider !== "email"
+        );
+
+        if (isSocialOnly) {
+          throw new Error("Social login accounts cannot change email");
+        }
+
+        const existingEmail = await prisma.profile.findFirst({
+          where: {
+            email: email,
+            id: { not: userId },
+          },
+        });
+
+        if (existingEmail) {
+          throw new Error("Email already exist");
+        }
+
+        const { error: updateError } = await supabase.auth.admin.updateUserById(
+          userId,
+          {
+            email: email,
+          }
+        );
+
+        if (updateError) throw new Error(updateError.message);
+      }
+    }
+
+    const dataToSave = {
+      ...profile,
+      ...(profile.birthDate && { birthDate: profile.birthDate }),
+    };
+
+    return await prisma.profile.update({
+      where: { id: userId },
+      data: dataToSave,
+    });
+  },
+
+  updateUserPassword: async ({ userId, newPassword }) => {
+    const { data: userData, error: userError } =
+      await supabase.auth.admin.getUserById(userId);
+
+    if (userError || !userData.user) {
+      throw new Error("User not found");
+    }
+
+    const user = userData.user;
+
+    const hasEmailProvider = user.identities?.some(
       (i) => i.provider === "email"
     );
 
@@ -97,13 +133,18 @@ const UserService = {
       throw new Error("Social login accounts cannot change password");
     }
 
-    const { error } = await supabase.auth.admin.updateUserById(userId, {
-      password,
-    });
+    const { error: updateError } = await supabase.auth.admin.updateUserById(
+      userId,
+      {
+        password: newPassword,
+      }
+    );
 
-    if (error) {
-      throw error;
+    if (updateError) {
+      throw updateError;
     }
+
+    return true;
   },
 
   resetUserPassword: async (userId) => {

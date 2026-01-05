@@ -379,6 +379,7 @@ const ProductService = {
     const [endingSoon, mostBids, highestPrice] = await Promise.all([
       prisma.product.findMany({
         where: {
+          status: "active",
           endDate: { gt: new Date() },
         },
         orderBy: { endDate: "asc" },
@@ -388,6 +389,10 @@ const ProductService = {
       }),
 
       prisma.product.findMany({
+        where: {
+          status: "active",
+          endDate: { gt: new Date() },
+        },
         orderBy: {
           bids: { _count: "desc" },
         },
@@ -397,6 +402,10 @@ const ProductService = {
       }),
 
       prisma.product.findMany({
+        where: {
+          status: "active",
+          endDate: { gt: new Date() },
+        },
         orderBy: { currentPrice: "desc" },
         take: 5,
         include,
@@ -405,6 +414,9 @@ const ProductService = {
     ]);
 
     const products = [...endingSoon, ...mostBids, ...highestPrice];
+    const endingSoonLength = endingSoon.length;
+    const mostBidsLength = mostBids.length;
+    const highestPriceLength = highestPrice.length;
 
     let watchedProductIds = new Set();
 
@@ -424,9 +436,15 @@ const ProductService = {
     );
 
     return {
-      endingSoon: enrichedProducts.slice(0, 5),
-      mostBids: enrichedProducts.slice(5, 10),
-      highestPrice: enrichedProducts.slice(10, 15),
+      endingSoon: enrichedProducts.slice(0, endingSoonLength),
+      mostBids: enrichedProducts.slice(
+        endingSoonLength,
+        endingSoonLength + mostBidsLength
+      ),
+      highestPrice: enrichedProducts.slice(
+        endingSoonLength + mostBidsLength,
+        endingSoonLength + mostBidsLength + highestPriceLength
+      ),
     };
   },
 

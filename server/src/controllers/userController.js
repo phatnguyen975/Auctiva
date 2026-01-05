@@ -11,6 +11,16 @@ const UserController = {
     }
   },
 
+  getMe: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const profile = await UserService.getMyProfile(userId);
+      res.ok("Profile retrieved successfully", profile);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
   updateProfile: async (req, res) => {
     try {
       const userId = req.user.id;
@@ -25,28 +35,14 @@ const UserController = {
     }
   },
 
-  updateEmail: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const { email } = req.validated.body;
-      await UserService.updateUserEmail({
-        userId,
-        email,
-      });
-      res.ok("Email update requested. Please verify new email.", null);
-    } catch (error) {
-      res.error(error.message);
-    }
-  },
-
   updatePassword: async (req, res) => {
     try {
-      const userId = req.user.id;
-      const { password } = req.validated.body;
+      const { userId, newPassword } = req.validated.body;
       await UserService.updateUserPassword({
         userId,
-        password,
+        newPassword,
       });
+
       res.ok("Password updated successfully", null);
     } catch (error) {
       res.error(error.message);

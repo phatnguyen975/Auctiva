@@ -15,6 +15,7 @@ import {
 import type { RootState } from "../../../store/store";
 import { dumpyAllReviews } from "../../../assets/assets";
 import { assets } from "../../../assets/assets";
+import { formatVietnamDateTime } from "../../../utils/date";
 
 interface Review {
   id: number | string;
@@ -64,6 +65,16 @@ const ProfileOverviewPage = () => {
 
     loadReviews();
   }, []);
+
+  function formatDate(dateStr: string) {
+    const date = new Date(dateStr);
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  }
 
   return (
     <>
@@ -132,9 +143,9 @@ const ProfileOverviewPage = () => {
                     <p className="font-medium">
                       {userData.dateOfBirth
                         ? userData.dateOfBirth instanceof Date
-                          ? userData.dateOfBirth.toString()
-                          : userData.dateOfBirth
-                        : "None"}
+                          ? formatVietnamDateTime(userData.dateOfBirth)
+                          : formatDate(userData.dateOfBirth)
+                        : "N/A"}
                     </p>
                   </div>
                 </div>
@@ -147,7 +158,7 @@ const ProfileOverviewPage = () => {
                       Address
                     </p>
                     <p className="font-medium">
-                      {userData.address ? userData.address : "None"}
+                      {userData.address ? userData.address : "N/A"}
                     </p>
                   </div>
                 </div>

@@ -1,69 +1,199 @@
 import { useSelector } from "react-redux";
-import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
-
+import { useEffect, useState, type FormEvent } from "react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import type { RootState } from "../../../store/store";
+import { axiosInstance } from "../../../lib/axios";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../../../lib/supabaseClient";
 
 interface IPersonalInfo {
-  fullName: string;
+  username: string | null;
+  fullName: string | null;
   email: string;
-  address: string;
-  dateOfBirth?: string;
+  address: string | null;
+  birthDate: string | null;
 }
 
 interface IPasswordInfo {
-  oldPassword: string;
   newPassword: string;
   confirmPassword: string;
 }
 
 const AccountSettingsPage = () => {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const authUser = useSelector((state: RootState) => state.auth.authUser);
 
-  const initialInfoData: IPersonalInfo = {
-    fullName: authUser?.profile?.full_name || "",
-    email: authUser?.profile?.email || "",
-    address:
-      authUser?.profile?.address || "227 NVC, Cho Quan Ward, Ho Chi Minh City",
-    dateOfBirth: authUser?.profile?.birth_date
-      ? new Date(authUser.profile.birth_date).toISOString().split("T")[0]
-      : "",
-  };
+  const navigate = useNavigate();
 
-  const [infoData, setInfoData] = useState<IPersonalInfo>(initialInfoData);
+  const [infoData, setInfoData] = useState<IPersonalInfo>({
+    username: "",
+    fullName: "",
+    email: "",
+    address: "",
+    birthDate: "",
+  });
+
+  const [initialInfoData, setInitialInfoData] = useState<IPersonalInfo | null>(
+    null
+  );
+
   const [passwordData, setPasswordData] = useState<IPasswordInfo>({
-    oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
-  const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
-  const handleUpdateInfo = async (
-    e: React.FormEvent<HTMLFormElement>
-  ): Promise<void> => {
-    e.preventDefault();
+  const [isLoading, setIsLoading] = useState(false);
 
-    alert(`
-      Full Name: ${infoData.fullName}
-      Email: ${infoData.email}
-      Address: ${infoData.address}
-      DateOfBirth: ${infoData.dateOfBirth}
-    `);
+  const sanitizeData = (data: any): IPersonalInfo => ({
+    username: data.username || "",
+    fullName: data.fullName || "",
+    email: data.email || "",
+    address: data.address || "",
+    birthDate: data.birthDate ? data.birthDate.split("T")[0] : "",
+  });
+
+  const fetchUserInfo = async () => {
+    try {
+      setIsLoading(true);
+
+      const { data } = await axiosInstance.get("/users/me", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        const cleanData = sanitizeData(data.data);
+        setInfoData(cleanData);
+        setInitialInfoData(cleanData);
+      }
+    } catch (error: any) {
+      console.error("Error loading user information:", error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleUpdatePassword = async (
-    e: React.FormEvent<HTMLFormElement>
-  ): Promise<void> => {
+  useEffect(() => {
+    fetchUserInfo();
+  }, []);
+
+  const handleUpdateInfo = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    alert(`
-      oldPassword: ${passwordData.oldPassword}
-      newPassword: ${passwordData.newPassword}
-      confirmPassword: ${passwordData.confirmPassword}
-    `);
+    if (!initialInfoData) {
+      return;
+    }
+
+    const changedFields: Partial<IPersonalInfo> = {};
+
+    (Object.keys(infoData) as Array<keyof IPersonalInfo>).forEach((key) => {
+      const currentValue = infoData[key];
+      const initialValue = initialInfoData[key];
+
+      if (
+        currentValue !== initialValue &&
+        currentValue !== null &&
+        currentValue !== undefined
+      ) {
+        (changedFields as any)[key] = currentValue;
+      }
+    });
+
+    if (Object.keys(changedFields).length === 0) {
+      toast("No changes detected", { icon: "ℹ️" });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const payload = {
+        username: infoData.username,
+        fullName: infoData.fullName,
+        email: infoData.email,
+        address: infoData.address,
+        birthDate: infoData.birthDate,
+      };
+
+      const { data } = await axiosInstance.put("/users/profile", payload, {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        toast.success(data.message);
+        setInitialInfoData({ ...initialInfoData, ...changedFields });
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      console.error(
+        "Error updating information:",
+        error.response?.data?.message
+      );
+      toast.error(error.response?.data?.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!passwordData.newPassword) {
+      toast.error("Please fill in all password fields");
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("New password and confirmation do not match");
+      return;
+    }
+
+    try {
+      const userId = authUser?.user?.id;
+      await supabase.auth.signOut();
+      navigate("/login");
+
+      setIsLoading(true);
+
+      const payload = {
+        userId,
+        newPassword: passwordData.newPassword,
+      };
+
+      console.log;
+
+      const { data } = await axiosInstance.put("/users/password", payload, {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+        },
+      });
+
+      if (data.success) {
+        toast.success("Password updated successfully. Please login again.");
+
+        setPasswordData({
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      console.error("Error updating password:", error.response?.data?.message);
+      toast.error(error.response?.data?.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -82,13 +212,39 @@ const AccountSettingsPage = () => {
             <h3 className="text-xl font-semibold">Personal Information</h3>
             <button
               type="submit"
-              className="rounded-md px-4 py-2 text-sm text-white bg-black/80 font-medium transition-colors hover:bg-slate-400 hover:cursor-pointer"
+              disabled={isLoading}
+              className="rounded-md px-4 py-2 text-sm text-white bg-black/80 font-medium transition-colors hover:bg-slate-200 hover:text-black cursor-pointer"
             >
-              Update Profile
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="animate-spin size-4 mr-2" />
+                  Updating...
+                </div>
+              ) : (
+                "Update Profile"
+              )}
             </button>
           </div>
 
           <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="username"
+                className="text-sm text-[hsl(var(--muted-foreground))] mb-2 block"
+              >
+                Username
+              </label>
+              <input
+                id="username"
+                placeholder="Enter your username"
+                value={infoData.username || ""}
+                onChange={(e) =>
+                  setInfoData({ ...infoData, username: e.target.value })
+                }
+                className="w-full rounded-lg px-3 py-2 text-base bg-gray-100 border-[hsl(var(--input))] focus:bg-white focus:border-[hsl(var(--primary))]"
+              />
+            </div>
+
             <div>
               <label
                 htmlFor="fullName"
@@ -98,7 +254,8 @@ const AccountSettingsPage = () => {
               </label>
               <input
                 id="fullName"
-                value={infoData.fullName}
+                placeholder="Enter your full name"
+                value={infoData.fullName || ""}
                 onChange={(e) =>
                   setInfoData({ ...infoData, fullName: e.target.value })
                 }
@@ -116,7 +273,8 @@ const AccountSettingsPage = () => {
               <input
                 id="email"
                 type="email"
-                value={infoData.email}
+                placeholder="Enter your email"
+                value={infoData.email || ""}
                 onChange={(e) =>
                   setInfoData({ ...infoData, email: e.target.value })
                 }
@@ -133,7 +291,8 @@ const AccountSettingsPage = () => {
               </label>
               <input
                 id="address"
-                value={infoData.address}
+                placeholder="Enter your address"
+                value={infoData.address || ""}
                 onChange={(e) =>
                   setInfoData({ ...infoData, address: e.target.value })
                 }
@@ -143,17 +302,17 @@ const AccountSettingsPage = () => {
 
             <div>
               <label
-                htmlFor="dateOfBirth"
+                htmlFor="birthDate"
                 className="text-sm text-[hsl(var(--muted-foreground))] mb-2 block"
               >
                 Date of Birth (Optional)
               </label>
               <input
-                id="dateOfBirth"
+                id="birthDate"
                 type="date"
-                value={infoData.dateOfBirth}
+                value={infoData.birthDate || ""}
                 onChange={(e) =>
-                  setInfoData({ ...infoData, dateOfBirth: e.target.value })
+                  setInfoData({ ...infoData, birthDate: e.target.value })
                 }
                 className="w-full rounded-lg px-3 py-2 text-base bg-gray-100 border-[hsl(var(--input))] focus:bg-white focus:border-[hsl(var(--primary))]"
               />
@@ -169,39 +328,6 @@ const AccountSettingsPage = () => {
           <h3 className="text-xl font-semibold">Security & Password</h3>
 
           <div className="space-y-4">
-            {/* --- OLD PASSWORD --- */}
-            <div>
-              <label
-                htmlFor="oldPassword"
-                className="text-sm text-[hsl(var(--muted-foreground))] mb-2 block"
-              >
-                Old Password
-              </label>
-              <div className="relative">
-                <input
-                  id="oldPassword"
-                  // Kiểm tra state để đổi type giữa "text" và "password"
-                  type={showOldPass ? "text" : "password"}
-                  value={passwordData.oldPassword}
-                  onChange={(e) =>
-                    setPasswordData({
-                      ...passwordData,
-                      oldPassword: e.target.value,
-                    })
-                  }
-                  // Thêm pr-10 để chữ không bị đè lên icon
-                  className="w-full rounded-lg pl-3 pr-10 py-2 text-base bg-gray-100 border-[hsl(var(--input))] focus:bg-white focus:border-[hsl(var(--primary))]"
-                />
-                <button
-                  type="button" // Quan trọng: type="button" để không submit form
-                  onClick={() => setShowOldPass(!showOldPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  {showOldPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
             {/* --- NEW PASSWORD --- */}
             <div>
               <label
@@ -228,7 +354,7 @@ const AccountSettingsPage = () => {
                   onClick={() => setShowNewPass(!showNewPass)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  {showNewPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showNewPass ? <Eye size={18} /> : <EyeOff size={18} />}
                 </button>
               </div>
             </div>
@@ -259,7 +385,7 @@ const AccountSettingsPage = () => {
                   onClick={() => setShowConfirmPass(!showConfirmPass)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 >
-                  {showConfirmPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showConfirmPass ? <Eye size={18} /> : <EyeOff size={18} />}
                 </button>
               </div>
             </div>
@@ -268,9 +394,17 @@ const AccountSettingsPage = () => {
           <div className="pt-4">
             <button
               type="submit"
-              className="rounded-md px-4 py-2 text-sm text-white bg-black/80 font-medium transition-colors hover:bg-slate-400 hover:cursor-pointer"
+              disabled={isLoading}
+              className="rounded-md px-4 py-2 text-sm text-white bg-black/80 font-medium transition-colors hover:bg-slate-200 hover:text-black cursor-pointer"
             >
-              Update Password
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <Loader2 className="animate-spin size-4 mr-2" />
+                  Updating...
+                </div>
+              ) : (
+                "Update Password"
+              )}
             </button>
           </div>
         </form>
