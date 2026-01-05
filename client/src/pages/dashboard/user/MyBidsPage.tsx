@@ -4,6 +4,8 @@ import { Eye, Gavel, RotateCw } from "lucide-react";
 import CountdownTimer from "../../../components/product/details/CountdownTimer";
 import { useSelector } from "react-redux";
 import type { RootState } from "../../../store/store";
+import { axiosInstance } from "../../../lib/axios";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 
 interface Item {
   id: number;
@@ -12,7 +14,7 @@ interface Item {
   myBid: number;
   currentBid: number;
   isWinning: Boolean;
-  timeLeft: Date;
+  timeLeft: string;
   totalBids: number;
 }
 
@@ -26,8 +28,24 @@ const MyBidsPage = () => {
 
   useEffect(() => {
     const fetchMyBids = async () => {
-      // Call API
-      // setMyBids(dumpyMyBids);
+      try {
+        setIsLoading(true);
+
+        const { data } = await axiosInstance.get("/users/bids", {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (data.success) {
+          setMyBids(data.data);
+        }
+      } catch (error: any) {
+        console.error("Error loading bidding products:", error.message);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchMyBids();
@@ -51,7 +69,11 @@ const MyBidsPage = () => {
           </span>
         </div>
 
-        {myBids.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : myBids.length === 0 ? (
           <div className="text-center py-16">
             <Gavel className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-20" />
             <h3 className="text-xl font-semibold mb-2">No active bids</h3>
@@ -99,7 +121,7 @@ const MyBidsPage = () => {
                       className="border-b transition-colors hover:bg-muted/50"
                     >
                       {/* Cột Product: Image + Title */}
-                      <td className="p-2 align-middle whitespace-nowrap">
+                      <td className="p-2 align-middle">
                         <div className="flex items-center gap-3">
                           <img
                             src={item.image}
