@@ -1,5 +1,5 @@
-import { email } from "zod";
 import { prisma } from "../configs/prisma.js";
+import Decimal from "decimal.js";
 import AdminSettingsService from "../services/adminSettingService.js";
 import {
   calculateProxyBidding,
@@ -163,6 +163,68 @@ const BidService = {
       },
       omit: { bidderId: true },
       orderBy: { createdAt: "desc" },
+    });
+  },
+
+  getBidsByUserId: async (userId) => {
+    const products = await prisma.product.findMany({
+      where: {
+        status: "active",
+        endDate: { gt: new Date() },
+        bids: {
+          some: {
+            bidderId: userId,
+            status: "valid",
+          },
+        },
+      },
+      include: {
+        images: {
+          where: { isPrimary: true },
+          take: 1,
+          select: {
+            url: true,
+          },
+        },
+        bids: {
+          where: { status: "valid" },
+          select: {
+            bidderId: true,
+            maxBid: true,
+          },
+        },
+        _count: {
+          select: {
+            bids: true,
+          },
+        },
+      },
+      orderBy: { endDate: "asc" },
+    });
+
+    return products.map((product) => {
+      const myBids = product.bids.filter((b) => b.bidderId === userId);
+
+      const myBid = myBids.length
+        ? Decimal.max(...myBids.map((b) => new Decimal(b.maxBid))).toNumber()
+        : 0;
+
+      const highestBid = product.bids.length
+        ? Decimal.max(
+            ...product.bids.map((b) => new Decimal(b.maxBid))
+          ).toNumber()
+        : 0;
+
+      return {
+        id: product.id,
+        image: product.images[0]?.url ?? "",
+        title: product.name,
+        myBid,
+        currentBid: new Decimal(product.currentPrice).toNumber(),
+        isWinning: myBid > 0 && myBid === highestBid,
+        timeLeft: product.endDate,
+        totalBids: product._count.bids,
+      };
     });
   },
 };

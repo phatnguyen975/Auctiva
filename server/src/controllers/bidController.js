@@ -55,6 +55,16 @@ const BidController = {
       res.error(error.message);
     }
   },
+
+  getByUserId: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const bids = await BidService.getBidsByUserId(userId);
+      res.ok("Bids retrieved successfully", bids);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
 };
 
 export default BidController;

@@ -2,6 +2,7 @@ import express from "express";
 import UserController from "../controllers/userController.js";
 import WatchlistController from "../controllers/watchlistController.js";
 import RatingController from "../controllers/ratingController.js";
+import BidController from "../controllers/bidController.js";
 import { validateApiKey } from "../middlewares/apiMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import {
@@ -50,6 +51,13 @@ router.get(
   verifyToken,
   authorize(["bidder", "seller"]),
   RatingController.getByUserId
+);
+
+router.get(
+  "/bids",
+  verifyToken,
+  authorize(["bidder", "seller"]),
+  BidController.getByUserId
 );
 
 router.put(

@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { Eye, Gavel, RotateCw } from "lucide-react";
-
-import { dumpyMyBids } from "../../../assets/assets";
 import CountdownTimer from "../../../components/product/details/CountdownTimer";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store/store";
 
 interface Item {
-  id: number | string;
+  id: number;
   image: string;
   title: string;
   myBid: number;
@@ -18,17 +17,20 @@ interface Item {
 }
 
 const MyBidsPage = () => {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
   const [myBids, setMyBids] = useState<Item[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const loadMyBids = async () => {
+    const fetchMyBids = async () => {
       // Call API
-      setMyBids(dumpyMyBids);
+      // setMyBids(dumpyMyBids);
     };
 
-    loadMyBids();
+    fetchMyBids();
   }, []);
 
   return (
