@@ -71,25 +71,21 @@ const TransactionService = {
     // Winner's rating (winner rates seller)
     const winnerRating = await prisma.rating.findFirst({
       where: {
+        productId: transaction.productId,
+        type: "bidder_seller",
         fromUserId: transaction.winnerId,
         targetUserId: transaction.sellerId,
-        createdAt: {
-          gte: new Date(transaction.createdAt),
-        },
       },
-      orderBy: { createdAt: "desc" },
     });
 
     // Seller's rating (seller rates winner)
     const sellerRating = await prisma.rating.findFirst({
       where: {
+        productId: transaction.productId,
+        type: "seller_bidder",
         fromUserId: transaction.sellerId,
         targetUserId: transaction.winnerId,
-        createdAt: {
-          gte: new Date(transaction.createdAt),
-        },
       },
-      orderBy: { createdAt: "desc" },
     });
 
     return {
@@ -210,15 +206,16 @@ const TransactionService = {
       throw new Error("Bạn không tham gia giao dịch này.");
 
     const targetUserId = tx.winnerId === fromUserId ? tx.sellerId : tx.winnerId;
+    const ratingType =
+      tx.winnerId === fromUserId ? "bidder_seller" : "seller_bidder";
 
     // Kiểm tra xem đã đánh giá giao dịch này chưa
     const existingRating = await prisma.rating.findFirst({
       where: {
+        productId: tx.productId,
+        type: ratingType,
         fromUserId: fromUserId,
         targetUserId: targetUserId,
-        createdAt: {
-          gte: new Date(tx.createdAt), // Rating sau khi transaction được tạo
-        },
       },
     });
     if (existingRating)
@@ -228,6 +225,8 @@ const TransactionService = {
       // 1. Tạo bản ghi đánh giá
       const rating = await p.rating.create({
         data: {
+          productId: tx.productId,
+          type: ratingType,
           fromUserId,
           targetUserId,
           score,
