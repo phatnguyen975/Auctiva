@@ -61,7 +61,8 @@ export interface Winner {
 
 export interface ProductDetail {
   id: string;
-  title: string;
+  //title: string;
+  name: string;
   images: string[];
   currentPrice: number;
   buyNowPrice?: number;

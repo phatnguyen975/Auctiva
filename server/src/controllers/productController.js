@@ -1,5 +1,7 @@
 import ProductService from "../services/productService.js";
 
+import { sendEmail, EmailTemplates } from "../configs/nodemailer.js";
+
 const ProductController = {
   create: async (req, res) => {
     try {
@@ -98,6 +100,64 @@ const ProductController = {
       const userId = req.user.id;
       const analysis = await ProductService.getProductAnalysisByUserId(userId);
       res.ok("Analysis retrieved successfully", analysis);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
+  createBuyNow: async (req, res) => {
+    try {
+      const productId = Number(req.params.id);
+      const userId = req.user.id;
+      const { updatedProduct, transaction, emails } =
+        await ProductService.buyNow(productId, userId);
+
+      Promise.all([
+        // Gửi mail cho Bidder mà vừa Buy Now
+        sendEmail({
+          to: emails.bidder.to,
+          subject: `[Auctiva] Congratulations! You have successfully purchased ${emails.productName}`,
+          html: EmailTemplates.buyNowConfirmation({
+            bidderName: emails.bidder.name,
+            productName: emails.productName,
+            price: emails.price,
+            transactionLink: `${process.env.CLIENT_URL}/dashboard/bidder/transactions/${transaction.id}`,
+          }),
+        }),
+        // Gửi mail cho Seller thông báo sản phẩm đã có người mua ngay
+        sendEmail({
+          to: emails.seller.to,
+          subject: `[Auctiva] Your product ${emails.productName} has been sold instantly!`,
+          html: EmailTemplates.productSoldBuyNow({
+            sellerName: emails.seller.name,
+            bidderName: emails.bidder.name,
+            productName: emails.productName,
+            price: emails.price,
+            transactionLink: `${process.env.CLIENT_URL}/dashboard/seller/transactions/${transaction.id}`,
+          }),
+        }),
+
+        // Gửi mail cho những người bid sản phẩm này thông báo sản phẩm đã bị mua ngay
+        emails.others.forEach((person) => {
+          sendEmail({
+            to: person.to,
+            subject: `[Auctiva] Thông báo kết thúc đấu giá: ${emails.productName}`,
+            html: EmailTemplates.auctionClosedOtherBidders({
+              productName: emails.productName,
+              finalPrice: emails.price,
+              homeLink: process.env.CLIENT_URL,
+            }),
+          }).catch((err) =>
+            console.error(`Lỗi gửi mail đến bidder ${person.to}:`, err.message)
+          );
+        }),
+      ]);
+
+      res.ok("Buy product successfully!", {
+        updatedProduct,
+        transaction,
+        emails,
+      });
     } catch (error) {
       res.error(error.message);
     }
