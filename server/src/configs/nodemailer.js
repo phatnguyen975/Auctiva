@@ -186,6 +186,44 @@ export const EmailTemplates = {
     </div>
   `,
 
+  // 9. Gửi cho Bidder: Xác nhận mua ngay thành công
+  buyNowConfirmation: (data) => `
+    <div style="font-family: sans-serif; padding: 20px;">
+      <h2 style="color: #16a34a;">Confirmation: You have successfully purchased!</h2>
+      <p>Congratulations <strong>${data.bidderName}</strong>,</p>
+      <p>You have purchased the product <strong>${data.productName}</strong> using the "Buy Now" feature.</p>
+      <p>Payment amount: <strong>${data.price} USD</strong></p>
+      <p>Please check your order details and complete payment in the Transaction page.</p>
+      <a href="${data.transactionLink}" style="background: #16a34a; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">Go to Order</a>
+    </div>
+  `,
+
+  // 10. Gửi cho Seller: Thông báo có người mua ngay
+  productSoldBuyNow: (data) => `
+    <div style="font-family: sans-serif; padding: 20px;">
+      <h2 style="color: #2563eb;">Great! Your product has been sold instantly!</h2>
+      <p>Hello <strong>${data.sellerName}</strong>,</p>
+      <p>User <strong>${data.bidderName}</strong> has chosen to buy your product <strong>${data.productName}</strong> immediately.</p>
+      <p>Sale price: <strong>${data.price} USD</strong></p>
+      <p>An order has been created automatically. Please prepare the goods for shipment to the buyer.</p>
+      <a href="${data.transactionLink}" style="background: #2563eb; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">Manage Order</a>
+    </div>
+  `,
+
+  // 11. Thông báo cho các Bidders khác khi có người Mua Ngay
+  auctionClosedOtherBidders: (data) => `
+    <div style="font-family: sans-serif; padding: 20px; border-left: 4px solid #64748b; background-color: #f8fafc;">
+      <h2 style="color: #475569;">Auction ended early</h2>
+      <p>Hello,</p>
+      <p>You are receiving this notification because you participated in the auction for product: <strong>${data.productName}</strong>.</p>
+      <p>System notification: Another user has decided to <strong>Buy Now</strong> this product, so the auction has ended earlier than expected.</p>
+      <p>Final price: <strong>${data.finalPrice} USD</strong>.</p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+      <p>Don't be discouraged! There are still many other exciting products waiting for you.</p>
+      <a href="${data.homeLink}" style="display: inline-block; background: #0f172a; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Continue exploring</a>
+    </div>
+  `,
+
   // Account delete notification
   accountDeleted: (data) => `
     <!DOCTYPE html>

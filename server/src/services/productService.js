@@ -579,6 +579,82 @@ const ProductService = {
     };
   },
 
+  buyNow: async (productId, userId) => {
+    return await prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({
+        where: { id: productId },
+        include: { seller: true },
+      });
+
+      if (!product) throw new Error("Product not found");
+      if (product.status !== "active")
+        throw new Error("This product has ended or has been sold.");
+      if (product.sellerId === userId)
+        throw new Error("You cannot buy your own product.");
+      if (!product.buyNowPrice)
+        throw new Error("This product does not support buy now.");
+
+      const bidder = await tx.profile.findUnique({ where: { id: userId } });
+
+      const otherBidders = await tx.bid.findMany({
+        where: {
+          productId: productId,
+          bidderId: { not: userId }, // Loại trừ người vừa mua ngay
+        },
+        select: {
+          bidder: {
+            select: { email: true, fullName: true },
+          },
+        },
+        distinct: ["bidderId"], // Chỉ lấy email duy nhất của mỗi người
+      });
+
+      const now = new Date();
+
+      // Cập nhật sản phẩm" sold, set winner, set endDate là hiện tại
+      const updatedProduct = await tx.product.update({
+        where: { id: productId },
+        data: {
+          status: "sold",
+          winnerId: userId,
+          endDate: now,
+          currentPrice: product.buyNowPrice, // Cập nhật giá hiện tại bằng giá mua ngay
+        },
+      });
+
+      // Tạo Transaction
+      const transaction = await tx.transaction.create({
+        data: {
+          productId: productId,
+          winnerId: userId,
+          sellerId: product.sellerId,
+          status: "pending", // Trạng thái chờ thanh toán
+        },
+      });
+
+      return {
+        updatedProduct,
+        transaction,
+        emails: {
+          seller: {
+            to: product.seller.email,
+            name: product.seller.fullName,
+          },
+          bidder: {
+            to: bidder.email,
+            name: bidder.fullName,
+          },
+          others: otherBidders.map((b) => ({
+            to: b.bidder.email,
+            name: b.bidder.fullName,
+          })),
+          productName: product.name,
+          price: product.buyNowPrice,
+        },
+      };
+    });
+  },
+
   updateProduct: async ({
     id,
     description,

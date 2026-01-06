@@ -56,8 +56,8 @@ cron.schedule("* * * * *", async () => {
 
 // Check seller permission per minute
 cron.schedule("* * * * *", async () => {
-  await AuctionTaskService.checkExpiredPermissions();
-  await AuctionTaskService.checkDowngradeToBidder();
+  //await AuctionTaskService.checkExpiredPermissions();
+  //await AuctionTaskService.checkDowngradeToBidder();
 });
 
 // Error Handler

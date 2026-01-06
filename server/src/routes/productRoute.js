@@ -113,6 +113,13 @@ router.post(
 );
 
 router.post(
+  "/:id/buy-now",
+  verifyToken,
+  authorize(["bidder", "seller"]),
+  ProductController.createBuyNow
+);
+
+router.post(
   "/:id/ratings",
   verifyToken,
   authorize(["bidder", "seller"]),
