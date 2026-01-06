@@ -221,7 +221,7 @@ const BidService = {
         title: product.name,
         myBid,
         currentBid: new Decimal(product.currentPrice).toNumber(),
-        isWinning: myBid > 0 && myBid === highestBid,
+        isWinning: myBid > 0 && myBid === highestBid && userId === product.winnerId,
         timeLeft: product.endDate,
         totalBids: product._count.bids,
       };

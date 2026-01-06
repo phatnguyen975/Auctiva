@@ -795,7 +795,7 @@ const CreateListingPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 inline-flex items-center justify-center bg-slate-900 text-white shadow-sm rounded-md font-medium transition-all hover:bg-[hsl(var(--primary)/0.9)] hover:cursor-pointer h-10 p-5"
+              className="flex-1 inline-flex items-center justify-center bg-slate-900 text-white shadow-sm rounded-md font-medium transition-all hover:bg-[hsl(var(--primary)/0.9)] cursor-pointer h-10 p-5 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>

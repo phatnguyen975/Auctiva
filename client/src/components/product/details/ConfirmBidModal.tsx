@@ -1,7 +1,8 @@
-import { AlertCircle, Gavel } from "lucide-react";
+import { AlertCircle, Gavel, Loader2 } from "lucide-react";
 
 interface ConfirmBidModalProps {
   isOpen: boolean;
+  isLoading: boolean;
   onClose: () => void;
   onConfirm: () => void;
   bidAmount: number;
@@ -11,6 +12,7 @@ interface ConfirmBidModalProps {
 
 export default function ConfirmBidModal({
   isOpen,
+  isLoading,
   onClose,
   onConfirm,
   bidAmount,
@@ -91,10 +93,16 @@ export default function ConfirmBidModal({
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 text-sm font-medium rounded-md bg-black text-white hover:bg-gray-600 transition-colors shadow-sm flex items-center gap-2 hover:cursor-pointer"
+            disabled={isLoading}
+            className="px-4 py-2 text-sm font-medium rounded-md bg-black text-white hover:bg-gray-600 transition-colors shadow-sm flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
           >
-            <Gavel className="h-4 w-4" />
-            Confirm Bid
+            {!isLoading && <Gavel className="h-4 w-4" />}
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="size-4 animate-spin" />
+                Bidding...
+              </div>
+            ) : "Confirm Bid"}
           </button>
         </div>
       </div>

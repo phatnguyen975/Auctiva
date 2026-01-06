@@ -186,7 +186,7 @@ export const EmailTemplates = {
     </div>
   `,
 
-  // Account deleted notification
+  // Account delete notification
   accountDeleted: (data) => `
     <!DOCTYPE html>
     <html>
@@ -283,7 +283,7 @@ export const EmailTemplates = {
     </html>
   `,
 
-  // Reset user password
+  // Password reset notification
   resetPassword: (data) => `
     <!DOCTYPE html>
     <html>
@@ -382,4 +382,112 @@ export const EmailTemplates = {
     </body>
     </html>
   `,
+
+  // Product update notification
+  productUpdate: (data) => {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <title>Product Update Notification</title>
+        </head>
+        <body style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td align="center" style="padding:24px;">
+                <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;">
+                  
+                  <!-- Header -->
+                  <tr>
+                    <td style="background:#0f172a;padding:20px;color:#ffffff;">
+                      <h2 style="margin:0;font-size:20px;">
+                        Product Update Notification
+                      </h2>
+                    </td>
+                  </tr>
+
+                  <!-- Content -->
+                  <tr>
+                    <td style="padding:24px;color:#111827;font-size:14px;line-height:1.6;">
+                      <p>Hello <strong>{{bidderName}}</strong>,</p>
+
+                      <p>
+                        The seller has <strong>updated the information</strong> of a product you are currently bidding on.
+                      </p>
+
+                      <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+
+                      <h3 style="margin-bottom:8px;">Product Details</h3>
+                      <table cellpadding="0" cellspacing="0" style="font-size:14px;">
+                        <tr>
+                          <td style="padding:4px 0;"><strong>Product Name:</strong></td>
+                          <td style="padding:4px 8px;">{{productName}}</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:4px 0;"><strong>Seller:</strong></td>
+                          <td style="padding:4px 8px;">{{sellerName}}</td>
+                        </tr>
+                      </table>
+
+                      <h3 style="margin:20px 0 8px;">Updated Information</h3>
+                      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px;">
+                        {{changeSummary}}
+                      </div>
+
+                      <p style="margin-top:16px;">
+                        <strong>Update Time:</strong> {{updatedAt}}
+                      </p>
+
+                      <!-- CTA -->
+                      <div style="margin:24px 0;text-align:center;">
+                        <a
+                          href="{{productUrl}}"
+                          style="
+                            background:#2563eb;
+                            color:#ffffff;
+                            text-decoration:none;
+                            padding:12px 20px;
+                            border-radius:6px;
+                            font-weight:bold;
+                            display:inline-block;
+                          "
+                        >
+                          View Product Details
+                        </a>
+                      </div>
+
+                      <p style="color:#374151;">
+                        Please review the updated product information to ensure it still meets your bidding decision.
+                      </p>
+
+                      <p>
+                        Best regards,<br />
+                        <strong>{{platformName}} Team</strong>
+                      </p>
+                    </td>
+                  </tr>
+
+                  <!-- Footer -->
+                  <tr>
+                    <td style="background:#f9fafb;padding:16px;text-align:center;color:#6b7280;font-size:12px;">
+                      This is an automated notification from {{platformName}}.
+                    </td>
+                  </tr>
+
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+      </html>
+    `
+      .replace(/{{bidderName}}/g, data.bidderName)
+      .replace(/{{productName}}/g, data.productName)
+      .replace(/{{sellerName}}/g, data.sellerName)
+      .replace(/{{changeSummary}}/g, data.changeSummary)
+      .replace(/{{updatedAt}}/g, data.updatedAt)
+      .replace(/{{productUrl}}/g, data.productUrl)
+      .replace(/{{platformName}}/g, data.platformName);
+  },
 };

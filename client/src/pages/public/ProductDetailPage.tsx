@@ -41,6 +41,8 @@ const ProductDetailPage = () => {
   const currentUserId = authUser?.user?.id; // Use Supabase user ID
   const [product, setProduct] = useState<ProductDetail | null>();
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const [currentTab, setCurrentTab] = useState("description");
   const tabsSectionRef = useRef<HTMLDivElement>(null);
 
@@ -201,6 +203,7 @@ const ProductDetailPage = () => {
 
   const confirmPlaceBid = async () => {
     try {
+      setIsLoading(true);
       // Gọi API đặt giá
       const headers = getHeaders();
       const res = await axiosInstance.post(
@@ -221,6 +224,8 @@ const ProductDetailPage = () => {
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Đặt giá thất bại");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -505,6 +510,7 @@ const ProductDetailPage = () => {
       {showConfirmBid && product && (
         <ConfirmBidModal
           isOpen={showConfirmBid}
+          isLoading={isLoading}
           onClose={() => setShowConfirmBid(false)}
           onConfirm={confirmPlaceBid}
           bidAmount={bidAmount}

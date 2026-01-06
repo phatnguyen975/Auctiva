@@ -3,6 +3,7 @@ import { prisma } from "../configs/prisma.js";
 import { createSlug } from "../utils/slugUtil.js";
 import { enrichProductWithFlags } from "../utils/productUtil.js";
 import { cleanProductDescription } from "../utils/sanitizerUtil.js";
+import { EmailTemplates, sendEmail } from "../configs/nodemailer.js";
 
 const ProductService = {
   createProduct: async ({ userId, product }) => {
@@ -577,6 +578,11 @@ const ProductService = {
   }) => {
     const product = await prisma.product.findUnique({
       where: { id },
+      include: {
+        seller: {
+          select: { fullName: true, username: true },
+        },
+      },
     });
 
     if (!product) {
@@ -587,10 +593,56 @@ const ProductService = {
       throw new Error("Cannot update product after auction has ended");
     }
 
-    return await prisma.product.update({
+    const changes = [];
+
+    if (description && description !== product.description) {
+      changes.push("Update product description");
+    }
+
+    const updatedProduct = await prisma.product.update({
       where: { id },
       data: { description, isAutoExtend, isInstantPurchase },
     });
+
+    if (changes.length > 0) {
+      const bidders = await prisma.bid.findMany({
+        where: { productId: id },
+        distinct: ["bidderId"],
+        include: {
+          bidder: {
+            select: { email: true, fullName: true },
+          },
+        },
+      });
+
+      const changeSummary = changes.map((c) => `• ${c}`).join("\n");
+
+      for (const bid of bidders) {
+        if (!bid.bidder?.email) {
+          continue;
+        }
+
+        const emailData = {
+          bidderName: bid.bidder.fullName || "there",
+          productName: product.name,
+          sellerName: product.seller.fullName || product.seller.username,
+          changeSummary,
+          updatedAt: new Date().toLocaleString("vi-VN"),
+          productUrl: `${process.env.CLIENT_URL}/products/${product.id}`,
+          platformName: "Auctiva",
+        };
+
+        const html = EmailTemplates.productUpdate(emailData);
+
+        await sendEmail({
+          to: bid.bidder.email,
+          subject: `Product Update Notification: ${product.name}`,
+          html,
+        });
+      }
+    }
+
+    return updatedProduct;
   },
 
   deleteProduct: async (id) => {
