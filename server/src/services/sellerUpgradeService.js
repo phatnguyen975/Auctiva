@@ -1,7 +1,7 @@
 import { prisma } from "../configs/prisma.js";
 
 const SellerUpgradeService = {
-  // Bidder gửi yêu cầu
+  // Bidder gửi yêu cầu nâng cấp lên Seller
   createSellerUpgrade: async (userId) => {
     // Check xem có request nào đang pending không để tránh spam
     const existingRequest = await prisma.sellerUpgradeRequest.findFirst({
