@@ -21,13 +21,24 @@ const SellerUpgradeController = {
     }
   },
 
+  getPermission: async (req, res) => {
+    try {
+      const permission = await SellerUpgradeService.getSellerPermission(
+        req.user.id
+      );
+      res.ok("Seller permission retrieved successfully", permission);
+    } catch (error) {
+      res.error(error.message);
+    }
+  },
+
   update: async (req, res) => {
     try {
       const id = Number(req.validated.params.id);
       const userId = req.user.id;
       const status = req.validated.body.status;
       const updatedSellerUpgrade =
-        await SellerUpgradeService.updateSellerUpgrade({id, userId, status});
+        await SellerUpgradeService.updateSellerUpgrade({ id, userId, status });
       res.ok("Seller upgrade updated successfully", updatedSellerUpgrade);
     } catch (error) {
       res.error(error.message);
