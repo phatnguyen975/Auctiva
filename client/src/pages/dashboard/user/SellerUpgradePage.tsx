@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { TrendingUp, Package, Trophy, Award, Clock } from "lucide-react";
-import { axiosInstance } from "../../../lib/axios";
 import toast from "react-hot-toast";
+
+import { TrendingUp, Package, Trophy, Award, Clock } from "lucide-react";
+
+import { axiosInstance } from "../../../lib/axios";
+import { getHeaders } from "../../../utils/getHeaders";
 
 const SellerUpgradePage = () => {
   const [upgradeRequested, setUpgradeRequested] = useState(false);
@@ -12,25 +15,28 @@ const SellerUpgradePage = () => {
     try {
       setIsLoading(true);
 
-      // TODO: Call API for requesting seller upgrade
-    } catch (error: any) {
-      console.error("Error requesting seller upgrade:", error);
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to submit upgrade request. Please try again."
+      const headers = getHeaders();
+      const response = await axiosInstance.post(
+        "/seller-upgrade-requests",
+        null,
+        {
+          headers,
+        }
       );
+
+      if (response.status === 201) {
+        setUpgradeRequested(true);
+        toast.success("Yêu cầu nâng cấp đã được gửi thành công!");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Không thể gửi yêu cầu.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handler for button click
   const handleRequestUpgrade = () => {
-    // TODO: Uncomment when ready to use API
-    // requestSellerUpgrade();
-
-    // Just update UI without API call
-    setUpgradeRequested(true);
+    requestSellerUpgrade();
   };
 
   return (

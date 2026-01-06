@@ -48,6 +48,7 @@ const DesktopDashboardSidebar = ({
   const [activeTab, setActiveTab] = useState(currentTabId);
   const [activeCount, setActiveCount] = useState<number | null>(null);
   const [soldCount, setSoldCount] = useState<number | null>(null);
+  const [sellerExpiredAt, setSellerExpiredAt] = useState<Date | null>(null);
 
   const [avatarUrl, setAvatarUrl] = useState<string>(assets.avatar);
 
@@ -84,7 +85,16 @@ const DesktopDashboardSidebar = ({
   };
 
   const formatExpiryTime = () => {
-    const diff = sellerPrivilegesExpiry.getTime() - Date.now();
+    if (!sellerExpiredAt) return "N/A";
+
+    const diff = sellerExpiredAt.getTime() - Date.now();
+
+    console.log("Expiry diff (ms):", diff);
+
+    if (diff <= 0) {
+      return "00:00:00";
+    }
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
@@ -102,9 +112,9 @@ const DesktopDashboardSidebar = ({
   const watchlistCount = dumpyWatchist.length;
   const myBidsCount = dumpyMyBids.length;
 
-  const sellerPrivilegesExpiry = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000); // 2 days remaining
-  const isExpiryUrgent =
-    sellerPrivilegesExpiry.getTime() - Date.now() < 24 * 60 * 60 * 1000;
+  const isExpiryUrgent = sellerExpiredAt
+    ? sellerExpiredAt.getTime() - Date.now() < 24 * 60 * 60 * 1000
+    : false;
 
   // User Dashboard tabs (for both bidder and seller when on /dashboard/*)
   const userDashboardTabs = [
@@ -259,11 +269,37 @@ const DesktopDashboardSidebar = ({
     }
   };
 
+  const fetchSellerPermission = async () => {
+    try {
+      const { data } = await axiosInstance.get(
+        "/seller-upgrade-requests/permission",
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (data.success && data.data?.expiredAt) {
+        setSellerExpiredAt(new Date(data.data.expiredAt));
+      }
+    } catch (error: any) {
+      console.error("Error fetching seller permission:", error.message);
+    }
+  };
+
   useEffect(() => {
     if (isSellerStudio) {
       fetchSellerAnalysis();
     }
-  }, [location]);
+
+    if (userData.role === "seller" && !isSellerStudio && !isAdminPanel) {
+      fetchSellerPermission();
+    }
+  }, [location, userData.role]);
+
+  console.log(sellerExpiredAt);
 
   return (
     <>
@@ -345,8 +381,8 @@ const DesktopDashboardSidebar = ({
                 </span>
               </div>
 
-              {/* Seller Status Widget (only for sellers on /dashboard/*) */}
-              {userData.role === "seller" && (
+              {/* Seller Status Widget (only for sellers with expiredAt on /dashboard/*) */}
+              {userData.role === "seller" && sellerExpiredAt && (
                 <div
                   className={`p-4 mt-4 lg:p-5 lg:mt-0 rounded-lg border-2 ${
                     isExpiryUrgent
@@ -426,7 +462,7 @@ const DesktopDashboardSidebar = ({
 
                     {item.label}
 
-                    {item.count !== undefined && (
+                    {/* {item.count !== undefined && (
                       <span
                         className={`
                           ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs
@@ -441,7 +477,7 @@ const DesktopDashboardSidebar = ({
                       >
                         {item.count}
                       </span>
-                    )}
+                    )} */}
                   </button>
                 );
               })}
