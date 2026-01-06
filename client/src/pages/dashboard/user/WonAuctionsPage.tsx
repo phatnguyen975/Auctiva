@@ -16,8 +16,6 @@ import {
   Eye,
 } from "lucide-react";
 
-import { dumpyWonAuctions } from "../../../assets/assets";
-
 interface Item {
   id: number | string;
   images: any[];
