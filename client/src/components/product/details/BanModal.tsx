@@ -1,4 +1,3 @@
-// BanModal.tsx
 import { AlertCircle } from "lucide-react";
 
 interface BanModalProps {

@@ -145,32 +145,32 @@ const ProductManagementPage = () => {
   };
 
   // Get product details
-  const getProductDetails = async (productId: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  // const getProductDetails = async (productId: string) => {
+  //   try {
+  //     setIsLoading(true);
+  //     setError(null);
 
-      const response = await axiosInstance.get(
-        `/api/admin/products/${productId}`
-      );
+  //     const response = await axiosInstance.get(
+  //       `/api/admin/products/${productId}`
+  //     );
 
-      if (response.data.success) {
-        setSelectedProduct(response.data.data);
-        setIsViewDialogOpen(true);
-      }
-    } catch (err: any) {
-      console.error("Error fetching product details:", err);
-      setError(
-        err.response?.data?.message || "Failed to fetch product details"
-      );
-      alert(
-        "Error: " +
-          (err.response?.data?.message || "Failed to fetch product details")
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //     if (response.data.success) {
+  //       setSelectedProduct(response.data.data);
+  //       setIsViewDialogOpen(true);
+  //     }
+  //   } catch (err: any) {
+  //     console.error("Error fetching product details:", err);
+  //     setError(
+  //       err.response?.data?.message || "Failed to fetch product details"
+  //     );
+  //     alert(
+  //       "Error: " +
+  //         (err.response?.data?.message || "Failed to fetch product details")
+  //     );
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   // Fetch products on component mount
   useEffect(() => {

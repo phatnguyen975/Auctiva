@@ -49,12 +49,12 @@ app.use("/api/seller-upgrade-requests", sellerUpgradeRouter);
 app.use("/api/transactions", transactionRouter);
 app.use("/api/qa", qaRouter);
 
-// Chạy mỗi phút 1 lần để kiểm tra các sản phẩm hết hạn đấu giá
+// Check auction ending per minute
 cron.schedule("* * * * *", async () => {
   await AuctionTaskService.processExpiredAuctions();
 });
 
-// Chạy mỗi phút 1 lần để kiểm tra các quyền seller hết hạn
+// Check seller permission per minute
 cron.schedule("* * * * *", async () => {
   await AuctionTaskService.checkExpiredPermissions();
   await AuctionTaskService.checkDowngradeToBidder();

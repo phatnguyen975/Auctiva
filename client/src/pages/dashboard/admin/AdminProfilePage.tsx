@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import { axiosInstance } from "../../../lib/axios";
 
 interface AdminProfile {
   fullName: string;

@@ -28,9 +28,9 @@ create table if not exists profiles (
 
 alter table profiles
 add column search_vector tsvector generated always as (
-    setweight(to_tsvector('english', coalesce(full_name,'')), 'A') ||
-    setweight(to_tsvector('english', coalesce(user_name,'')), 'B') ||
-    setweight(to_tsvector('english', coalesce(email,'')), 'C')
+  setweight(to_tsvector('english', coalesce(full_name,'')), 'A') ||
+  setweight(to_tsvector('english', coalesce(user_name,'')), 'B') ||
+  setweight(to_tsvector('english', coalesce(email,'')), 'C')
 ) stored;
 
 create index idx_users_search on profiles using gin(search_vector);

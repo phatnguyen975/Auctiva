@@ -50,7 +50,7 @@ const DesktopDashboardSidebar = ({
   const [soldCount, setSoldCount] = useState<number | null>(null);
   const [sellerExpiredAt, setSellerExpiredAt] = useState<Date | null>(null);
 
-  const [avatarUrl, setAvatarUrl] = useState<string>(assets.avatar);
+  // const [avatarUrl, setAvatarUrl] = useState<string>(assets.avatar);
 
   const navigate = useNavigate();
 
@@ -64,7 +64,7 @@ const DesktopDashboardSidebar = ({
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarUrl(reader.result as string);
+        // setAvatarUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
     }

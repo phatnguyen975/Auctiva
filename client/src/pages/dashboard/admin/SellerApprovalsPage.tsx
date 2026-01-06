@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
-import { Search, Loader2, Eye, UserCheck, UserX, X } from "lucide-react";
+import { Search, Loader2, UserCheck, UserX } from "lucide-react";
 
 import { axiosInstance } from "../../../lib/axios";
 import { getHeaders } from "../../../utils/getHeaders";
@@ -31,10 +31,6 @@ const SellerApprovalsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Dialog states
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<SellerRequest | null>(
-    null
-  );
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
     type: "approve" | "reject";
@@ -264,13 +260,6 @@ const SellerApprovalsPage = () => {
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-1">
-                          {/* <button
-                            onClick={() => getRequestDetails(request.id)}
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-[hsl(var(--accent))] h-8 w-8 cursor-pointer"
-                            title="View Details"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </button> */}
                           <button
                             onClick={() => handleApproveRequest(request)}
                             disabled={isLoading}
@@ -296,171 +285,6 @@ const SellerApprovalsPage = () => {
             </table>
           </div>
         </>
-      )}
-
-      {/* View Details Dialog */}
-      {isViewDialogOpen && selectedRequest && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setIsViewDialogOpen(false)}
-        >
-          <div
-            className="bg-[hsl(var(--card))] rounded-lg shadow-lg w-full max-w-3xl max-h-[85vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-4">
-              {/* Dialog Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Request Details</h2>
-                <button
-                  onClick={() => setIsViewDialogOpen(false)}
-                  className="text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Combined User Information & Statistics */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-3 text-sm">
-                  <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
-                      Username
-                    </p>
-                    <p className="font-medium">{selectedRequest.username}</p>
-                  </div>
-                  <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
-                      Email
-                    </p>
-                    <p className="font-medium text-xs">
-                      {selectedRequest.email}
-                    </p>
-                  </div>
-                  <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
-                      Request Date
-                    </p>
-                    <p className="font-medium">{selectedRequest.requestDate}</p>
-                  </div>
-                  <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
-                      Rating
-                    </p>
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        selectedRequest.currentRating >= 80
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {selectedRequest.currentRating}%
-                    </span>
-                  </div>
-                  <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
-                      Total Bids
-                    </p>
-                    <p className="font-medium">{selectedRequest.totalBids}</p>
-                  </div>
-                  <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
-                      Won Auctions
-                    </p>
-                    <p className="font-medium">
-                      {selectedRequest.totalWonAuctions || 0}
-                    </p>
-                  </div>
-                  <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
-                      Total Spent
-                    </p>
-                    <p className="font-medium">
-                      ${selectedRequest.totalSpent?.toLocaleString() || 0}
-                    </p>
-                  </div>
-                  <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
-                      Full Name
-                    </p>
-                    <p className="font-medium">
-                      {selectedRequest.fullName || "N/A"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Reason */}
-                {selectedRequest.reason && (
-                  <div>
-                    <h3 className="text-sm font-semibold mb-2">
-                      Reason for Request
-                    </h3>
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] bg-[hsl(var(--muted))] p-3 rounded-md">
-                      {selectedRequest.reason}
-                    </p>
-                  </div>
-                )}
-
-                {/* Eligibility Check */}
-                <div>
-                  <h3 className="text-sm font-semibold mb-2">
-                    Eligibility Status
-                  </h3>
-                  <div className="flex gap-4">
-                    <div className="flex items-center gap-2 flex-1 bg-[hsl(var(--muted))] p-2 rounded">
-                      <div
-                        className={`h-4 w-4 rounded-full flex items-center justify-center ${
-                          selectedRequest.currentRating >= 80
-                            ? "bg-green-500"
-                            : "bg-red-500"
-                        }`}
-                      >
-                        <span className="text-white text-xs">
-                          {selectedRequest.currentRating >= 80 ? "✓" : "✗"}
-                        </span>
-                      </div>
-                      <span className="text-xs">Rating ≥ 80%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="border-t border-[hsl(var(--border))] pt-3 flex gap-2 justify-between">
-                  <button
-                    onClick={() => setIsViewDialogOpen(false)}
-                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-[hsl(var(--border))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] h-9 px-4 cursor-pointer"
-                  >
-                    Close
-                  </button>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        handleApproveRequest(selectedRequest);
-                        setIsViewDialogOpen(false);
-                      }}
-                      disabled={isLoading}
-                      className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-green-500 text-white hover:bg-green-600 h-9 px-4 cursor-pointer"
-                    >
-                      <UserCheck className="h-4 w-4 mr-1" />
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => {
-                        handleRejectRequest(selectedRequest);
-                        setIsViewDialogOpen(false);
-                      }}
-                      disabled={isLoading}
-                      className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-red-500 text-white hover:bg-red-600 h-9 px-4 cursor-pointer"
-                    >
-                      <UserX className="h-4 w-4 mr-1" />
-                      Reject
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Confirmation Dialog */}

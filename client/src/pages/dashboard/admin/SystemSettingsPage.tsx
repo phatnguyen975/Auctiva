@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { Info, Loader2 } from "lucide-react";
-import { axiosInstance } from "../../../lib/axios";
 
 interface SystemSettings {
   autoExtensionTrigger: number;
