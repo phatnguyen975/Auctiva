@@ -29,7 +29,8 @@ const ProductController = {
   getById: async (req, res) => {
     try {
       const id = Number(req.validated.params.id);
-      const product = await ProductService.getProductById(id);
+      const userId = req.user?.id ?? null;
+      const product = await ProductService.getProductById(id, userId);
       res.ok("Product retrieved successfully", product);
     } catch (error) {
       res.error(error.message);

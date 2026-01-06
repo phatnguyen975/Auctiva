@@ -1,4 +1,3 @@
-import sanitizeHtml from "sanitize-html";
 import { prisma } from "../configs/prisma.js";
 import { createSlug } from "../utils/slugUtil.js";
 import { enrichProductWithFlags } from "../utils/productUtil.js";
@@ -276,7 +275,7 @@ const ProductService = {
     };
   },
 
-  getProductById: async (id) => {
+  getProductById: async (id, userId) => {
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -314,7 +313,18 @@ const ProductService = {
       throw new Error("Product not found");
     }
 
-    return product;
+    let watchedProductIds = new Set();
+
+    if (userId) {
+      const watchlist = await prisma.watchlist.findMany({
+        where: { userId },
+        select: { productId: true },
+      });
+
+      watchedProductIds = new Set(watchlist.map((w) => w.productId));
+    }
+
+    return enrichProductWithFlags(product, watchedProductIds.has(product.id));
   },
 
   getRelatedProducts: async (productId, categoryId) => {
@@ -322,7 +332,6 @@ const ProductService = {
       where: {
         categoryId: categoryId,
         id: { not: productId },
-        status: "active",
       },
       take: 5,
       include: {

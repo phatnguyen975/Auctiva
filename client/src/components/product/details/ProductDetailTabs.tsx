@@ -11,7 +11,6 @@ import { mapProductToCard } from "../../../utils/product";
 interface ProductDetailTabsProps {
   currentTab: string;
   onTabChange: (val: string) => void;
-  role: string;
   userId?: string;
   productSellerId?: string;
 
@@ -30,7 +29,6 @@ interface ProductDetailTabsProps {
 const ProductDetailTabs = ({
   currentTab,
   onTabChange,
-  role,
   userId,
   productSellerId,
   description,
@@ -96,11 +94,15 @@ const ProductDetailTabs = ({
 
       {/* --- 2. BIDS TAB (Đã gọn gàng nhờ component riêng) --- */}
       <TabsContent value="bids" className="mt-6">
-        <BidHistoryTable
+        {bidHistory.length === 0 ? (
+          <div className="flex items-center justify-center text-gray-500">
+            No bid history
+          </div>
+        ) : <BidHistoryTable
           bids={bidHistory}
           productSellerId={productSellerId}
           onBanUser={onBanUser}
-        />
+        />}
       </TabsContent>
 
       {/* --- 3. Q&A TAB --- */}
@@ -203,11 +205,15 @@ const ProductDetailTabs = ({
 
       {/* --- 4. RELATED TAB --- */}
       <TabsContent value="related" className="mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-          {relatedProducts.map((rp) => (
-            <ProductCard key={rp.id} {...mapProductToCard(rp)} />
-          ))}
-        </div>
+        {relatedProducts.length === 0 ? (
+          <div className="flex items-center justify-center text-gray-500">No related products</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {relatedProducts.map((rp) => (
+              <ProductCard key={rp.id} {...mapProductToCard(rp)} />
+            ))}
+          </div>
+        )}
       </TabsContent>
     </Tabs>
   );

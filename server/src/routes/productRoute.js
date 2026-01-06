@@ -71,6 +71,7 @@ router.get(
 
 router.get(
   "/:id",
+  optionalAuth,
   validate({ params: ProductIdSchema }),
   ProductController.getById
 );

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
@@ -16,6 +16,7 @@ import {
   Package,
   BanknoteArrowUp,
   Gavel,
+  Loader2,
 } from "lucide-react";
 
 import type { ProductDetail } from "../../types/product";
@@ -30,18 +31,17 @@ import ProductDetailTabs from "../../components/product/details/ProductDetailTab
 import ProductImageGallery from "../../components/product/details/ProductImageGallery";
 import toast from "react-hot-toast";
 import Breadcrumbs from "../../components/product/Breadcrumbs";
+import { maskName } from "../../utils/masking";
 
 const ProductDetailPage = () => {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const authUser = useSelector((state: RootState) => state.auth.authUser);
-  const role = authUser?.profile?.role as
-    | "admin"
-    | "bidder"
-    | "seller"
-    | undefined;
+
   const currentUserId = authUser?.user?.id; // Use Supabase user ID
   const [product, setProduct] = useState<ProductDetail | null>();
 
   const [isLoading, setIsLoading] = useState(false);
+  const [watched, setWatched] = useState(false);
 
   const [currentTab, setCurrentTab] = useState("description");
   const tabsSectionRef = useRef<HTMLDivElement>(null);
@@ -63,13 +63,20 @@ const ProductDetailPage = () => {
 
   const { id: productId } = useParams();
 
-  // Mock fetch data
   const loadProduct = async () => {
-    const headers = getHeaders();
+    const headers: HeadersInit = {
+      "x-api-key": import.meta.env.VITE_API_KEY,
+    };
+
+    if (authUser && accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+
     const res = await axiosInstance.get(`/products/${productId}`, { headers });
 
     if (res && res.data) {
       setProduct(res.data.data);
+      setWatched(res.data.data.isWatched);
     } else {
       setProduct(null);
     }
@@ -129,7 +136,9 @@ const ProductDetailPage = () => {
 
     fetchQA();
 
-    fetchRelatedProducts(product?.categoryId || 1);
+    if (product?.categoryId) {
+      fetchRelatedProducts(product.categoryId);
+    }
   };
 
   useEffect(() => {
@@ -187,13 +196,16 @@ const ProductDetailPage = () => {
     }
   };
 
-  //console.log("Product:", product);
-
   const handlePlaceBid = async () => {
+    if (!authUser) {
+      toast.error("You must login to bid this product");
+      return;
+    }
+
     const minRequired =
       Number(product?.currentPrice) + Number(product?.stepPrice);
     if (bidAmount < minRequired) {
-      toast.error(`Mức giá tối thiểu phải là ${minRequired.toLocaleString()}`);
+      toast.error(`Minimum bid price must be ${minRequired.toLocaleString()}`);
       return;
     }
 
@@ -250,6 +262,47 @@ const ProductDetailPage = () => {
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to ban user");
+    }
+  };
+
+  const handleAddToWatchlist = async (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+
+    if (!product?.id) {
+      toast.error("Product not found");
+      return;
+    }
+
+    if (!authUser) {
+      toast.error("You must login to watch this product");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const { data } = await axiosInstance.post(
+        `/products/${product.id}/watchlist`,
+        {},
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (data.success) {
+        setWatched(true);
+        toast.success(data.message);
+      } else {
+        setWatched(false);
+        toast.error(data.message);
+      }
+    } catch (error: any) {
+      console.error("Error adding product to watchlist:", error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -329,7 +382,7 @@ const ProductDetailPage = () => {
                 <div className="flex items-center justify-between gap-2 mt-2">
                   <div className="text-sm text-muted-foreground">
                     {product?._count?.bids} bids · Top bidder:{" "}
-                    {product?.winner?.fullName || "N/A"}
+                    {product?.winner?.fullName && maskName(product?.winner?.fullName) || "N/A"}
                   </div>
                   <div className="flex items-center gap-1 text-sm">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -385,62 +438,86 @@ const ProductDetailPage = () => {
             {!(product?.seller.id === currentUserId) ? (
               /* Bidding Controls - For Bidders/Guests */
               <div className="bg-card rounded-lg p-6 space-y-4">
-                {userRating < 80 ? (
-                  <div className="relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[20px_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start text-destructive bg-card border-destructive">
-                    {/* Icon AlertCircle */}
-                    <AlertCircle className="text-red-400 h-4 w-4 translate-y-0.5 text-destructive" />
-                    {/* Nội dung AlertDescription */}
-                    <div className="col-start-2 text-sm text-red-500 leading-relaxed text-destructive/90">
-                      You need a rating of at least 80% to place bids. Your
-                      current rating: {userRating}%
-                    </div>
-                  </div>
-                ) : (
+                {product?.endDate && new Date(product.endDate) > new Date() ? (
                   <>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">
-                        Enter Your Bid
-                      </label>
-                      <div className="flex gap-2">
-                        <div className="flex-1">
-                          <Input
-                            icon={BanknoteArrowUp}
-                            type="text"
-                            placeholder={`Min $${suggestedBid}`}
-                            value={bidAmount}
-                            onChange={(e) =>
-                              setBidAmount(Number(e.target.value))
-                            }
-                            className="text-lg"
-                          />
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Suggested: ${suggestedBid} (Current + $
-                            {product?.stepPrice})
-                          </div>
+                    {userRating < 80 ? (
+                      <div className="relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[20px_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start text-destructive bg-card border-destructive">
+                        {/* Icon AlertCircle */}
+                        <AlertCircle className="text-red-400 h-4 w-4 translate-y-0.5 text-destructive" />
+                        {/* Nội dung AlertDescription */}
+                        <div className="col-start-2 text-sm text-red-500 leading-relaxed text-destructive/90">
+                          You need a rating of at least 80% to place bids. Your
+                          current rating: {userRating}%
                         </div>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">
+                            Enter Your Bid
+                          </label>
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                              <Input
+                                icon={BanknoteArrowUp}
+                                type="text"
+                                placeholder={`Min $${suggestedBid}`}
+                                value={bidAmount}
+                                onChange={(e) =>
+                                  setBidAmount(Number(e.target.value))
+                                }
+                                className="text-lg"
+                              />
+                              <div className="text-xs text-muted-foreground mt-1">
+                                Suggested: ${suggestedBid} (Current + $
+                                {product?.stepPrice})
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          className="flex justify-center items-center w-full bg-black text-white px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold"
+                          onClick={handlePlaceBid}
+                        >
+                          <Gavel className="size-5 mr-2" />
+                          Place Bid
+                        </button>
+                      </>
+                    )}
+                    {/* Buy now */}
+                    {product?.buyNowPrice && (
+                      <button className="flex justify-center items-center w-full bg-gray-300 text-black px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold">
+                        <ShoppingCart className="size-5 mr-2" />
+                        Buy Now - ${product.buyNowPrice}
+                      </button>
+                    )}
+                    {/* Add to watchlist */}
                     <button
-                      className="flex justify-center items-center w-full bg-black text-white px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold"
-                      onClick={handlePlaceBid}
+                      onClick={handleAddToWatchlist}
+                      disabled={watched || isLoading}
+                      className="flex justify-center items-center w-full bg-transparent hover:bg-gray-200 text-black px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold disabled:cursor-not-allowed"
                     >
-                      <Gavel className="size-5 mr-2" />
-                      Place Bid
+                      {watched ? (
+                        <>
+                          <Heart className="size-5 fill-gray-800 mr-2" />
+                          Added
+                        </>
+                      ) : isLoading ? (
+                        <>
+                          <Loader2 className="size-5 mr-2 animate-spin" />
+                          Adding...
+                        </>
+                      ) : (
+                        <>
+                          <Heart className="size-5 mr-2" />
+                          Add to Watchlist
+                        </>
+                      )}
                     </button>
                   </>
+                ) : (
+                  <div className="flex items-center justify-center text-gray-500">This auction has ended. Thanks for your visiting.</div>
                 )}
-
-                {product?.buyNowPrice && (
-                  <button className="flex justify-center items-center w-full bg-gray-300 text-black px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold">
-                    <ShoppingCart className="size-5 mr-2" />
-                    Buy Now - ${product.buyNowPrice}
-                  </button>
-                )}
-
-                <button className="flex justify-center items-center w-full bg-transparent hover:bg-gray-200 text-black px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold">
-                  <Heart className="size-5 mr-2" />
-                  Add to Watchlist
-                </button>
               </div>
             ) : (
               /* Seller Performance Stats - For Seller */
@@ -480,7 +557,6 @@ const ProductDetailPage = () => {
           <ProductDetailTabs
             currentTab={currentTab}
             onTabChange={setCurrentTab}
-            role={role || ""}
             userId={currentUserId}
             productSellerId={product?.sellerId || product?.seller?.id}
             description={product?.description}

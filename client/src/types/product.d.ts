@@ -79,4 +79,5 @@ export interface ProductDetail {
   condition: string;
   categoryId: number;
   description: string;
+  isWatched: boolean;
 }
