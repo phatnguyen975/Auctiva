@@ -111,7 +111,19 @@ const SoldItemsPage = () => {
     fetchSoldProducts();
   }, []);
 
-  console.log("Sold Products:", soldProducts);
+  const calculateUserRating = (rating: {
+    ratingPositive: number;
+    ratingCount: number;
+  }) => {
+    const ratingCount = rating.ratingCount;
+    const ratingPositive = rating.ratingPositive;
+
+    if (!ratingCount || !ratingPositive || ratingCount === 0) {
+      return 0;
+    }
+
+    return ((ratingPositive / ratingCount) * 100).toFixed(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -185,11 +197,10 @@ const SoldItemsPage = () => {
                         <div className="flex items-center gap-1 text-sm">
                           <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                           <span className="text-amber-600">
-                            {(
-                              (product.winner.ratingPositive /
-                                product.winner.ratingCount) *
-                              100
-                            ).toFixed(1)}
+                            {calculateUserRating({
+                              ratingPositive: product.winner.ratingPositive,
+                              ratingCount: product.winner.ratingCount,
+                            })}
                             %
                           </span>
                         </div>
@@ -221,7 +232,7 @@ const SoldItemsPage = () => {
                           className="inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-all border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:cursor-pointer h-9 px-3 w-full"
                         >
                           <Eye className="h-4 w-4" />
-                          View Transaction
+                          View
                         </button>
 
                         {!!product.ratings[0] && (

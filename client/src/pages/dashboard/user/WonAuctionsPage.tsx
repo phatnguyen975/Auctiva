@@ -15,6 +15,7 @@ import {
   XCircle,
   Eye,
 } from "lucide-react";
+import LoadingSpinner from "../../../components/ui/LoadingSpinner";
 
 interface Item {
   id: number | string;
@@ -46,10 +47,10 @@ const WonAuctionsPage = () => {
   useEffect(() => {
     const loadWinAuctions = async () => {
       try {
+        setIsLoading(true);
+
         const headers = getHeaders();
         const { data } = await axiosInstance.get("/products/won", { headers });
-
-        console.log(data);
 
         if (data.success) {
           setWonAuctions(data.data);
@@ -58,11 +59,13 @@ const WonAuctionsPage = () => {
         }
       } catch (error) {
         console.error("Failed to load won auctions", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadWinAuctions();
-  }, []); // Thêm mảng rỗng để chỉ chạy 1 lần khi mount
+  }, []);
 
   const handleSubmitRating = async () => {
     if (!rating) {
@@ -134,7 +137,11 @@ const WonAuctionsPage = () => {
             </span>
           </div>
 
-          {wonAuctions.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center">
+              <LoadingSpinner />
+            </div>
+          ) : wonAuctions.length === 0 ? (
             <div className="text-center py-16">
               <Trophy className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-20" />
               <h3 className="text-xl font-semibold mb-2">
@@ -218,7 +225,7 @@ const WonAuctionsPage = () => {
                                   (item.seller?.ratingPositive /
                                     (item.seller?.ratingCount || 1)) *
                                   100
-                                ).toFixed(2)}
+                                ).toFixed(1)}
                                 %
                               </span>
                             </div>

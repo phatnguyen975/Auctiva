@@ -69,6 +69,7 @@ const RatingService = {
       reviewer: rating.fromUser.fullName || rating.fromUser.username,
       score: rating.score,
       comment: rating.comment,
+      role: rating.type === "bidder_seller" ? "Bidder" : "Seller",
       ratedAt: rating.createdAt,
     }));
   },

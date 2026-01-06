@@ -21,6 +21,7 @@ interface Review {
   reviewer: string;
   score: 1 | -1 | number;
   comment: string;
+  role: string;
   ratedAt: string;
 }
 
@@ -40,7 +41,9 @@ const ReviewItem = ({ review }: { review: Review }) => {
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <span className="font-medium">{review.reviewer}</span>
+          <span className="font-medium">
+            {review.reviewer} ({review.role})
+          </span>
           <span className="text-sm text-[hsl(var(--muted-foreground))]">
             · {new Date(review.ratedAt).toLocaleString()}
           </span>

@@ -14,7 +14,6 @@ import {
   ShoppingCart,
   Calendar,
   Package,
-  BanknoteArrowUp,
   Gavel,
   Loader2,
 } from "lucide-react";
@@ -23,7 +22,6 @@ import type { ProductDetail } from "../../types/product";
 
 import CountdownTimer from "../../components/product/details/CountdownTimer";
 import { formatPostDate } from "../../utils/date";
-import Input from "../../components/ui/Input";
 
 import BanModal from "../../components/product/details/BanModal";
 import ConfirmBidModal from "../../components/product/details/ConfirmBidModal";
@@ -47,7 +45,7 @@ const ProductDetailPage = () => {
   const tabsSectionRef = useRef<HTMLDivElement>(null);
 
   const [bids, setBids] = useState<any[]>([]);
-  const [bidAmount, setBidAmount] = useState<number>(0);
+  const [bidAmount, setBidAmount] = useState("");
   const [qaItems, setQaItems] = useState<any[]>([]);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [banningInfo, setBanningInfo] = useState<{
@@ -204,7 +202,7 @@ const ProductDetailPage = () => {
 
     const minRequired =
       Number(product?.currentPrice) + Number(product?.stepPrice);
-    if (bidAmount < minRequired) {
+    if (Number(bidAmount) < minRequired) {
       toast.error(`Minimum bid price must be ${minRequired.toLocaleString()}`);
       return;
     }
@@ -221,7 +219,7 @@ const ProductDetailPage = () => {
       const res = await axiosInstance.post(
         `/products/${product?.id}/bids`,
         {
-          maxBid: bidAmount,
+          maxBid: Number(bidAmount),
         },
         { headers }
       );
@@ -229,7 +227,7 @@ const ProductDetailPage = () => {
       if (res.data.success) {
         toast.success("Đặt giá thành công!");
         setShowConfirmBid(false);
-        setBidAmount(0);
+        setBidAmount("");
         // Refresh lại dữ liệu sản phẩm để cập nhật giá mới
         loadProduct();
         loadBids();
@@ -382,7 +380,9 @@ const ProductDetailPage = () => {
                 <div className="flex items-center justify-between gap-2 mt-2">
                   <div className="text-sm text-muted-foreground">
                     {product?._count?.bids} bids · Top bidder:{" "}
-                    {product?.winner?.fullName && maskName(product?.winner?.fullName) || "N/A"}
+                    {(product?.winner?.fullName &&
+                      maskName(product?.winner?.fullName)) ||
+                      "N/A"}
                   </div>
                   <div className="flex items-center gap-1 text-sm">
                     <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
@@ -458,15 +458,15 @@ const ProductDetailPage = () => {
                           </label>
                           <div className="flex gap-2">
                             <div className="flex-1">
-                              <Input
-                                icon={BanknoteArrowUp}
-                                type="text"
-                                placeholder={`Min $${suggestedBid}`}
+                              <input
+                                id="startingPrice"
+                                type="number"
                                 value={bidAmount}
-                                onChange={(e) =>
-                                  setBidAmount(Number(e.target.value))
-                                }
-                                className="text-lg"
+                                onChange={(e) => setBidAmount(e.target.value)}
+                                placeholder={`${suggestedBid}`}
+                                min="0"
+                                step="0.1"
+                                className="text-lg w-full px-3.5 py-1.5 border border-gray-400 rounded-lg"
                               />
                               <div className="text-xs text-muted-foreground mt-1">
                                 Suggested: ${suggestedBid} (Current + $
@@ -516,7 +516,9 @@ const ProductDetailPage = () => {
                     </button>
                   </>
                 ) : (
-                  <div className="flex items-center justify-center text-gray-500">This auction has ended. Thanks for your visiting.</div>
+                  <div className="flex items-center justify-center text-gray-500">
+                    This auction has ended. Thanks for your visiting.
+                  </div>
                 )}
               </div>
             ) : (
@@ -589,7 +591,7 @@ const ProductDetailPage = () => {
           isLoading={isLoading}
           onClose={() => setShowConfirmBid(false)}
           onConfirm={confirmPlaceBid}
-          bidAmount={bidAmount}
+          bidAmount={Number(bidAmount)}
           currentPrice={product.currentPrice}
           productTitle={product.title}
         />
