@@ -37,25 +37,6 @@ interface TransactionData {
     avatarUrl?: string;
   };
 }
-//hellooooodadjs
-// Main Transaction Page Component
-// Renders different views based on user role in the transaction
-// (winner, seller, non-participant)
-// Fetches transaction data from API and handles loading/error states
-// Displays TransactionFlow component for participants and read-only view for non-participants  
-// Also shows AuctionEndedOverlay for non-participants
-// Uses Redux to get authenticated user info
-// Utilizes axios for API requests and react-hot-toast for notifications
-// Styled with Tailwind CSS
-// Created by OpenAI ChatGPT
-// Updated: 2024-06
-// Reviewed by: AI Code Reviewer
-// License: MIT
-// Version: 1.2.0
-// Repository: https://github.com/your-repo/auctiva
-// Contact: 
-// For questions or support, contact
-// hghgg
 const TransactionPage = () => {
   const { id } = useParams<{ id: string }>();
   const authUser = useSelector((state: RootState) => state.auth.authUser);
