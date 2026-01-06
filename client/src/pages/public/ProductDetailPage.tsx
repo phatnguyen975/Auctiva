@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import type { RootState } from "../../store/store";
 import { axiosInstance } from "../../lib/axios";
@@ -53,8 +53,23 @@ const ProductDetailPage = () => {
     index: number;
   } | null>(null);
   const [showConfirmBid, setShowConfirmBid] = useState(false);
+  const [showBuyNowConfirm, setShowBuyNowConfirm] = useState(false);
+  const [isBuying, setIsBuying] = useState(false);
 
-  const userRating = 92; // Mock Rating of User
+  const navigate = useNavigate();
+
+  const calculateUserRating = () => {
+    const ratingCount = authUser?.profile?.rating_count;
+    const ratingPositive = authUser?.profile?.rating_positive;
+
+    if (!ratingCount || !ratingPositive || ratingCount === 0) {
+      return 0;
+    }
+
+    return ((ratingPositive / ratingCount) * 100).toFixed(1);
+  };
+
+  const userRating = Number(calculateUserRating());
 
   const suggestedBid =
     Number(product?.currentPrice || 0) + Number(product?.stepPrice || 0);
@@ -239,6 +254,28 @@ const ProductDetailPage = () => {
     }
   };
 
+  const handleConfirmBuyNow = async () => {
+    setIsBuying(true);
+    try {
+      const headers = getHeaders();
+      const response = await axiosInstance.post(
+        `/products/${product?.id}/buy-now`,
+        {},
+        { headers }
+      );
+
+      if (response.data.success) {
+        toast.success("Buy product successfully!");
+        navigate(`/transaction/${response.data.data.transaction.id}`);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Buy now failed.");
+    } finally {
+      setIsBuying(false);
+      setShowBuyNowConfirm(false);
+    }
+  };
+
   const handleConfirmBan = async () => {
     if (!banningInfo || !product) return;
 
@@ -304,6 +341,8 @@ const ProductDetailPage = () => {
     }
   };
 
+  console.log("Product detail:", product);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -318,7 +357,7 @@ const ProductDetailPage = () => {
           {/* Left Column - Images */}
           <ProductImageGallery
             images={product?.images || []}
-            title={product?.title || "Product Image"}
+            title={product?.name || "Product Image"}
           />
 
           {/* Right Column - Info & Bidding */}
@@ -326,7 +365,7 @@ const ProductDetailPage = () => {
             {/* Title with Seller Badge */}
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <h1 className="text-3xl font-bold">{product?.title}</h1>
+                <h1 className="text-3xl font-bold">{product?.name}</h1>
                 {product?.seller.id === currentUserId && (
                   <span
                     className=" inline-flex items-center  justify-center rounded-md border px-2 py-0.5 text-xs font-medium  w-fit whitespace-nowrap 
@@ -486,7 +525,10 @@ const ProductDetailPage = () => {
                     )}
                     {/* Buy now */}
                     {product?.buyNowPrice && (
-                      <button className="flex justify-center items-center w-full bg-gray-300 text-black px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold">
+                      <button
+                        className="flex justify-center items-center w-full bg-gray-300 text-black px-4 py-3 rounded-lg cursor-pointer text-sm font-semibold"
+                        onClick={() => setShowBuyNowConfirm(true)}
+                      >
                         <ShoppingCart className="size-5 mr-2" />
                         Buy Now - ${product.buyNowPrice}
                       </button>
@@ -593,8 +635,40 @@ const ProductDetailPage = () => {
           onConfirm={confirmPlaceBid}
           bidAmount={Number(bidAmount)}
           currentPrice={product.currentPrice}
-          productTitle={product.title}
+          productTitle={product.name}
         />
+      )}
+
+      {showBuyNowConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl">
+            <h3 className="text-xl font-bold mb-4">Confirm Buy Now?</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to purchase <strong>{product?.name}</strong>{" "}
+              for
+              <span className="text-green-600 font-bold">
+                {" "}
+                ${Number(product?.buyNowPrice).toLocaleString()}
+              </span>
+              ? This action will end the auction immediately.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowBuyNowConfirm(false)}
+                className="flex-1 px-4 py-2 border rounded-xl hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmBuyNow}
+                disabled={isBuying}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 disabled:opacity-50"
+              >
+                {isBuying ? "Processing..." : "Confirm Purchase"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

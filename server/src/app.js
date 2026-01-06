@@ -55,10 +55,10 @@ cron.schedule("* * * * *", async () => {
 });
 
 // Check seller permission per minute
-// cron.schedule("* * * * *", async () => {
-//   await AuctionTaskService.checkExpiredPermissions();
-//   await AuctionTaskService.checkDowngradeToBidder();
-// });
+cron.schedule("* * * * *", async () => {
+  await AuctionTaskService.checkExpiredPermissions();
+  await AuctionTaskService.checkDowngradeToBidder();
+});
 
 // Error Handler
 app.use(notFoundHandler);
