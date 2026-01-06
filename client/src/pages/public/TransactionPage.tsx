@@ -37,7 +37,6 @@ interface TransactionData {
     avatarUrl?: string;
   };
 }
-
 const TransactionPage = () => {
   const { id } = useParams<{ id: string }>();
   const authUser = useSelector((state: RootState) => state.auth.authUser);

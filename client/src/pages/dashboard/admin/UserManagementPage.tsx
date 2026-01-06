@@ -146,7 +146,6 @@ const UserManagementPage = () => {
   }, []);
 
   // ============ HANDLERS ============
-
   const handleSearch = () => {
     fetchUsers();
   };
