@@ -54,6 +54,12 @@ cron.schedule("* * * * *", async () => {
   await AuctionTaskService.processExpiredAuctions();
 });
 
+// Chạy mỗi phút 1 lần để kiểm tra các quyền seller hết hạn
+cron.schedule("* * * * *", async () => {
+  await AuctionTaskService.checkExpiredPermissions();
+  await AuctionTaskService.checkDowngradeToBidder();
+});
+
 // Error Handler
 app.use(notFoundHandler);
 app.use(errorHandler);
