@@ -91,6 +91,83 @@ const AuctionTaskService = {
       });
     }
   },
+
+  // Check hết hạn quyền đăng bán
+  checkExpiredPermissions: async () => {
+    const now = new Date();
+
+    const result = await prisma.sellerPermission.updateMany({
+      where: {
+        status: "active",
+        expiredAt: { lte: now },
+      },
+      data: {
+        status: "expired",
+      },
+    });
+
+    if (result.count > 0) {
+      console.log(`[Cron] Expired ${result.count} seller permissions.`);
+    }
+  },
+
+  // Check hạ cấp từ Seller -> Bidder
+  checkDowngradeToBidder: async () => {
+    const sellersToCheck = await prisma.profile.findMany({
+      where: {
+        role: "seller",
+        // Lọc những người KHÔNG có permission nào đang active
+        NOT: {
+          sellerPermissions: {
+            some: { status: "active" },
+          },
+        },
+      },
+      include: {
+        products: {
+          include: {
+            transactions: true, // Include để check status transaction
+          },
+        },
+      },
+    });
+
+    for (const seller of sellersToCheck) {
+      let canDowngrade = true;
+
+      // Check điều kiện sản phẩm
+      for (const product of seller.products) {
+        // Nếu còn sản phẩm đang active -> Không hạ cấp
+        if (product.status === "active") {
+          canDowngrade = false;
+          break;
+        }
+
+        // Nếu sản phẩm đã sold -> Check transaction
+        if (product.status === "sold") {
+          // Nếu chưa có transaction hoặc transaction chưa completed/cancelled -> Không hạ cấp
+          if (
+            !product.transactions &&
+            product.transactions.status !== "completed" &&
+            product.transactions.status !== "cancelled"
+          ) {
+            canDowngrade = false;
+            break;
+          }
+        }
+
+        // Product status 'expired' thì ok, bỏ qua
+      }
+
+      if (canDowngrade) {
+        await prisma.profile.update({
+          where: { id: seller.id },
+          data: { role: "bidder" },
+        });
+        console.log(`[Cron] Downgraded user ${seller.id} to bidder.`);
+      }
+    }
+  },
 };
 
 export default AuctionTaskService;

@@ -26,6 +26,14 @@ router.get(
   SellerUpgradeController.getAll
 );
 
+// Lấy ngày hết hạn quyền seller của user hiện tại
+router.get(
+  "/permission",
+  verifyToken,
+  authorize(["seller"]),
+  SellerUpgradeController.getPermission
+);
+
 router.put(
   "/:id",
   verifyToken,
