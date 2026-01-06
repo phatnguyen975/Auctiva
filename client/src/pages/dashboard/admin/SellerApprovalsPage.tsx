@@ -1,13 +1,17 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
+
 import { Search, Loader2, Eye, UserCheck, UserX, X } from "lucide-react";
+
 import { axiosInstance } from "../../../lib/axios";
+import { getHeaders } from "../../../utils/getHeaders";
+import { formatVietnamDateTime } from "../../../utils/date";
 
 interface SellerRequest {
   id: string;
   username: string;
   email: string;
   currentRating: number;
-  accountAge: number;
   totalBids: number;
   requestDate: string;
   status: "pending" | "approved" | "rejected";
@@ -41,187 +45,42 @@ const SellerApprovalsPage = () => {
   // Fetch seller upgrade requests
   const fetchRequests = async () => {
     setIsLoading(true);
-    setError(null);
-
-    // Mock data for development (remove this and uncomment API call when backend is ready)
-    const mockRequests: SellerRequest[] = [
-      {
-        id: "1",
-        username: "john_doe",
-        email: "john@example.com",
-        currentRating: 85,
-        accountAge: 45,
-        totalBids: 127,
-        requestDate: "2025-12-15",
-        status: "pending",
-        fullName: "John Doe",
-        joinDate: "2025-11-15",
-        totalWonAuctions: 32,
-        totalSpent: 4500,
-        reason: "I want to sell vintage watches from my collection.",
-      },
-      {
-        id: "2",
-        username: "jane_smith",
-        email: "jane@example.com",
-        currentRating: 92,
-        accountAge: 60,
-        totalBids: 203,
-        requestDate: "2025-12-20",
-        status: "pending",
-        fullName: "Jane Smith",
-        joinDate: "2025-11-01",
-        totalWonAuctions: 58,
-        totalSpent: 8900,
-        reason: "Looking to expand my antique business to online auctions.",
-      },
-      {
-        id: "3",
-        username: "mike_wilson",
-        email: "mike@example.com",
-        currentRating: 75,
-        accountAge: 25,
-        totalBids: 89,
-        requestDate: "2025-12-25",
-        status: "pending",
-        fullName: "Mike Wilson",
-        joinDate: "2025-12-05",
-        totalWonAuctions: 18,
-        totalSpent: 2100,
-        reason: "Want to sell electronics and gadgets.",
-      },
-    ];
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setRequests(mockRequests);
-    const pending = mockRequests.filter((r) => r.status === "pending");
-    setFilteredRequests(pending);
-    setIsLoading(false);
-
-    /* TODO: Uncomment when API is ready
     try {
-      const response = await axiosInstance.get("/api/admin/seller-requests");
-      const data = Array.isArray(response.data) ? response.data : [];
-      setRequests(data);
-      const pending = data.filter((r: SellerRequest) => r.status === "pending");
-      setFilteredRequests(pending);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to fetch seller requests");
-    } finally {
-      setIsLoading(false);
-    }
-    */
-  };
+      const headers = getHeaders();
+      const response = await axiosInstance.get("/seller-upgrade-requests", {
+        headers,
+      });
 
-  // Approve seller request
-  const approveRequest = async (requestId: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    // Mock API call (remove this when backend is ready)
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // Update local state
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === requestId ? { ...req, status: "approved" as const } : req
-      )
-    );
-    setFilteredRequests((prev) => prev.filter((req) => req.id !== requestId));
-
-    setIsConfirmDialogOpen(false);
-    setIsViewDialogOpen(false);
-    setIsLoading(false);
-
-    /* TODO: Uncomment when API is ready
-    try {
-      await axiosInstance.post(`/api/admin/seller-requests/${requestId}/approve`);
-      
-      setRequests((prev) =>
-        prev.map((req) =>
-          req.id === requestId ? { ...req, status: "approved" as const } : req
-        )
-      );
-      setFilteredRequests((prev) => prev.filter((req) => req.id !== requestId));
-
-      setIsConfirmDialogOpen(false);
-      setIsViewDialogOpen(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to approve request");
-    } finally {
-      setIsLoading(false);
-    }
-    */
-  };
-
-  // Reject seller request
-  const rejectRequest = async (requestId: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    // Mock API call (remove this when backend is ready)
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // Update local state
-    setRequests((prev) =>
-      prev.map((req) =>
-        req.id === requestId ? { ...req, status: "rejected" as const } : req
-      )
-    );
-    setFilteredRequests((prev) => prev.filter((req) => req.id !== requestId));
-
-    setIsConfirmDialogOpen(false);
-    setIsViewDialogOpen(false);
-    setIsLoading(false);
-
-    /* TODO: Uncomment when API is ready
-    try {
-      await axiosInstance.post(`/api/admin/seller-requests/${requestId}/reject`);
-      
-      setRequests((prev) =>
-        prev.map((req) =>
-          req.id === requestId ? { ...req, status: "rejected" as const } : req
-        )
-      );
-      setFilteredRequests((prev) => prev.filter((req) => req.id !== requestId));
-
-      setIsConfirmDialogOpen(false);
-      setIsViewDialogOpen(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to reject request");
-    } finally {
-      setIsLoading(false);
-    }
-    */
-  };
-
-  // Get request details
-  const getRequestDetails = async (requestId: string) => {
-    // Mock: Use existing data from list (remove this when backend is ready)
-    const request = requests.find((r) => r.id === requestId);
-    if (request) {
-      setSelectedRequest(request);
-      setIsViewDialogOpen(true);
-    }
-
-    /* TODO: Uncomment when API is ready
-    try {
-      const response = await axiosInstance.get(`/api/admin/seller-requests/${requestId}`);
-      setSelectedRequest(response.data);
-      setIsViewDialogOpen(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to fetch request details");
-      // Use existing data from list as fallback
-      const request = requests.find((r) => r.id === requestId);
-      if (request) {
-        setSelectedRequest(request);
-        setIsViewDialogOpen(true);
+      if (response.data.success) {
+        const mappedData = response.data.data.map((item: any) => ({
+          id: item.id,
+          username: item.user.username,
+          fullName: item.user.fullName,
+          email: item.user.email,
+          requestDate: formatVietnamDateTime(new Date(item.requestedAt)),
+          status: item.status,
+          totalBids: item.user._count.bids || 0,
+          // Các trường bổ sung nếu Backend trả về
+          currentRating:
+            Number(
+              (
+                ((item.user.ratingPositive || 0) /
+                  (item.user.ratingCount || 1)) *
+                100
+              ).toFixed(2)
+            ) || 0,
+        }));
+        setRequests(mappedData);
+        setFilteredRequests(mappedData);
       }
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch requests");
+    } finally {
+      setIsLoading(false);
     }
-    */
   };
+
+  console.log("Requests:", requests);
 
   // Handle approve action
   const handleApproveRequest = (request: SellerRequest) => {
@@ -244,13 +103,34 @@ const SellerApprovalsPage = () => {
   };
 
   // Handle confirm action
-  const handleConfirmAction = () => {
+  const handleConfirmAction = async () => {
     if (!confirmAction) return;
+    setIsLoading(true);
 
-    if (confirmAction.type === "approve") {
-      approveRequest(confirmAction.requestId);
-    } else {
-      rejectRequest(confirmAction.requestId);
+    try {
+      // API: PUT /api/seller-upgrades/:id
+      const headers = getHeaders();
+      const response = await axiosInstance.put(
+        `/seller-upgrade-requests/${confirmAction.requestId}`,
+        {
+          status: confirmAction.type === "approve" ? "approved" : "rejected",
+        },
+        { headers }
+      );
+
+      if (response.data.success) {
+        toast.success(
+          `Đã ${
+            confirmAction.type === "approve" ? "duyệt" : "từ chối"
+          } thành công!`
+        );
+        setIsConfirmDialogOpen(false);
+        fetchRequests(); // Tải lại danh sách
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Thao tác thất bại");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -331,9 +211,6 @@ const SellerApprovalsPage = () => {
                     Rating
                   </th>
                   <th className="px-3 py-2 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase">
-                    Age
-                  </th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase">
                     Bids
                   </th>
                   <th className="px-3 py-2 text-left text-xs font-medium text-[hsl(var(--muted-foreground))] uppercase">
@@ -348,7 +225,7 @@ const SellerApprovalsPage = () => {
                 {filteredRequests.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={5}
                       className="px-3 py-8 text-center text-sm text-[hsl(var(--muted-foreground))]"
                     >
                       No pending seller requests found
@@ -379,17 +256,6 @@ const SellerApprovalsPage = () => {
                           {request.currentRating}%
                         </span>
                       </td>
-                      <td className="px-3 py-3">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            request.accountAge >= 30
-                              ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
-                              : "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]"
-                          }`}
-                        >
-                          {request.accountAge}d
-                        </span>
-                      </td>
                       <td className="px-3 py-3 text-sm text-[hsl(var(--foreground))]">
                         {request.totalBids}
                       </td>
@@ -398,13 +264,13 @@ const SellerApprovalsPage = () => {
                       </td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-1">
-                          <button
+                          {/* <button
                             onClick={() => getRequestDetails(request.id)}
                             className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-[hsl(var(--accent))] h-8 w-8 cursor-pointer"
                             title="View Details"
                           >
                             <Eye className="h-4 w-4" />
-                          </button>
+                          </button> */}
                           <button
                             onClick={() => handleApproveRequest(request)}
                             disabled={isLoading}
@@ -493,20 +359,6 @@ const SellerApprovalsPage = () => {
                   </div>
                   <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
                     <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
-                      Account Age
-                    </p>
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        selectedRequest.accountAge >= 30
-                          ? "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]"
-                          : "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]"
-                      }`}
-                    >
-                      {selectedRequest.accountAge} days
-                    </span>
-                  </div>
-                  <div className="bg-[hsl(var(--muted))] p-3 rounded-md">
-                    <p className="text-xs text-[hsl(var(--muted-foreground))] mb-1">
                       Total Bids
                     </p>
                     <p className="font-medium">{selectedRequest.totalBids}</p>
@@ -568,20 +420,6 @@ const SellerApprovalsPage = () => {
                         </span>
                       </div>
                       <span className="text-xs">Rating ≥ 80%</span>
-                    </div>
-                    <div className="flex items-center gap-2 flex-1 bg-[hsl(var(--muted))] p-2 rounded">
-                      <div
-                        className={`h-4 w-4 rounded-full flex items-center justify-center ${
-                          selectedRequest.accountAge >= 30
-                            ? "bg-green-500"
-                            : "bg-red-500"
-                        }`}
-                      >
-                        <span className="text-white text-xs">
-                          {selectedRequest.accountAge >= 30 ? "✓" : "✗"}
-                        </span>
-                      </div>
-                      <span className="text-xs">Age ≥ 30 days</span>
                     </div>
                   </div>
                 </div>
