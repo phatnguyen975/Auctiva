@@ -58,18 +58,18 @@ const ProductDetailPage = () => {
 
   const navigate = useNavigate();
 
-  const calculateUserRating = () => {
-    const ratingCount = authUser?.profile?.rating_count;
-    const ratingPositive = authUser?.profile?.rating_positive;
+  // const calculateUserRating = () => {
+  //   const ratingCount = authUser?.profile?.rating_count;
+  //   const ratingPositive = authUser?.profile?.rating_positive;
 
-    if (!ratingCount || !ratingPositive || ratingCount === 0) {
-      return 0;
-    }
+  //   if (!ratingCount || !ratingPositive || ratingCount === 0) {
+  //     return 0;
+  //   }
 
-    return ((ratingPositive / ratingCount) * 100).toFixed(1);
-  };
+  //   return ((ratingPositive / ratingCount) * 100).toFixed(1);
+  // };
 
-  const userRating = Number(calculateUserRating());
+  const userRating = 100;
 
   const suggestedBid =
     Number(product?.currentPrice || 0) + Number(product?.stepPrice || 0);
