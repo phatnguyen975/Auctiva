@@ -16,6 +16,7 @@ interface IPersonalInfo {
 }
 
 interface IPasswordInfo {
+  oldPassword: string;
   newPassword: string;
   confirmPassword: string;
 }
@@ -39,10 +40,12 @@ const AccountSettingsPage = () => {
   );
 
   const [passwordData, setPasswordData] = useState<IPasswordInfo>({
+    oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
+  const [showOldPass, setShowOldPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
 
@@ -170,8 +173,6 @@ const AccountSettingsPage = () => {
         newPassword: passwordData.newPassword,
       };
 
-      console.log;
-
       const { data } = await axiosInstance.put("/users/password", payload, {
         headers: {
           "x-api-key": import.meta.env.VITE_API_KEY,
@@ -182,6 +183,7 @@ const AccountSettingsPage = () => {
         toast.success("Password updated successfully. Please login again.");
 
         setPasswordData({
+          oldPassword: "",
           newPassword: "",
           confirmPassword: "",
         });
@@ -328,6 +330,37 @@ const AccountSettingsPage = () => {
           <h3 className="text-xl font-semibold">Security & Password</h3>
 
           <div className="space-y-4">
+            {/* --- OLD PASSWORD --- */}
+            <div>
+              <label
+                htmlFor="oldPassword"
+                className="text-sm text-[hsl(var(--muted-foreground))] mb-2 block"
+              >
+                Old Password
+              </label>
+              <div className="relative">
+                <input
+                  id="oldPassword"
+                  type={showOldPass ? "text" : "password"}
+                  value={passwordData.oldPassword}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      oldPassword: e.target.value,
+                    })
+                  }
+                  className="w-full rounded-lg pl-3 pr-10 py-2 text-base bg-gray-100 border-[hsl(var(--input))] focus:bg-white focus:border-[hsl(var(--primary))]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowOldPass(!showOldPass)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showOldPass ? <Eye size={18} /> : <EyeOff size={18} />}
+                </button>
+              </div>
+            </div>
+
             {/* --- NEW PASSWORD --- */}
             <div>
               <label

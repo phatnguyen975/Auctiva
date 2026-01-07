@@ -1,17 +1,23 @@
 import { useState, useEffect } from "react";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { axiosInstance } from "../../../lib/axios";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store/store";
 
 interface AdminProfile {
+  username: string | null;
   fullName: string;
   email: string;
-  dateOfBirth: string;
+  birthDate: string | null;
 }
 
 const AdminProfilePage = () => {
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
   // Profile Information
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
+  const [birthDate, setBirthDate] = useState("");
 
   // Password Change
   const [currentPassword, setCurrentPassword] = useState("");
@@ -33,75 +39,71 @@ const AdminProfilePage = () => {
     string | null
   >(null);
 
-  // Fetch admin profile on component mount
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  const sanitizeData = (data: any): AdminProfile => ({
+    username: data.username || "",
+    fullName: data.fullName || "",
+    email: data.email || "",
+    birthDate: data.birthDate ? data.birthDate.split("T")[0] : "",
+  });
 
-  // Fetch admin profile from API
-  const fetchProfile = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    // Mock: Use default values (remove this when backend is ready)
-    const mockProfile: AdminProfile = {
-      fullName: "Admin User",
-      email: "admin@auctiva.com",
-      dateOfBirth: "1990-01-01",
-    };
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setFullName(mockProfile.fullName);
-    setEmail(mockProfile.email);
-    setDateOfBirth(mockProfile.dateOfBirth);
-    setIsLoading(false);
-
-    /* TODO: Uncomment when API is ready
+  const fetchAdminProfile = async () => {
     try {
-      const response = await axiosInstance.get("/api/admin/profile");
-      const profile: AdminProfile = response.data;
-      
-      setFullName(profile.fullName);
-      setEmail(profile.email);
-      setDateOfBirth(profile.dateOfBirth);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to fetch profile");
+      setIsLoading(true);
+      setError(null);
+
+      const { data } = await axiosInstance.get("/users/me", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        const cleanData = sanitizeData(data.data);
+        setFullName(cleanData.fullName || cleanData.username || "N/A");
+        setEmail(cleanData.email);
+        setBirthDate(cleanData.birthDate || "N/A");
+      }
+    } catch (error: any) {
+      console.error("Error loading user information:", error.message);
+      setError(error.response?.data?.message || "Failed to fetch profile");
     } finally {
       setIsLoading(false);
     }
-    */
   };
 
-  // Update admin profile
+  useEffect(() => {
+    fetchAdminProfile();
+  }, []);
+
   const handleUpdateProfile = async () => {
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    // Mock: Simulate success (remove this when backend is ready)
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setSuccessMessage("Profile updated successfully!");
-    setTimeout(() => setSuccessMessage(null), 3000);
-    setIsLoading(false);
-
-    /* TODO: Uncomment when API is ready
     try {
-      await axiosInstance.patch("/api/admin/profile", {
+      setIsLoading(true);
+      setError(null);
+      setSuccessMessage(null);
+
+      const payload = {
         fullName,
         email,
-        dateOfBirth,
+        birthDate,
+      };
+
+      const { data } = await axiosInstance.put("/users/profile", payload, {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
-      
-      setSuccessMessage("Profile updated successfully!");
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to update profile");
+
+      if (data.success) {
+        setSuccessMessage(data.message);
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
+    } catch (error: any) {
+      setError(error.response?.data?.message || "Failed to update profile");
     } finally {
       setIsLoading(false);
     }
-    */
   };
 
   // Update password
@@ -235,16 +237,16 @@ const AdminProfilePage = () => {
 
           <div>
             <label
-              htmlFor="dateOfBirth"
+              htmlFor="birthDate"
               className="text-sm text-[hsl(var(--muted-foreground))] mb-2 block"
             >
               Date of Birth
             </label>
             <input
-              id="dateOfBirth"
+              id="birthDate"
               type="date"
-              value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
               disabled={isLoading}
               className="flex h-10 w-full rounded-md border bg-gray-100 px-3 py-2 text-sm ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:bg-white focus-visible:border-[hsl(var(--primary))] focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
@@ -301,7 +303,7 @@ const AdminProfilePage = () => {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 disabled={isPasswordLoading}
-                className="flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 pr-10 text-sm ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-gray-400 bg-[hsl(var(--background))] px-3 py-2 pr-10 text-sm ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Enter your current password"
               />
               <button
@@ -333,8 +335,8 @@ const AdminProfilePage = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 disabled={isPasswordLoading}
-                className="flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 pr-10 text-sm ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                placeholder="Enter your new password (min. 8 characters)"
+                className="flex h-10 w-full rounded-md border border-gray-400 bg-[hsl(var(--background))] px-3 py-2 pr-10 text-sm ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Enter your new password (min. 6 characters)"
               />
               <button
                 type="button"
@@ -365,7 +367,7 @@ const AdminProfilePage = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={isPasswordLoading}
-                className="flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 pr-10 text-sm ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-gray-400 bg-[hsl(var(--background))] px-3 py-2 pr-10 text-sm ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Confirm your new password"
               />
               <button
