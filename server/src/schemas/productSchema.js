@@ -49,7 +49,7 @@ export const ProductQuerySchema = z.object({
       if (!val) return undefined;
       return val.split(",").map(Number).filter((n) => !isNaN(n));
     }),
-  sortBy: z.enum(["endDate", "currentPrice"]).optional(),
+  sortBy: z.enum(["endDate", "postDate", "currentPrice"]).optional(),
   order: z.enum(["asc", "desc"]).optional(),
   keyword: z.string().trim().optional(),
 });

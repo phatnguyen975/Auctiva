@@ -86,6 +86,10 @@ const ProductService = {
         orderBy = `ORDER BY p.end_date ${order?.toUpperCase() ?? "ASC"}`;
       }
 
+      if (sortBy === "postDate") {
+        orderBy = `ORDER BY p.post_date ${order?.toUpperCase() ?? "DESC"}`;
+      }
+
       if (sortBy === "currentPrice") {
         orderBy = `ORDER BY p.current_price ${order?.toUpperCase() ?? "DESC"}`;
       }
