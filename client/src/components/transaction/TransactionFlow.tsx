@@ -330,7 +330,7 @@ const TransactionFlow = ({
       );
 
       if (response.data.success) {
-        toast.error("Transaction cancelled. Negative rating applied.");
+        toast.success("Transaction cancelled");
         await fetchTransactionDetail(); // Refresh data
       }
     } catch (error: any) {

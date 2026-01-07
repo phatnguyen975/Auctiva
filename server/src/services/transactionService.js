@@ -151,28 +151,59 @@ const TransactionService = {
   },
 
   // Giai đoạn 2 (Option): Seller hủy giao dịch
-  cancelTransaction: async (id, userId) => {
-    const tx = await prisma.transaction.findUnique({
-      where: { id: Number(id) },
-    });
-    if (!tx || tx.sellerId !== userId)
-      throw new Error("Chỉ người bán mới có quyền hủy.");
+  cancelTransaction: async (transactionId, sellerId) => {
+    return await prisma.$transaction(async (tx) => {
+      // 1. Kiểm tra sự tồn tại của giao dịch và quyền sở hữu [cite: 27]
+      const transaction = await tx.transaction.findUnique({
+        where: { id: transactionId },
+      });
 
-    // Sử dụng transaction của prisma để đảm bảo tính toàn vẹn
-    return await prisma.$transaction([
-      prisma.transaction.update({
-        where: { id: Number(id) },
+      if (!transaction || transaction.sellerId !== sellerId) {
+        throw new Error("Giao dịch không tồn tại hoặc bạn không có quyền.");
+      }
+
+      // Không cho phép hủy nếu giao dịch đã hoàn thành hoặc đã bị hủy trước đó [cite: 27]
+      if (
+        transaction.status === "cancelled" ||
+        transaction.status === "completed"
+      ) {
+        throw new Error("Không thể hủy giao dịch đã kết thúc.");
+      }
+
+      // 2. Cập nhật trạng thái giao dịch thành 'cancelled' [cite: 27]
+      const updated = await tx.transaction.update({
+        where: { id: transactionId },
         data: { status: "cancelled" },
-      }),
-      prisma.product.update({
-        where: { id: tx.productId },
+      });
+
+      // 3. Tự động tạo đánh giá xấu từ Bidder gửi cho Seller
+      await tx.rating.create({
         data: {
-          status: "active",
-          winnerId: null,
-          currentPrice: tx.product?.startPrice,
-        }, // Cho phép đấu giá lại
-      }),
-    ]);
+          score: -1,
+          comment: "Seller did not sell",
+          type: "bidder_seller", // Bidder đánh giá Seller
+          product: {
+            connect: { id: transaction.productId }, // Kết nối với sản phẩm
+          },
+          targetUser: {
+            connect: { id: transaction.sellerId }, // Người bị đánh giá là Seller
+          },
+          fromUser: {
+            connect: { id: transaction.winnerId }, // Người gửi đánh giá là Bidder (winner)
+          },
+        },
+      });
+
+      // 4. Cập nhật tổng số lượt đánh giá của Seller trong hồ sơ
+      await tx.profile.update({
+        where: { id: sellerId },
+        data: {
+          ratingCount: { increment: 1 },
+        },
+      });
+
+      return updated;
+    });
   },
 
   // Giai đoạn 3: Buyer xác nhận đã nhận được hàng

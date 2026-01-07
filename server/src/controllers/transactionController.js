@@ -65,8 +65,14 @@ const TransactionController = {
   // Giai đoạn 2: Seller cancel
   cancel: async (req, res) => {
     try {
-      await TransactionService.cancelTransaction(req.params.id, req.user.id);
-      res.json({ success: true, message: "Giao dịch đã bị hủy." });
+      const cancelledTransaction = await TransactionService.cancelTransaction(
+        Number(req.params.id),
+        req.user.id
+      );
+      res.ok(
+        "The order has been successfully canceled. A negative review has been recorded for your profile.",
+        cancelledTransaction
+      );
     } catch (error) {
       console.log("Error in cancel:", error.message);
       res.status(400).json({ message: error.message });
