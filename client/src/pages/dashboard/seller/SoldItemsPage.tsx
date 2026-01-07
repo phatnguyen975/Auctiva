@@ -76,9 +76,55 @@ const SoldItemsPage = () => {
   const handleCancelTransaction = async () => {
     try {
       setIsLoading(true);
-      setShowCancelDialog(false);
+      if (selectedProduct === null) return;
+
+      // Get transaction ID from the selected product
+      const transactionId = soldProducts.find((p) => p.id === selectedProduct)
+        ?.transactions[0]?.id;
+
+      if (!transactionId) {
+        toast.error("Transaction information not found");
+        return;
+      }
+
+      // 1. Gọi API hủy
+      const response = await axiosInstance.post(
+        `/transactions/${transactionId}/cancel`,
+        {},
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(
+          "Order has been cancelled. You received 1 negative rating (-1)."
+        );
+
+        // 2. Cập nhật UI ngay lập tức
+        setSoldProducts((prev) =>
+          prev.map((p) =>
+            p.id === selectedProduct
+              ? {
+                  ...p,
+                  transactions: [
+                    {
+                      ...p.transactions[0],
+                      status: "cancelled",
+                    },
+                  ],
+                }
+              : p
+          )
+        );
+
+        setShowCancelDialog(false);
+      }
     } catch (error: any) {
-      console.error("Error canceling transaction:", error.message);
+      toast.error(error.response?.data?.message || "Failed to cancel order");
     } finally {
       setIsLoading(false);
     }
@@ -360,7 +406,7 @@ const SoldItemsPage = () => {
                   </p>
                   <p>
                     Canceling will automatically rate the buyer (-1) with the
-                    comment: "Buyer did not pay"
+                    comment: "Seller did not sell"
                   </p>
                 </div>
               </div>

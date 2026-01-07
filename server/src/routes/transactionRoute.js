@@ -1,7 +1,7 @@
 import { Router } from "express";
 import TransactionController from "../controllers/transactionController.js";
 import { validateApiKey } from "../middlewares/apiMiddleware.js";
-import { verifyToken } from "../middlewares/userAuthMiddleware.js";
+import { verifyToken, authorize } from "../middlewares/userAuthMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import { RatingSchema } from "../schemas/transactionSchema.js";
 const router = Router();
@@ -18,7 +18,12 @@ router.post("/:id/payment", verifyToken, TransactionController.submitPayment);
 router.post("/:id/ship", verifyToken, TransactionController.confirmShipping);
 
 // GIAI ĐOẠN 2: Seller hủy giao dịch
-router.post("/:id/cancel", verifyToken, TransactionController.cancel);
+router.post(
+  "/:id/cancel",
+  verifyToken,
+  authorize(["seller"]),
+  TransactionController.cancel
+);
 
 // GIAI ĐOẠN 3: Winner xác nhận nhận hàng
 router.post("/:id/receive", verifyToken, TransactionController.confirmReceived);
