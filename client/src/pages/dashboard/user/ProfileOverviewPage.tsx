@@ -123,7 +123,7 @@ const ProfileOverviewPage = () => {
 
     fetchReviews();
   }, []);
-
+  
   return (
     <>
       <div className="bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] flex flex-col gap-6 rounded-xl border border-[hsl(var(--border))] transition-colors duration-300 p-4 sm:p-6 lg:p-8">
