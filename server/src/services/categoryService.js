@@ -33,7 +33,7 @@ const CategoryService = {
   },
 
   getCategories: async () => {
-    return await prisma.category.findMany({
+    const categories = await prisma.category.findMany({
       where: { parentId: null },
       include: {
         children: {
@@ -44,11 +44,22 @@ const CategoryService = {
           },
           orderBy: { createdAt: "asc" },
         },
-        _count: {
-          select: { products: true },
-        },
       },
       orderBy: { createdAt: "asc" },
+    });
+
+    return categories.map((parent) => {
+      const totalProducts = parent.children.reduce(
+        (sum, child) => sum + child._count.products,
+        0
+      );
+
+      return {
+        ...parent,
+        _count: {
+          products: totalProducts,
+        },
+      };
     });
   },
 
@@ -104,7 +115,7 @@ const CategoryService = {
 
     if (productCount > 0) {
       throw new Error(
-        `Category ${id} is being used in ${productCount} product(s)`
+        `Category ${category.name} is being used in ${productCount} product(s)`
       );
     }
 
@@ -114,7 +125,7 @@ const CategoryService = {
 
     if (categoryCount > 0) {
       throw new Error(
-        `Category ${id} is being used in ${categoryCount} category(s)`
+        `Category ${category.name} is being used in ${categoryCount} category(s)`
       );
     }
 

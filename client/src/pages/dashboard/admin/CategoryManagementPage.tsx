@@ -316,7 +316,7 @@ const CategoryManagementPage = () => {
                                 {child.name}
                               </span>
                               <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-black text-white">
-                                {category._count.products} products
+                                {child._count.products} products
                               </span>
                             </div>
                             <div className="flex gap-2">
