@@ -1,179 +1,88 @@
 import { useState, useEffect } from "react";
 import { Info, Loader2 } from "lucide-react";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../../store/store";
+import { axiosInstance } from "../../../lib/axios";
 
 interface SystemSettings {
-  autoExtensionTrigger: number;
-  extensionDuration: number;
-  newBadgeDuration: number;
-  minSellerRating: number;
-  minAccountAge: number;
-  platformFee: number;
-  minBidStep: number;
+  extend_threshold_minutes: number;
+  auto_extend_minutes: number;
+  highlight_minutes: number;
 }
 
 const SystemSettingsPage = () => {
-  // Auto-Extension Settings
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+
   const [autoExtensionTrigger, setAutoExtensionTrigger] = useState("5");
   const [extensionDuration, setExtensionDuration] = useState("10");
-  const [newBadgeDuration, setNewBadgeDuration] = useState("5");
+  const [newBadgeDuration, setNewBadgeDuration] = useState("15");
 
-  // Platform Settings
-  const [minSellerRating, setMinSellerRating] = useState("80");
-  const [minAccountAge, setMinAccountAge] = useState("30");
-  const [platformFee, setPlatformFee] = useState("5");
-  const [minBidStep, setMinBidStep] = useState("1");
-
-  // Loading and error states
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Fetch system settings on component mount
   useEffect(() => {
     fetchSettings();
   }, []);
 
-  // Fetch system settings from API
   const fetchSettings = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    // Mock: Use default values (remove this when backend is ready)
-    const mockSettings: SystemSettings = {
-      autoExtensionTrigger: 5,
-      extensionDuration: 10,
-      newBadgeDuration: 5,
-      minSellerRating: 80,
-      minAccountAge: 30,
-      platformFee: 5,
-      minBidStep: 1,
-    };
-
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    setAutoExtensionTrigger(mockSettings.autoExtensionTrigger.toString());
-    setExtensionDuration(mockSettings.extensionDuration.toString());
-    setNewBadgeDuration(mockSettings.newBadgeDuration.toString());
-    setMinSellerRating(mockSettings.minSellerRating.toString());
-    setMinAccountAge(mockSettings.minAccountAge.toString());
-    setPlatformFee(mockSettings.platformFee.toString());
-    setMinBidStep(mockSettings.minBidStep.toString());
-    setIsLoading(false);
-
-    /* TODO: Uncomment when API is ready
     try {
-      const response = await axiosInstance.get("/api/admin/system-settings");
-      const settings: SystemSettings = response.data;
-      
-      setAutoExtensionTrigger(settings.autoExtensionTrigger.toString());
-      setExtensionDuration(settings.extensionDuration.toString());
-      setNewBadgeDuration(settings.newBadgeDuration.toString());
-      setMinSellerRating(settings.minSellerRating.toString());
-      setMinAccountAge(settings.minAccountAge.toString());
-      setPlatformFee(settings.platformFee.toString());
-      setMinBidStep(settings.minBidStep.toString());
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to fetch settings");
+      setIsLoading(true);
+      setError(null);
+
+      const { data } = await axiosInstance.get("/users/admin/settings", {
+        headers: {
+          "x-api-key": import.meta.env.VITE_API_KEY,
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (data.success) {
+        const settings: SystemSettings = data.data;
+        setAutoExtensionTrigger(settings.extend_threshold_minutes.toString());
+        setExtensionDuration(settings.auto_extend_minutes.toString());
+        setNewBadgeDuration(settings.highlight_minutes.toString());
+      }
+    } catch (error: any) {
+      console.error("Error loading user information:", error.message);
+      setError(error.response?.data?.message || "Failed to fetch settings");
     } finally {
       setIsLoading(false);
     }
-    */
   };
 
-  // Save auto-extension settings
   const handleSaveAutoExtension = async () => {
     setIsLoading(true);
     setError(null);
     setSuccessMessage(null);
 
-    // Mock: Simulate success (remove this when backend is ready)
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setSuccessMessage("Auto-extension settings saved successfully!");
-    setTimeout(() => setSuccessMessage(null), 3000);
-    setIsLoading(false);
-
-    /* TODO: Uncomment when API is ready
     try {
-      await axiosInstance.patch("/api/admin/system-settings/auto-extension", {
-        autoExtensionTrigger: parseInt(autoExtensionTrigger),
-        extensionDuration: parseInt(extensionDuration),
-        newBadgeDuration: parseInt(newBadgeDuration),
-      });
-      
-      setSuccessMessage("Auto-extension settings saved successfully!");
-      setTimeout(() => setSuccessMessage(null), 3000);
+      const payload: SystemSettings = {
+        extend_threshold_minutes: parseInt(autoExtensionTrigger),
+        auto_extend_minutes: parseInt(extensionDuration),
+        highlight_minutes: parseInt(newBadgeDuration),
+      };
+
+      const { data } = await axiosInstance.post(
+        "users/admin/settings",
+        payload,
+        {
+          headers: {
+            "x-api-key": import.meta.env.VITE_API_KEY,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (data.success) {
+        setSuccessMessage(data.message);
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to save auto-extension settings");
+      setError(err.response?.data?.message || "Failed to save settings");
     } finally {
       setIsLoading(false);
     }
-    */
-  };
-
-  // Reset to default values
-  const handleResetToDefaults = async () => {
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    // Mock: Reset to defaults (remove this when backend is ready)
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    setAutoExtensionTrigger("5");
-    setExtensionDuration("10");
-    setNewBadgeDuration("5");
-    setSuccessMessage("Settings reset to defaults!");
-    setTimeout(() => setSuccessMessage(null), 3000);
-    setIsLoading(false);
-
-    /* TODO: Uncomment when API is ready
-    try {
-      const response = await axiosInstance.post("/api/admin/system-settings/reset-defaults");
-      const settings: SystemSettings = response.data;
-      
-      setAutoExtensionTrigger(settings.autoExtensionTrigger.toString());
-      setExtensionDuration(settings.extensionDuration.toString());
-      setNewBadgeDuration(settings.newBadgeDuration.toString());
-      
-      setSuccessMessage("Settings reset to defaults!");
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to reset settings");
-    } finally {
-      setIsLoading(false);
-    }
-    */
-  };
-
-  // Save platform settings
-  const handleSavePlatformSettings = async () => {
-    setIsLoading(true);
-    setError(null);
-    setSuccessMessage(null);
-
-    // Mock: Simulate success (remove this when backend is ready)
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setSuccessMessage("Platform settings saved successfully!");
-    setTimeout(() => setSuccessMessage(null), 3000);
-    setIsLoading(false);
-
-    /* TODO: Uncomment when API is ready
-    try {
-      await axiosInstance.patch("/api/admin/system-settings/platform", {
-        minSellerRating: parseInt(minSellerRating),
-        minAccountAge: parseInt(minAccountAge),
-        platformFee: parseFloat(platformFee),
-        minBidStep: parseFloat(minBidStep),
-      });
-      
-      setSuccessMessage("Platform settings saved successfully!");
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to save platform settings");
-    } finally {
-      setIsLoading(false);
-    }
-    */
   };
 
   return (
@@ -196,7 +105,7 @@ const SystemSettingsPage = () => {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--primary))]" />
         </div>
       )}
@@ -364,101 +273,7 @@ const SystemSettingsPage = () => {
                 "Save Settings"
               )}
             </button>
-            <button
-              onClick={handleResetToDefaults}
-              disabled={isLoading}
-              className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-[hsl(var(--input))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] h-11 px-8 cursor-pointer"
-            >
-              Reset to Defaults
-            </button>
           </div>
-        </div>
-      </div>
-
-      {/* Platform Settings */}
-      <div className="bg-[hsl(var(--card))] rounded-lg border border-[hsl(var(--border))] p-4 sm:p-6">
-        <h3 className="font-semibold mb-4">Platform Settings</h3>
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="min-seller-rating"
-                className="text-sm font-medium leading-none"
-              >
-                Minimum Seller Rating (%)
-              </label>
-              <input
-                id="min-seller-rating"
-                type="number"
-                value={minSellerRating}
-                onChange={(e) => setMinSellerRating(e.target.value)}
-                className="mt-2 flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-[hsl(var(--background))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="min-account-age"
-                className="text-sm font-medium leading-none"
-              >
-                Minimum Account Age (days)
-              </label>
-              <input
-                id="min-account-age"
-                type="number"
-                value={minAccountAge}
-                onChange={(e) => setMinAccountAge(e.target.value)}
-                className="mt-2 flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-[hsl(var(--background))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label
-                htmlFor="platform-fee"
-                className="text-sm font-medium leading-none"
-              >
-                Platform Fee (%)
-              </label>
-              <input
-                id="platform-fee"
-                type="number"
-                value={platformFee}
-                onChange={(e) => setPlatformFee(e.target.value)}
-                step="0.1"
-                className="mt-2 flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-[hsl(var(--background))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="min-bid-step"
-                className="text-sm font-medium leading-none"
-              >
-                Minimum Bid Step ($)
-              </label>
-              <input
-                id="min-bid-step"
-                type="number"
-                value={minBidStep}
-                onChange={(e) => setMinBidStep(e.target.value)}
-                step="0.1"
-                className="mt-2 flex h-10 w-full rounded-md border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-[hsl(var(--background))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2"
-              />
-            </div>
-          </div>
-          <button
-            onClick={handleSavePlatformSettings}
-            disabled={isLoading}
-            className="mt-4 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]/90 h-10 px-4 py-2 cursor-pointer"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Platform Settings"
-            )}
-          </button>
         </div>
       </div>
     </div>

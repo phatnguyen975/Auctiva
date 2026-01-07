@@ -76,8 +76,6 @@ const SellerApprovalsPage = () => {
     }
   };
 
-  console.log("Requests:", requests);
-
   // Handle approve action
   const handleApproveRequest = (request: SellerRequest) => {
     setConfirmAction({

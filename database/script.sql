@@ -228,4 +228,4 @@ insert into admin_settings (key, value)
 values
 ('extend_threshold_minutes', '5'::jsonb),
 ('auto_extend_minutes', '10'::jsonb),
-('highlight_minutes', '30'::jsonb)
+('highlight_minutes', '15'::jsonb)

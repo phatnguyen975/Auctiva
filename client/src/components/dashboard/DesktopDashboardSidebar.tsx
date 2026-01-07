@@ -299,8 +299,6 @@ const DesktopDashboardSidebar = ({
     }
   }, [location, userData.role]);
 
-  console.log(sellerExpiredAt);
-
   return (
     <>
       <div
