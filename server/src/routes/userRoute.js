@@ -3,6 +3,7 @@ import UserController from "../controllers/userController.js";
 import WatchlistController from "../controllers/watchlistController.js";
 import RatingController from "../controllers/ratingController.js";
 import BidController from "../controllers/bidController.js";
+import AdminSettingController from "../controllers/adminSettingController.js";
 import { validateApiKey } from "../middlewares/apiMiddleware.js";
 import { validate } from "../middlewares/validateMiddleware.js";
 import {
@@ -30,6 +31,20 @@ router.get(
   verifyToken,
   authorize(["bidder", "seller", "admin"]),
   UserController.getMe
+);
+
+router.get(
+  "/admin/settings",
+  verifyToken,
+  authorize(["admin"]),
+  AdminSettingController.getSettings
+);
+
+router.post(
+  "/admin/settings",
+  verifyToken,
+  authorize(["admin"]),
+  AdminSettingController.updateSettings
 );
 
 router.get(

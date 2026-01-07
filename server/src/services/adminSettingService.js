@@ -28,16 +28,22 @@ const AdminSettingService = {
     return cache;
   },
 
-  updateAdminSetting: async (setting) => {
-    const updatedSetting = await prisma.adminSetting.update({
-      where: { key: setting.key },
-      data: { value: setting.value },
-    });
+  updateAdminSettings: async (settings) => {
+    const entries = Object.entries(settings);
+
+    const updatedSettings = await prisma.$transaction(
+      entries.map(([key, value]) =>
+        prisma.adminSetting.update({
+          where: { key },
+          data: { value },
+        })
+      )
+    );
 
     cache = null;
     lastFetch = 0;
 
-    return updatedSetting;
+    return updatedSettings;
   },
 };
 
